@@ -15,9 +15,11 @@
 package cmd
 
 import (
-	"fmt"
 
 	"github.com/spf13/cobra"
+
+	"github.com/jgsqware/hyperclair/ping"
+	"strconv"
 )
 
 // pingCmd represents the ping command
@@ -26,8 +28,13 @@ var pingCmd = &cobra.Command{
 	Short: "Ping the registry",
 	Long: `Ping the Docker registry to check if it's up`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// TODO: Work your own magic here
-		fmt.Println("ping called")
+		clairURI := RootCmd.PersistentFlags().Lookup("clair_uri").Value.String()
+		clairPort, _:= strconv.Atoi(RootCmd.PersistentFlags().Lookup("clair_port").Value.String())
+		registryURI := RootCmd.PersistentFlags().Lookup("registry_uri").Value.String()
+		registryPort, _:= strconv.Atoi(RootCmd.PersistentFlags().Lookup("registry_port").Value.String())
+		//TODO the Get Value is not great
+		ping.Clair(clairURI,clairPort)
+		ping.Registry(registryURI,registryPort)
 	},
 }
 
