@@ -1,55 +1,73 @@
 package ping
 
 import (
-  "fmt"
   "log"
   "net/http"
   "strconv"
   "errors"
 )
 
-func Clair(clairURI string, clairPort int) bool {
+type Services struct {
+  ClairURI string
+  ClairPort int
+  RegistryURI string
+  RegistryPort int
+}
+
+// func Ping(services Services) error {
+//   var computedErr string
+//   err := Clair(services.ClairURI, services.ClairPort)
+//   if err != nil {
+//     computedErr = err.Error()
+//   }
+//
+//   err = Registry(services.RegistryURI, services.RegistryPort)
+//   if err != nil {
+//     computedErr += " & " + err.Error()
+//   }
+//
+//   if computedErr != nil {
+//     return errors.New(computedErr)
+//   }
+//
+//   return nil
+// }
+
+func Clair(clairURI string, clairPort int) error {
 
   url := "http://"+clairURI+":"+strconv.Itoa(clairPort)+"/v1/versions"
-  fmt.Printf("Ping Clair at %s\n", url )
-  statusCode,err := ping(url)
+  err := ping(url)
 
-  if statusCode != 200 {
-    log.Fatalf("Clair is not up! %s",err)
-    return false
+  if err != nil {
+    return errors.New("Clair is not up!")
+
   }
-
   log.Printf("Clair is up!")
-
-  return true
+  return nil
 }
 
-func Registry(registryURI string, registryPort int) bool {
+func Registry(registryURI string, registryPort int) error {
 
   url := "http://"+registryURI+":"+strconv.Itoa(registryPort)+"/v2"
-  fmt.Printf("Ping Registry at %s\n", url )
-  statusCode,err := ping(url)
+  err := ping(url)
 
-  if statusCode != 200 {
-    log.Fatalf("Registry is not up! %s",err)
-    return false
+  if err != nil {
+    return errors.New("Registry is not up!")
+
   }
-
   log.Printf("Registry is up!")
-
-  return true
+  return nil
 }
 
-func ping(url string) (int, error) {
+func ping(url string) error {
   response, err := http.Get(url)
 
   if err != nil {
-    log.Fatalf("Error on Ping: %s",err)
-    return -1, err
+    return err
   }
 
   if response.StatusCode != 200 {
-    return response.StatusCode, errors.New("StatusCode is "+ strconv.Itoa(response.StatusCode))
+    return errors.New("StatusCode is "+ strconv.Itoa(response.StatusCode))
   }
-  return response.StatusCode, nil
+  return nil
 }

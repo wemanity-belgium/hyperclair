@@ -15,8 +15,9 @@
 package cmd
 
 import (
-
+	"fmt"
 	"github.com/spf13/cobra"
+	"log"
 
 	"github.com/jgsqware/hyperclair/ping"
 	"strconv"
@@ -32,9 +33,26 @@ var pingCmd = &cobra.Command{
 		clairPort, _:= strconv.Atoi(RootCmd.PersistentFlags().Lookup("clair_port").Value.String())
 		registryURI := RootCmd.PersistentFlags().Lookup("registry_uri").Value.String()
 		registryPort, _:= strconv.Atoi(RootCmd.PersistentFlags().Lookup("registry_port").Value.String())
+
+		services := ping.Services{
+			ClairURI: clairURI,
+			ClairPort: clairPort,
+			RegistryURI: registryURI,
+			RegistryPort: registryPort,
+		}
+
 		//TODO the Get Value is not great
-		ping.Clair(clairURI,clairPort)
-		ping.Registry(registryURI,registryPort)
+		err := ping.Clair(services.ClairURI,services.ClairPort)
+		if err != nil {
+			log.Printf(err.Error())
+		}
+
+		err = ping.Registry(services.RegistryURI,services.RegistryPort)
+		if err != nil {
+			log.Printf(err.Error())
+		}
+
+		fmt.Printf("All is up!")
 	},
 }
 
