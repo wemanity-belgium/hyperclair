@@ -1,0 +1,7 @@
+clair:
+  uri: localhost
+  port: 6060
+
+registry:
+  uri: localhost
+  port: 5000
