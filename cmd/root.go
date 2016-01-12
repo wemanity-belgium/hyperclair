@@ -55,14 +55,10 @@ func init() {
 	// will be global for your application.
 
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.hyperclair.yaml)")
-	RootCmd.PersistentFlags().StringVar(&clairURI,"clair_uri","localhost","URI of Clair")
-	RootCmd.PersistentFlags().IntVar(&clairPort,"clair_port",6060,"Port of Clair")
-	RootCmd.PersistentFlags().StringVar(&registryURI,"registry_uri","localhost","URI of Registry")
-	RootCmd.PersistentFlags().IntVar(&registryPort,"registry_port",5000,"Port of Registry")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	RootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// RootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -74,6 +70,11 @@ func initConfig() {
 	viper.SetConfigName(".hyperclair") // name of config file (without extension)
 	viper.AddConfigPath("$HOME")  // adding home directory as first search path
 	viper.AutomaticEnv()          // read in environment variables that match
+
+	viper.SetDefault("clair.uri","localhost")
+	viper.SetDefault("clair.port","6060")
+	viper.SetDefault("registry.uri","localhost")
+	viper.SetDefault("registry.port","5000")
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {

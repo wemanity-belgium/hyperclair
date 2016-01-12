@@ -1,0 +1,7 @@
+cobra:
+  build: .
+  volumes:
+    - .:/go/src/github.com/jgsqware/hyperclair
+  working_dir: /go/src/github.com/jgsqware/hyperclair
+  stdin_open: true
+  tty: true
