@@ -17,34 +17,26 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
 	"log"
 
-	"github.com/jgsqware/hyperclair/ping"
+	"github.com/jgsqware/hyperclair/services"
 )
 
-// pingCmd represents the ping command
 var pingCmd = &cobra.Command{
 	Use:   "ping",
 	Short: "Ping the registry",
 	Long: `Ping the Docker registry to check if it's up`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		services := ping.Services{
-			ClairURI : viper.GetString("clair.uri"),
-			ClairPort : viper.GetInt("clair.port"),
-			RegistryURI : viper.GetString("registry.uri"),
-			RegistryPort : viper.GetInt("registry.port"),
-		}
+		services := services.New()
 
 		//TODO the Get Value is not great
-		err := ping.Clair(services.ClairURI,services.ClairPort)
+		err := services.Clair.Ping()
 		if err != nil {
 			log.Printf(err.Error())
 		}
 
-		err = ping.Registry(services.RegistryURI,services.RegistryPort)
+		err = services.Registry.Ping()
 		if err != nil {
 			log.Printf(err.Error())
 		}
@@ -55,15 +47,4 @@ var pingCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(pingCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// pingCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// pingCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
 }

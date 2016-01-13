@@ -17,14 +17,14 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"log"
 
 	"github.com/jgsqware/hyperclair/pull"
-	"github.com/jgsqware/hyperclair/ping"
+	// "github.com/jgsqware/hyperclair/config"
+	"github.com/jgsqware/hyperclair/services"
+	"github.com/jgsqware/hyperclair/utils"
 
 	"errors"
-	"strings"
 )
 
 // pingCmd represents the ping command
@@ -39,21 +39,14 @@ var pullCmd = &cobra.Command{
 			return errors.New("hyperclair: \"pull\" requires a minimum of 1 argument.")
 		}
 
-		//TODO Validate imageName
 
-		image := strings.Split(args[0],":")
-		imageName := image[0]
-		tag := image[1]
-
-		services := ping.Services{
-			RegistryURI: viper.GetString("registry.uri"),
-			RegistryPort: viper.GetInt("registry.port"),
-		}
-
+		imageName, tag := utils.SplitImageName(args[0])
+		services := services.New()
 
 		manifest, err := pull.GetLayers(services,imageName,tag)
 		if err != nil {
 			log.Printf(err.Error())
+			return err
 		}
 
 		for _,layer := range manifest.FsLayers {

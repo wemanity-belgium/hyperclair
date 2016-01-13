@@ -3,8 +3,7 @@ package pull
 import (
   "net/http"
   "encoding/json"
-  "github.com/jgsqware/hyperclair/ping"
-  "strconv"
+  "github.com/jgsqware/hyperclair/services"
   "io/ioutil"
   "fmt"
 )
@@ -19,8 +18,8 @@ type manifest struct {
   FsLayers []layer
 }
 
-func GetLayers(services ping.Services, imageName string, tag string) (manifest, error) {
-  url := "http://"+services.RegistryURI+":"+strconv.Itoa(services.RegistryPort)+"/v2/"+imageName+"/manifests/"+tag
+func GetLayers(services services.Services, imageName string, tag string) (manifest, error) {
+  url := services.Registry.GetManifestUrl(imageName,tag)
 
   var manifestObject manifest
 
