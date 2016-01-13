@@ -16,8 +16,10 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"log"
+	"os"
+
+	"github.com/spf13/cobra"
 
 	"github.com/jgsqware/hyperclair/pull"
 	// "github.com/jgsqware/hyperclair/config"
@@ -31,26 +33,30 @@ import (
 var pullCmd = &cobra.Command{
 	Use:   "pull IMAGE",
 	Short: "Pull images",
-	Long: `Pull a Docker image`,
-	RunE: func(cmd *cobra.Command, args []string) error{
-
-		//TODO how to use args with viper
-		if len(args) != 1 {
-			return errors.New("hyperclair: \"pull\" requires a minimum of 1 argument.")
+	Long:  `Pull a Docker image`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		manifests, err := pull.PullForHub()
+		for _, layer := range manifests.FsLayers {
+			fmt.Printf("Layer: %s\n", layer.BlobSum)
 		}
 
+		os.Exit(0)
+		//TODO how to use args with viper
+		if len(args) != 1 {
+			return errors.New("hyperclair: \"pull\" requires a minimum of 1 argument")
+		}
 
 		imageName, tag := utils.SplitImageName(args[0])
 		services := services.New()
 
-		manifest, err := pull.GetLayers(services,imageName,tag)
+		manifest, err := pull.GetLayers(services, imageName, tag)
 		if err != nil {
 			log.Printf(err.Error())
 			return err
 		}
 
-		for _,layer := range manifest.FsLayers {
-			fmt.Printf("Layer: %s\n",layer.BlobSum)
+		for _, layer := range manifest.FsLayers {
+			fmt.Printf("Layer: %s\n", layer.BlobSum)
 		}
 
 		return nil
