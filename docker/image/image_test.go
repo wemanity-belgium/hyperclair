@@ -152,7 +152,19 @@ func TestAuthURI(t *testing.T) {
 		Tag:        "latest",
 	}
 
-	if authURI := image.AuthURI(); authURI != "https://auth.docker.io/token?service=registry.docker.io&scope=repository:"+image.GetName()+":pull" {
+	if authURI := image.AuthURI(); authURI != "https://auth.docker.io/token?service=registry.docker.io&scope=repository:"+image.GetOnlyName()+":pull" {
 		t.Errorf("Image name should be https://auth.docker.io/token?service=registry.docker.io&scope=repository:jgsqware/alpine:pull but is %v", authURI)
+	}
+}
+
+func TestPushFromHub(t *testing.T) {
+	image := DockerImage{
+		Repository: "jgsqware",
+		ImageName:  "alpine",
+		Tag:        "latest",
+	}
+
+	if err := image.Push(); err == nil {
+		t.Errorf("Error shoudl be present. Push From Hub is not implemented yet!")
 	}
 }

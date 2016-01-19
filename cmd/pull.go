@@ -30,12 +30,6 @@ var pullCmd = &cobra.Command{
 	Short: "Pull images",
 	Long:  `Pull a Docker image`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// manifests, err := pull.PullForHub()
-		// for _, layer := range manifests.FsLayers {
-		// 	fmt.Printf("Layer: %s\n", layer.BlobSum)
-		// }
-		//
-		// os.Exit(0)
 		//TODO how to use args with viper
 		if len(args) != 1 {
 			return errors.New("hyperclair: \"pull\" requires a minimum of 1 argument")

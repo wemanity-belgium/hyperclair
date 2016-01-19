@@ -1,7 +1,22 @@
-cobra:
-  build: .
+# cobra:
+#   build: .
+#   volumes:
+#     - .:/go/src/github.com/jgsqware/hyperclair
+#   working_dir: /go/src/github.com/jgsqware/hyperclair
+#   stdin_open: true
+#   tty: true
+
+registry:
+  image: registry:2.2.1
+  ports:
+    - 5000:5000
+
+clair:
+  image: quay.io/coreos/clair:latest
   volumes:
-    - .:/go/src/github.com/jgsqware/hyperclair
-  working_dir: /go/src/github.com/jgsqware/hyperclair
-  stdin_open: true
-  tty: true
+    - /tmp:/tmp
+  ports:
+    - 6060:6060
+    - 6061:6061
+  links:
+    - registry

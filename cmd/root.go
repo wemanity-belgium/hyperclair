@@ -23,19 +23,15 @@ import (
 )
 
 var cfgFile string
-var clairURI string
-var clairPort int
-var registryURI string
-var registryPort int
 
 // This represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
 	Use:   "hyperclair",
 	Short: "A CLI for Clair and Docker Registry",
-	Long: ``,
-// Uncomment the following line if your bare application
-// has an action associated with it:
-//	Run: func(cmd *cobra.Command, args []string) { },
+	Long:  ``,
+	// Uncomment the following line if your bare application
+	// has an action associated with it:
+	//	Run: func(cmd *cobra.Command, args []string) { },
 }
 
 // Execute adds all child commands to the root command sets flags appropriately.
@@ -68,13 +64,13 @@ func initConfig() {
 	}
 
 	viper.SetConfigName(".hyperclair") // name of config file (without extension)
-	viper.AddConfigPath("$HOME")  // adding home directory as first search path
-	viper.AutomaticEnv()          // read in environment variables that match
+	viper.AddConfigPath("$HOME")       // adding home directory as first search path
+	viper.AutomaticEnv()               // read in environment variables that match
 
-	viper.SetDefault("clair.uri","localhost")
-	viper.SetDefault("clair.port","6060")
-	viper.SetDefault("registry.uri","localhost")
-	viper.SetDefault("registry.port","5000")
+	viper.SetDefault("clair.uri", "localhost")
+	viper.SetDefault("clair.port", "6060")
+	viper.SetDefault("clair.link", "registry")
+	viper.SetDefault("clair.priority", "Low")
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {

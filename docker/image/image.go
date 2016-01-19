@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/jgsqware/hyperclair/clair"
 	"github.com/jgsqware/hyperclair/utils"
 )
 
@@ -68,6 +69,15 @@ func (im DockerImage) ManifestURI() string {
 
 func (im DockerImage) AuthURI() string {
 	return "https://auth.docker.io/token?service=registry.docker.io&scope=repository:" + im.GetOnlyName() + ":pull"
+}
+
+func (im DockerImage) BlobsURI(digest string) string {
+	imageName := im.ImageName
+
+	if im.Repository != "" {
+		imageName = strings.Join([]string{im.Repository, im.ImageName}, "/")
+	}
+	return strings.Join([]string{formatURI(im.Registry), imageName, "blobs", digest}, "/")
 }
 
 // Parse is used to parse a docker image command
@@ -141,6 +151,58 @@ func (im DockerImage) GetOnlyName() string {
 func (image DockerImage) isReachable() error {
 	if err := utils.Ping(formatURI(image.Registry)); err != nil {
 		return errors.New("Registry is not reachable: " + err.Error())
+	}
+	return nil
+}
+
+func (im *DockerImage) Push() error {
+	if im.Registry != "" {
+		return im.pushFromRegistry()
+	}
+
+	return im.pushFromHub()
+}
+
+func (im *DockerImage) pushFromHub() error {
+	return errors.New("Clair Analysis for Docker Hub is not implemented yet!")
+}
+
+func (im *DockerImage) pushFromRegistry() error {
+	clair.Config()
+	layerCount := len(im.Manifest.FsLayers)
+
+	parentID := ""
+	for index, layer := range im.Manifest.FsLayers {
+		fmt.Printf("Pushing Layer %d/%d\n", index, layerCount)
+
+		payload := clair.Layer{
+			ID:       layer.BlobSum,
+			Path:     im.BlobsURI(layer.BlobSum),
+			ParentID: parentID,
+		}
+
+		if err := clair.AddLayer(payload); err != nil {
+			fmt.Printf("Error adding layer [%v] %d/%d: %v\n", utils.Substr(layer.BlobSum, 0, 12), index+1, layerCount, err)
+			parentID = ""
+		} else {
+			parentID = layer.BlobSum
+		}
+	}
+
+	return nil
+}
+
+func (im *DockerImage) Analyse() error {
+	clair.Config()
+	layerCount := len(im.Manifest.FsLayers)
+	for index := range im.Manifest.FsLayers {
+		layer := im.Manifest.FsLayers[layerCount-index-1]
+
+		if analysis, err := clair.AnalyseLayer(layer.BlobSum); err != nil {
+			fmt.Printf("Error analysing layer [%v] %d/%d: %v\n", utils.Substr(layer.BlobSum, 0, 12), index+1, layerCount, err)
+		} else {
+			fmt.Printf("Analysis [%v] found %d vulnerabilities.\n", utils.Substr(layer.BlobSum, 0, 12), len(analysis.Vulnerabilities))
+		}
 	}
 	return nil
 }
