@@ -1,13 +1,12 @@
 package cmd
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/jgsqware/hyperclair/docker/image"
 	"github.com/spf13/cobra"
 	//"strings"
 	"errors"
-	"fmt"
 )
 
 var pushCmd = &cobra.Command{
@@ -21,14 +20,20 @@ var pushCmd = &cobra.Command{
 		}
 
 		image, err := image.Parse(args[0])
-
 		if err != nil {
-			log.Printf(err.Error())
 			return err
 		}
 
-		fmt.Printf("Docker Image: %s", image.GetName())
+		if err := image.Pull(); err != nil {
+			return err
+		}
 
+		fmt.Println("Pushing Image")
+		if err := image.Push(); err != nil {
+			return err
+		}
+
+		fmt.Println("All is ok")
 		return nil
 	},
 }

@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/jgsqware/hyperclair/clair"
 	"github.com/jgsqware/hyperclair/utils"
 )
 
@@ -142,6 +143,49 @@ func (image DockerImage) isReachable() error {
 	if err := utils.Ping(formatURI(image.Registry)); err != nil {
 		return errors.New("Registry is not reachable: " + err.Error())
 	}
+	return nil
+}
+
+func (im *DockerImage) Push() error {
+	if im.Registry != "" {
+		return im.pushFromRegistry()
+	}
+
+	return im.pushFromHub()
+}
+
+func (im *DockerImage) pushFromHub() error {
+	return errors.New("Clair Analysis for Docker Hub is not implemented yet!")
+}
+
+func (im *DockerImage) pushFromRegistry() error {
+	clair.Config()
+	fmt.Println("Pushing Layer: ", im.Manifest.FsLayers[len(im.Manifest.FsLayers)-1].BlobSum)
+	payload := clair.Layer{ID: im.Manifest.FsLayers[len(im.Manifest.FsLayers)-1].BlobSum, Path: "http://registry:5000/v2/jgsqware/ubuntu-git/blobs/" + im.Manifest.FsLayers[len(im.Manifest.FsLayers)-1].BlobSum, ParentID: ""}
+	clair.AddLayer(payload)
+	// jsonPayload, err := json.Marshal(payload)
+	// if err != nil {
+	// 	return err
+	// }
+	//
+	// request, err := http.NewRequest("POST", "http://localhost:6060/v1/layers", bytes.NewBuffer(jsonPayload))
+	// if err != nil {
+	// 	return err
+	// }
+	// request.Header.Set("Content-Type", "application/json")
+	//
+	// client := &http.Client{}
+	// response, err := client.Do(request)
+	// if err != nil {
+	// 	return err
+	// }
+	// defer response.Body.Close()
+	//
+	// if response.StatusCode != 201 {
+	// 	body, _ := ioutil.ReadAll(response.Body)
+	// 	return fmt.Errorf("Got response %d with message %s", response.StatusCode, string(body))
+	// }
+
 	return nil
 }
 
