@@ -32,8 +32,6 @@ var analyseCmd = &cobra.Command{
 		if err := image.Analyse(); err != nil {
 			return err
 		}
-
-		fmt.Println("All is ok")
 		return nil
 	},
 }

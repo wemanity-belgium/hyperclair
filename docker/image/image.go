@@ -7,8 +7,10 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
+	"text/template"
 
 	"github.com/jgsqware/hyperclair/clair"
 	"github.com/jgsqware/hyperclair/utils"
@@ -202,9 +204,27 @@ func (im *DockerImage) Analyse() error {
 			fmt.Printf("Error analysing layer [%v] %d/%d: %v\n", utils.Substr(layer.BlobSum, 0, 12), index+1, layerCount, err)
 		} else {
 			fmt.Printf("Analysis [%v] found %d vulnerabilities.\n", utils.Substr(layer.BlobSum, 0, 12), len(analysis.Vulnerabilities))
+			if len(analysis.Vulnerabilities) > 0 {
+				report(analysis)
+			}
 		}
 	}
+
 	return nil
+}
+
+type Person struct {
+	FirstName string
+	LastName  string
+	Age       int
+}
+
+func report(analysis clair.Analysis) {
+	t, err := template.New("analysis").Parse("{{range .Vulnerabilities}}{{.ID}}{{end}}")
+	err = t.Execute(os.Stdout, analysis)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (im *DockerImage) Pull() error {
