@@ -17,6 +17,12 @@ var URI string
 var Port int
 var Link string
 var Priority string
+var Report ReportConfig
+
+type ReportConfig struct {
+	Path   string
+	Format string
+}
 
 type Layer struct {
 	ID, Path, ParentID string
@@ -26,6 +32,7 @@ type Vulnerability struct {
 	ID, Link, Priority, Description, CausedByPackage string
 }
 type Analysis struct {
+	ID              string
 	Vulnerabilities []Vulnerability
 }
 
@@ -35,6 +42,8 @@ func Config() {
 	Port = viper.GetInt("clair.port")
 	Link = viper.GetString("clair.link")
 	Priority = viper.GetString("clair.priority")
+	Report.Path = viper.GetString("clair.report.path")
+	Report.Format = viper.GetString("clair.report.format")
 }
 
 func formatURI() string {
@@ -118,5 +127,6 @@ func AnalyseLayer(id string) (Analysis, error) {
 	if err != nil {
 		return Analysis{}, err
 	}
+	analysis.ID = id
 	return analysis, nil
 }

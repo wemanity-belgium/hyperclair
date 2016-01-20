@@ -9,14 +9,14 @@ import (
 	"errors"
 )
 
-var analyseCmd = &cobra.Command{
-	Use:   "analyse",
-	Short: "analyse images",
-	Long:  `analyse a Docker image to Clair`,
+var reportCmd = &cobra.Command{
+	Use:   "report",
+	Short: "report images",
+	Long:  `report a Docker image to Clair`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 
 		if len(args) != 1 {
-			return errors.New("hyperclair: \"analyse\" requires a minimum of 1 argument")
+			return errors.New("hyperclair: \"report\" requires a minimum of 1 argument")
 		}
 
 		image, err := image.Parse(args[0])
@@ -28,8 +28,8 @@ var analyseCmd = &cobra.Command{
 			return err
 		}
 
-		fmt.Println("analysing Image")
-		if _, err := image.Analyse(); err != nil {
+		fmt.Println("Report Analysis as HTML")
+		if err := image.Report(); err != nil {
 			return err
 		}
 		return nil
@@ -37,5 +37,5 @@ var analyseCmd = &cobra.Command{
 }
 
 func init() {
-	RootCmd.AddCommand(analyseCmd)
+	RootCmd.AddCommand(reportCmd)
 }

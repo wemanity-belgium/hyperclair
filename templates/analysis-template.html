@@ -1,0 +1,15 @@
+<html>
+  <body>
+    <div>
+      <p>Vulnerabilities:</p>
+      {{range .Vulnerabilities}}
+      ====================
+      <p>Id: {{.ID}}</p>
+      <p>Link: {{.Link}}</p>
+      <p>Priority: {{.Priority}}</p>
+      <p>Description: {{.Description}}</p>
+      <p>CausedByPackage: {{.CausedByPackage}}</p>
+      {{end}}
+    </div>
+  </body>
+</html>

@@ -1,16 +1,17 @@
 package image
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"regexp"
 	"strings"
+	"text/template"
 
 	"github.com/jgsqware/hyperclair/clair"
 	"github.com/jgsqware/hyperclair/utils"
@@ -194,9 +195,11 @@ func (im *DockerImage) pushFromRegistry() error {
 	return nil
 }
 
-func (im *DockerImage) Analyse() error {
+func (im *DockerImage) Analyse() ([]clair.Analysis, error) {
 	clair.Config()
 	layerCount := len(im.Manifest.FsLayers)
+	analysisResult := []clair.Analysis{}
+
 	for index := range im.Manifest.FsLayers {
 		layer := im.Manifest.FsLayers[layerCount-index-1]
 
@@ -204,21 +207,78 @@ func (im *DockerImage) Analyse() error {
 			fmt.Printf("Error analysing layer [%v] %d/%d: %v\n", utils.Substr(layer.BlobSum, 0, 12), index+1, layerCount, err)
 		} else {
 			fmt.Printf("Analysis [%v] found %d vulnerabilities.\n", utils.Substr(layer.BlobSum, 0, 12), len(analysis.Vulnerabilities))
-			if len(analysis.Vulnerabilities) > 0 {
-				report(analysis)
-			}
+			analysisResult = append(analysisResult, analysis)
 		}
+	}
+	return analysisResult, nil
+}
+
+func (im *DockerImage) Report() error {
+	clair.Config()
+	analysies, err := im.Analyse()
+	if err != nil {
+		return err
+	}
+	for _, analysis := range analysies {
+		switch clair.Report.Format {
+		case "html":
+			return reportAsHTML(analysis)
+		case "json":
+			return reportAsJSON(analysis)
+		default:
+			return fmt.Errorf("Unsupported Report format: %v", clair.Report.Format)
+		}
+
 	}
 
 	return nil
 }
 
-func report(analysis clair.Analysis) {
-	t, err := template.New("analysis").Parse("{{range .Vulnerabilities}}{{.ID}}\n{{end}}")
-	err = t.Execute(os.Stdout, analysis)
-	if err != nil {
-		panic(err)
+func reportAsJSON(analysis clair.Analysis) error {
+	if err := os.MkdirAll("reports/json", 0777); err != nil {
+		return err
 	}
+
+	reportsName := "reports/json/analysis-" + strings.Replace(utils.Substr(analysis.ID, 0, 12), ":", "", 1) + ".json"
+	f, err := os.Create(reportsName)
+	if err != nil {
+		return err
+	}
+
+	defer f.Close()
+	json, err := json.MarshalIndent(analysis, "", "\t")
+	if err != nil {
+		return err
+	}
+	f.Write(json)
+	fmt.Println("JSON report at ", reportsName)
+	return nil
+}
+
+func reportAsHTML(analysis clair.Analysis) error {
+	if err := os.MkdirAll("reports/html", 0777); err != nil {
+		return err
+	}
+
+	t, err := template.ParseFiles("templates/analysis-template.html")
+	if err != nil {
+		return err
+	}
+	reportsName := "reports/html/analysis-" + strings.Replace(utils.Substr(analysis.ID, 0, 12), ":", "", 1) + ".html"
+	f, err := os.Create(reportsName)
+	if err != nil {
+		return err
+	}
+
+	defer f.Close()
+	var doc bytes.Buffer
+	err = t.Execute(&doc, analysis)
+	if err != nil {
+		return err
+	}
+	f.WriteString(doc.String())
+	fmt.Println("HTML report at ", reportsName)
+	return nil
 }
 
 func (im *DockerImage) Pull() error {
