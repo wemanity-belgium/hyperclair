@@ -1,5 +1,5 @@
 
-Test travis
+[![Build Status](https://travis-ci.org/jgsqware/hyperclair.svg?branch=develop)](https://travis-ci.org/jgsqware/hyperclair)
 # hyperclair
 A CLI tool for using CoreOS Clair with Docker Registry.
 
