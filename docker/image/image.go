@@ -213,14 +213,8 @@ func (im *DockerImage) Analyse() error {
 	return nil
 }
 
-type Person struct {
-	FirstName string
-	LastName  string
-	Age       int
-}
-
 func report(analysis clair.Analysis) {
-	t, err := template.New("analysis").Parse("{{range .Vulnerabilities}}{{.ID}}{{end}}")
+	t, err := template.New("analysis").Parse("{{range .Vulnerabilities}}{{.ID}}\n{{end}}")
 	err = t.Execute(os.Stdout, analysis)
 	if err != nil {
 		panic(err)
