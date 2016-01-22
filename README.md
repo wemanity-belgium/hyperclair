@@ -25,3 +25,37 @@ There is two way:
 **hyperclair** get vulnerabilities report from Clair and generate and HTML report
 
 hyperclair can be used for Docker Hub and for Personal Registry
+
+# Command
+
+```
+Analyse your docker image with Clair, directly from your registry.
+
+Usage:
+  hyperclair [command]
+
+Available Commands:
+  analyse     Analyse Docker image
+  pull        Pull Docker image information
+  push        Push Docker image to Clair
+  report      Generate Docker Image vulnerabilities report
+
+Flags:
+      --config string   config file (default is $HOME/.hyperclair.yaml)
+  -h, --help            help for hyperclair
+
+Use "hyperclair [command] --help" for more information about a command.
+```
+
+# Configuration
+
+```yaml
+clair:
+  port: 6060      # Clair Port
+  uri: localhost  # Clair uri
+  link: registry  # [Optional] Docker link for registry container
+  priority: Low   # Clair Priority [Low, Medium, High, Critical]
+  report:
+    path: reports # Path where reports will be generated
+    format: html  # Output format [html, json]
+```
