@@ -24,10 +24,10 @@ import (
 
 var cfgFile string
 
-// This represents the base command when called without any subcommands
+// RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
 	Use:   "hyperclair",
-	Short: "A CLI for Clair and Docker Registry",
+	Short: "Analyse your docker image with Clair, directly from your registry.",
 	Long:  ``,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:

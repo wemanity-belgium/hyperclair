@@ -1,17 +1,14 @@
 package image
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"regexp"
 	"strings"
-	"text/template"
 
 	"github.com/jgsqware/hyperclair/clair"
 	"github.com/jgsqware/hyperclair/utils"
@@ -207,6 +204,7 @@ func (im *DockerImage) Analyse() ([]clair.Analysis, error) {
 			fmt.Printf("Error analysing layer [%v] %d/%d: %v\n", utils.Substr(layer.BlobSum, 0, 12), index+1, layerCount, err)
 		} else {
 			fmt.Printf("Analysis [%v] found %d vulnerabilities.\n", utils.Substr(layer.BlobSum, 0, 12), len(analysis.Vulnerabilities))
+			analysis.ImageName = im.GetName()
 			analysisResult = append(analysisResult, analysis)
 		}
 	}
@@ -222,62 +220,13 @@ func (im *DockerImage) Report() error {
 	for _, analysis := range analysies {
 		switch clair.Report.Format {
 		case "html":
-			return reportAsHTML(analysis)
+			return analysis.ReportAsHTML()
 		case "json":
-			return reportAsJSON(analysis)
+			return analysis.ReportAsJSON()
 		default:
 			return fmt.Errorf("Unsupported Report format: %v", clair.Report.Format)
 		}
-
 	}
-
-	return nil
-}
-
-func reportAsJSON(analysis clair.Analysis) error {
-	if err := os.MkdirAll("reports/json", 0777); err != nil {
-		return err
-	}
-
-	reportsName := "reports/json/analysis-" + strings.Replace(utils.Substr(analysis.ID, 0, 12), ":", "", 1) + ".json"
-	f, err := os.Create(reportsName)
-	if err != nil {
-		return err
-	}
-
-	defer f.Close()
-	json, err := json.MarshalIndent(analysis, "", "\t")
-	if err != nil {
-		return err
-	}
-	f.Write(json)
-	fmt.Println("JSON report at ", reportsName)
-	return nil
-}
-
-func reportAsHTML(analysis clair.Analysis) error {
-	if err := os.MkdirAll("reports/html", 0777); err != nil {
-		return err
-	}
-
-	t, err := template.ParseFiles("templates/analysis-template.html")
-	if err != nil {
-		return err
-	}
-	reportsName := "reports/html/analysis-" + strings.Replace(utils.Substr(analysis.ID, 0, 12), ":", "", 1) + ".html"
-	f, err := os.Create(reportsName)
-	if err != nil {
-		return err
-	}
-
-	defer f.Close()
-	var doc bytes.Buffer
-	err = t.Execute(&doc, analysis)
-	if err != nil {
-		return err
-	}
-	f.WriteString(doc.String())
-	fmt.Println("HTML report at ", reportsName)
 	return nil
 }
 

@@ -10,9 +10,9 @@ import (
 )
 
 var reportCmd = &cobra.Command{
-	Use:   "report",
-	Short: "report images",
-	Long:  `report a Docker image to Clair`,
+	Use:   "report IMAGE",
+	Short: "Generate Docker Image vulnerabilities report",
+	Long:  `Generate Docker Image vulnerabilities report as HTML or JSON`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 
 		if len(args) != 1 {

@@ -27,8 +27,8 @@ import (
 // pingCmd represents the ping command
 var pullCmd = &cobra.Command{
 	Use:   "pull IMAGE",
-	Short: "Pull images",
-	Long:  `Pull a Docker image`,
+	Short: "Pull Docker image information",
+	Long:  `Pull image information from Docker Hub or Registry`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		//TODO how to use args with viper
 		if len(args) != 1 {

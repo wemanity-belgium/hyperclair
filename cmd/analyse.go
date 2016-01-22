@@ -10,9 +10,9 @@ import (
 )
 
 var analyseCmd = &cobra.Command{
-	Use:   "analyse",
-	Short: "analyse images",
-	Long:  `analyse a Docker image to Clair`,
+	Use:   "analyse IMAGE",
+	Short: "Analyse Docker image",
+	Long:  `Analyse a Docker image with Clair, against Ubuntu, Red hat and Debian vulnerabilities databases`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 
 		if len(args) != 1 {

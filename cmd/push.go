@@ -10,9 +10,9 @@ import (
 )
 
 var pushCmd = &cobra.Command{
-	Use:   "push",
-	Short: "Push images",
-	Long:  `Push a Docker image to Clair`,
+	Use:   "push IMAGE",
+	Short: "Push Docker image to Clair",
+	Long:  `Upload a Docker image to Clair for further analysis`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 
 		if len(args) != 1 {
