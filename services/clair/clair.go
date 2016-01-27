@@ -1,7 +1,7 @@
 package clair
 
 import (
-  "github.com/jgsqware/hyperclair/services/service"
+  "github.com/wemanity-belgium/hyperclair/services/service"
   "github.com/spf13/viper"
 
 )

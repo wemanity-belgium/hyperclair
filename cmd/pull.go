@@ -21,10 +21,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/jgsqware/hyperclair/pull"
-	// "github.com/jgsqware/hyperclair/config"
-	"github.com/jgsqware/hyperclair/services"
-	"github.com/jgsqware/hyperclair/utils"
+	"github.com/wemanity-belgium/hyperclair/pull"
+	// "github.com/wemanity-belgium/hyperclair/config"
+	"github.com/wemanity-belgium/hyperclair/services"
+	"github.com/wemanity-belgium/hyperclair/utils"
 
 	"errors"
 )

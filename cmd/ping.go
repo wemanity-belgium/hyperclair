@@ -19,7 +19,7 @@ import (
 	"github.com/spf13/cobra"
 	"log"
 
-	"github.com/jgsqware/hyperclair/services"
+	"github.com/wemanity-belgium/hyperclair/services"
 )
 
 var pingCmd = &cobra.Command{

@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/jgsqware/hyperclair/services"
+	"github.com/wemanity-belgium/hyperclair/services"
 )
 
 type layer struct {

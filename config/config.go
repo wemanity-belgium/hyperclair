@@ -6,7 +6,7 @@ package config
 //   "log"
 //   "strings"
 //   "github.com/spf13/viper"
-//   "github.com/jgsqware/hyperclair/utils"
+//   "github.com/wemanity-belgium/hyperclair/utils"
 //
 // )
 

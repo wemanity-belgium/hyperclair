@@ -2,8 +2,8 @@ package cmd
 
 import (
   "github.com/spf13/cobra"
-  "github.com/jgsqware/hyperclair/utils"
-  "github.com/jgsqware/hyperclair/services"
+  "github.com/wemanity-belgium/hyperclair/utils"
+  "github.com/wemanity-belgium/hyperclair/services"
   //"strings"
   "errors"
   "fmt"

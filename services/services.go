@@ -2,8 +2,8 @@ package services
 
 import (
 
-  "github.com/jgsqware/hyperclair/services/clair"
-  "github.com/jgsqware/hyperclair/services/registry"
+  "github.com/wemanity-belgium/hyperclair/services/clair"
+  "github.com/wemanity-belgium/hyperclair/services/registry"
 )
 
 type Services struct {

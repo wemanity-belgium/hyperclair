@@ -5,7 +5,7 @@ import (
   "strconv"
   "errors"
   "log"
-  "github.com/jgsqware/hyperclair/utils"
+  "github.com/wemanity-belgium/hyperclair/utils"
 )
 
 type Service struct {
