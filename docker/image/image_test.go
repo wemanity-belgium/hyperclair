@@ -145,17 +145,17 @@ func TestGetNameWithRepository(t *testing.T) {
 
 }
 
-func TestAuthURI(t *testing.T) {
-	image := DockerImage{
-		Repository: "wemanity-belgium",
-		ImageName:  "alpine",
-		Tag:        "latest",
-	}
-
-	if authURI := image.AuthURI(); authURI != "https://auth.docker.io/token?service=registry.docker.io&scope=repository:"+image.GetOnlyName()+":pull" {
-		t.Errorf("Image name should be https://auth.docker.io/token?service=registry.docker.io&scope=repository:wemanity-belgium/alpine:pull but is %v", authURI)
-	}
-}
+// func TestAuthURI(t *testing.T) {
+// 	image := DockerImage{
+// 		Repository: "wemanity-belgium",
+// 		ImageName:  "alpine",
+// 		Tag:        "latest",
+// 	}
+//
+// 	if authURI := image.AuthURI(); authURI != "https://auth.docker.io/token?service=registry.docker.io&scope=repository:"+image.GetOnlyName()+":pull" {
+// 		t.Errorf("Image name should be https://auth.docker.io/token?service=registry.docker.io&scope=repository:wemanity-belgium/alpine:pull but is %v", authURI)
+// 	}
+// }
 
 func TestPushFromHub(t *testing.T) {
 	image := DockerImage{
