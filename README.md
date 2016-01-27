@@ -66,4 +66,4 @@ auth:
 
 # Contribution
 
-Go to /contrib
+Go to /contrib folder
