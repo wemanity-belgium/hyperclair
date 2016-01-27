@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/jgsqware/hyperclair/docker/image"
+	"github.com/wemanity-belgium/hyperclair/docker/image"
 	"github.com/spf13/cobra"
 	//"strings"
 	"errors"

@@ -13,5 +13,5 @@ docker exec -ti hyperclair bash
 # Run Any command ex:
 go run main.go help
 # Or
-go run main.go pull --config .hyperclair.yml registry:5000/jgsqware/ubuntu-git
+go run main.go pull --config .hyperclair.yml registry:5000/wemanity-belgium/ubuntu-git
 ```

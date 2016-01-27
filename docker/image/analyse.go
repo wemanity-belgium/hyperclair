@@ -3,8 +3,8 @@ package image
 import (
 	"fmt"
 
-	"github.com/jgsqware/hyperclair/clair"
-	"github.com/jgsqware/hyperclair/utils"
+	"github.com/wemanity-belgium/hyperclair/clair"
+	"github.com/wemanity-belgium/hyperclair/utils"
 )
 
 func (im *DockerImage) Analyse() ([]clair.Analysis, error) {

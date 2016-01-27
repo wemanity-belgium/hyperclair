@@ -85,15 +85,15 @@ func (im DockerImage) BlobsURI(digest string) string {
 // Parse is used to parse a docker image command
 //
 //Example:
-//"register.com:5080/jgsqware/alpine"
-//"register.com:5080/jgsqware/alpine:latest"
+//"register.com:5080/wemanity-belgium/alpine"
+//"register.com:5080/wemanity-belgium/alpine:latest"
 //"register.com:5080/alpine"
-//"register.com/jgsqware/alpine"
+//"register.com/wemanity-belgium/alpine"
 //"register.com/alpine"
-//"register.com/jgsqware/alpine:latest"
+//"register.com/wemanity-belgium/alpine:latest"
 //"alpine"
-//"jgsqware/alpine"
-//"jgsqware/alpine:latest"
+//"wemanity-belgium/alpine"
+//"wemanity-belgium/alpine:latest"
 func Parse(image string) (DockerImage, error) {
 	imageRegex := regexp.MustCompile("^(?:([^/]+)/)?(?:([^/]+)/)?([^@:/]+)(?:[@:](.+))?")
 

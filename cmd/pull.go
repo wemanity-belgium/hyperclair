@@ -19,7 +19,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/jgsqware/hyperclair/docker/image"
+	"github.com/wemanity-belgium/hyperclair/docker/image"
 
 	"errors"
 )

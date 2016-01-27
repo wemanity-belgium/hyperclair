@@ -1,5 +1,5 @@
 
-[![Build Status](https://travis-ci.org/wemanity-belgique/hyperclair.svg?branch=develop)](https://travis-ci.org/wemanity-belgique/hyperclair)
+[![Build Status](https://travis-ci.org/wemanity-belgium/hyperclair.svg?branch=develop)](https://travis-ci.org/wemanity-belgium/hyperclair)
 # hyperclair
 A CLI tool for using CoreOS Clair with Docker Registry.
 

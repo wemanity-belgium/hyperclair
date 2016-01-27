@@ -1,4 +1,4 @@
 FROM golang:latest
-WORKDIR /go/src/github.com/jgsqware/hyperclair
+WORKDIR /go/src/github.com/wemanity-belgium/hyperclair
 EXPOSE 9999
 ENTRYPOINT bash

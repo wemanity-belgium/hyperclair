@@ -5,13 +5,13 @@ import (
 )
 
 func TestNamespacePortRepositoryNameImage(t *testing.T) {
-	imageName := "register.com:5080/jgsqware/alpine"
+	imageName := "register.com:5080/wemanity-belgium/alpine"
 	if _, err := Parse(imageName); err != nil {
 		t.Error(imageName + " should be valid")
 	}
 }
 func TestNamespacePortRepositoryNameTagImage(t *testing.T) {
-	imageName := "register.com:5080/jgsqware/alpine:latest"
+	imageName := "register.com:5080/wemanity-belgium/alpine:latest"
 	if _, err := Parse(imageName); err != nil {
 		t.Error(imageName + " should be valid")
 	}
@@ -23,7 +23,7 @@ func TestNamespacePortNameImage(t *testing.T) {
 	}
 }
 func TestNamespaceRepositoryNameImage(t *testing.T) {
-	imageName := "register.com/jgsqware/alpine"
+	imageName := "register.com/wemanity-belgium/alpine"
 	if _, err := Parse(imageName); err != nil {
 		t.Error(imageName + " should be valid")
 	}
@@ -35,7 +35,7 @@ func TestNamespaceNameImage(t *testing.T) {
 	}
 }
 func TestNamespaceRepositoryNameImageTag(t *testing.T) {
-	imageName := "register.com/jgsqware/alpine:latest"
+	imageName := "register.com/wemanity-belgium/alpine:latest"
 	if _, err := Parse(imageName); err != nil {
 		t.Error(imageName + " should be valid")
 	}
@@ -48,7 +48,7 @@ func TestNameImage(t *testing.T) {
 	}
 }
 func TestRepositoryNameImage(t *testing.T) {
-	imageName := "jgsqware/registry-backup"
+	imageName := "wemanity-belgium/registry-backup"
 	image, err := Parse(imageName)
 	if err != nil {
 		t.Error(imageName + " should be valid")
@@ -58,7 +58,7 @@ func TestRepositoryNameImage(t *testing.T) {
 		t.Errorf("Registry: %v vs %v", "", image.Registry)
 	}
 
-	if image.Repository != "jgsqware" {
+	if image.Repository != "wemanity-belgium" {
 		t.Errorf("Repository: %v vs %v", "", image.Repository)
 	}
 
@@ -71,7 +71,7 @@ func TestRepositoryNameImage(t *testing.T) {
 	}
 }
 func TestRepositoryNameTagImage(t *testing.T) {
-	imageName := "jgsqware/alpine:latest"
+	imageName := "wemanity-belgium/alpine:latest"
 	if _, err := Parse(imageName); err != nil {
 		t.Error(imageName + " should be valid")
 	}
@@ -134,32 +134,32 @@ func TestGetName(t *testing.T) {
 func TestGetNameWithRepository(t *testing.T) {
 
 	image := DockerImage{
-		Repository: "jgsqware",
+		Repository: "wemanity-belgium",
 		ImageName:  "alpine",
 		Tag:        "latest",
 	}
 
-	if image.GetName() != "jgsqware/alpine:latest" {
-		t.Errorf("Image name should be jgsqware/alpine:latest but is %v", image.GetName())
+	if image.GetName() != "wemanity-belgium/alpine:latest" {
+		t.Errorf("Image name should be wemanity-belgium/alpine:latest but is %v", image.GetName())
 	}
 
 }
 
 func TestAuthURI(t *testing.T) {
 	image := DockerImage{
-		Repository: "jgsqware",
+		Repository: "wemanity-belgium",
 		ImageName:  "alpine",
 		Tag:        "latest",
 	}
 
 	if authURI := image.AuthURI(); authURI != "https://auth.docker.io/token?service=registry.docker.io&scope=repository:"+image.GetOnlyName()+":pull" {
-		t.Errorf("Image name should be https://auth.docker.io/token?service=registry.docker.io&scope=repository:jgsqware/alpine:pull but is %v", authURI)
+		t.Errorf("Image name should be https://auth.docker.io/token?service=registry.docker.io&scope=repository:wemanity-belgium/alpine:pull but is %v", authURI)
 	}
 }
 
 func TestPushFromHub(t *testing.T) {
 	image := DockerImage{
-		Repository: "jgsqware",
+		Repository: "wemanity-belgium",
 		ImageName:  "alpine",
 		Tag:        "latest",
 	}

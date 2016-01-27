@@ -14,7 +14,7 @@
 
 package main
 
-import "github.com/jgsqware/hyperclair/cmd"
+import "github.com/wemanity-belgium/hyperclair/cmd"
 
 func main() {
 	cmd.Execute()

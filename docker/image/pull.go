@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/jgsqware/hyperclair/utils"
+	"github.com/wemanity-belgium/hyperclair/utils"
 )
 
 func (image DockerImage) isReachable() (int, error) {

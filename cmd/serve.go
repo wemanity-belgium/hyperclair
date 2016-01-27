@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/jgsqware/hyperclair/server"
+	"github.com/wemanity-belgium/hyperclair/server"
 	"github.com/spf13/cobra"
 )
 

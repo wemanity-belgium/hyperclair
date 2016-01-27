@@ -3,7 +3,7 @@ package image
 import (
 	"fmt"
 
-	"github.com/jgsqware/hyperclair/clair"
+	"github.com/wemanity-belgium/hyperclair/clair"
 )
 
 func (im *DockerImage) Report() error {

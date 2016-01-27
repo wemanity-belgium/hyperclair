@@ -11,7 +11,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/jgsqware/hyperclair/utils"
+	"github.com/wemanity-belgium/hyperclair/utils"
 	"github.com/spf13/viper"
 )
 

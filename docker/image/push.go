@@ -8,9 +8,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/jgsqware/hyperclair/clair"
-	"github.com/jgsqware/hyperclair/database"
-	"github.com/jgsqware/hyperclair/utils"
+	"github.com/wemanity-belgium/hyperclair/clair"
+	"github.com/wemanity-belgium/hyperclair/database"
+	"github.com/wemanity-belgium/hyperclair/utils"
 )
 
 func (im *DockerImage) Push() error {

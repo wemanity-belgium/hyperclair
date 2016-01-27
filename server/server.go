@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
-	"github.com/jgsqware/hyperclair/database"
-	"github.com/jgsqware/hyperclair/docker/image"
+	"github.com/wemanity-belgium/hyperclair/database"
+	"github.com/wemanity-belgium/hyperclair/docker/image"
 )
 
 var r *mux.Router
