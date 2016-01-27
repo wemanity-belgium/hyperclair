@@ -1,8 +1,0 @@
-clair:
-  port: 6060
-  uri: localhost
-  link: registry
-  priority: Low
-  report:
-    path: reports
-    format: html

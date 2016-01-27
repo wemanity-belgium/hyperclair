@@ -4,14 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"net/http"
 	"regexp"
 	"strings"
 
-	"github.com/jgsqware/hyperclair/clair"
-	"github.com/jgsqware/hyperclair/utils"
+	"github.com/spf13/viper"
 )
 
 type Layer struct {
@@ -28,6 +25,7 @@ type DockerImage struct {
 	Repository string
 	ImageName  string
 	Tag        string
+	Token      token
 	Manifest   DockerManifest
 }
 
@@ -68,7 +66,11 @@ func (im DockerImage) ManifestURI() string {
 }
 
 func (im DockerImage) AuthURI() string {
-	return "https://auth.docker.io/token?service=registry.docker.io&scope=repository:" + im.GetOnlyName() + ":pull"
+	return AuthURI() + "?service=registry.docker.io&scope=repository:" + im.GetOnlyName() + ":pull"
+}
+
+func AuthURI() string {
+	return viper.GetString("auth.uri")
 }
 
 func (im DockerImage) BlobsURI(digest string) string {
@@ -118,21 +120,6 @@ func Parse(image string) (DockerImage, error) {
 	return imageObj, nil
 }
 
-func (image *DockerImage) parseManifest(response *http.Response) error {
-	body, err := ioutil.ReadAll(response.Body)
-	if response.StatusCode != 200 {
-		return fmt.Errorf("Got response %d with message %s", response.StatusCode, string(body))
-	}
-	err = json.Unmarshal(body, &image.Manifest)
-
-	if err != nil {
-		return err
-	}
-
-	image.Manifest.uniqueLayers()
-	return nil
-}
-
 // GetName return the repository + image name
 func (im DockerImage) GetName() string {
 	if im.Repository != "" {
@@ -148,152 +135,6 @@ func (im DockerImage) GetOnlyName() string {
 	return im.ImageName
 }
 
-func (image DockerImage) isReachable() error {
-	if err := utils.Ping(formatURI(image.Registry)); err != nil {
-		return errors.New("Registry is not reachable: " + err.Error())
-	}
-	return nil
-}
-
-func (im *DockerImage) Push() error {
-	if im.Registry != "" {
-		return im.pushFromRegistry()
-	}
-
-	return im.pushFromHub()
-}
-
-func (im *DockerImage) pushFromHub() error {
-	return errors.New("Clair Analysis for Docker Hub is not implemented yet!")
-}
-
-func (im *DockerImage) pushFromRegistry() error {
-	clair.Config()
-	layerCount := len(im.Manifest.FsLayers)
-
-	parentID := ""
-	for index, layer := range im.Manifest.FsLayers {
-		fmt.Printf("Pushing Layer %d/%d\n", index, layerCount)
-
-		payload := clair.Layer{
-			ID:       layer.BlobSum,
-			Path:     im.BlobsURI(layer.BlobSum),
-			ParentID: parentID,
-		}
-
-		if err := clair.AddLayer(payload); err != nil {
-			fmt.Printf("Error adding layer [%v] %d/%d: %v\n", utils.Substr(layer.BlobSum, 0, 12), index+1, layerCount, err)
-			parentID = ""
-		} else {
-			parentID = layer.BlobSum
-		}
-	}
-
-	return nil
-}
-
-func (im *DockerImage) Analyse() ([]clair.Analysis, error) {
-	clair.Config()
-	layerCount := len(im.Manifest.FsLayers)
-	analysisResult := []clair.Analysis{}
-
-	for index := range im.Manifest.FsLayers {
-		layer := im.Manifest.FsLayers[layerCount-index-1]
-
-		if analysis, err := clair.AnalyseLayer(layer.BlobSum); err != nil {
-			fmt.Printf("Error analysing layer [%v] %d/%d: %v\n", utils.Substr(layer.BlobSum, 0, 12), index+1, layerCount, err)
-		} else {
-			fmt.Printf("Analysis [%v] found %d vulnerabilities.\n", utils.Substr(layer.BlobSum, 0, 12), len(analysis.Vulnerabilities))
-			analysis.ImageName = im.GetName()
-			analysisResult = append(analysisResult, analysis)
-		}
-	}
-	return analysisResult, nil
-}
-
-func (im *DockerImage) Report() error {
-	clair.Config()
-	analysies, err := im.Analyse()
-	if err != nil {
-		return err
-	}
-	for _, analysis := range analysies {
-		switch clair.Report.Format {
-		case "html":
-			return analysis.ReportAsHTML()
-		case "json":
-			return analysis.ReportAsJSON()
-		default:
-			return fmt.Errorf("Unsupported Report format: %v", clair.Report.Format)
-		}
-	}
-	return nil
-}
-
-func (im *DockerImage) Pull() error {
-	if im.Registry != "" {
-		return im.pullFromRegistry()
-	}
-
-	return im.pullFromHub()
-}
-func (im *DockerImage) pullFromRegistry() error {
-	fmt.Println("Pull image from Registry")
-
-	if err := im.isReachable(); err != nil {
-		return err
-	}
-
-	log.Printf("GET manifest: %s", im.ManifestURI())
-	response, err := http.Get(im.ManifestURI())
-	if err != nil {
-		return err
-	}
-	defer response.Body.Close()
-
-	return im.parseManifest(response)
-}
-
-func (im *DockerImage) pullFromHub() error {
-	fmt.Println("Pull image from Hub")
-	response, err := http.Get(im.AuthURI())
-
-	if err != nil {
-		return err
-	}
-	defer response.Body.Close()
-
-	body, err := ioutil.ReadAll(response.Body)
-
-	var tok token
-	err = json.Unmarshal(body, &tok)
-
-	client := &http.Client{}
-
-	im.Registry = "https://registry-1.docker.io"
-
-	request, _ := http.NewRequest("GET", im.ManifestURI(), nil)
-
-	request.Header.Add("Authorization", "Bearer "+tok.Token)
-
-	resp, err := client.Do(request)
-
-	if err != nil {
-		return err
-	}
-
-	return im.parseManifest(resp)
-}
-
-func (manifestObject *DockerManifest) uniqueLayers() {
-	encountered := map[Layer]bool{}
-	result := []Layer{}
-
-	for index := range manifestObject.FsLayers {
-		if encountered[manifestObject.FsLayers[index]] != true {
-			encountered[manifestObject.FsLayers[index]] = true
-			result = append(result, manifestObject.FsLayers[index])
-		}
-	}
-	manifestObject.FsLayers = result
+func init() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 }

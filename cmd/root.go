@@ -50,8 +50,7 @@ func init() {
 	// Cobra supports Persistent Flags, which, if defined here,
 	// will be global for your application.
 
-	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.hyperclair.yaml)")
-
+	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./.hyperclair.yml)")
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	// RootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
@@ -64,7 +63,7 @@ func initConfig() {
 	}
 
 	viper.SetConfigName(".hyperclair") // name of config file (without extension)
-	viper.AddConfigPath("$HOME")       // adding home directory as first search path
+	viper.AddConfigPath(".")           // adding home directory as first search path
 	viper.AutomaticEnv()               // read in environment variables that match
 
 	viper.SetDefault("clair.uri", "localhost")
@@ -73,6 +72,7 @@ func initConfig() {
 	viper.SetDefault("clair.priority", "Low")
 	viper.SetDefault("clair.report.path", "reports")
 	viper.SetDefault("clair.report.format", "html")
+	viper.SetDefault("auth.uri", "https://auth.docker.io/token")
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {

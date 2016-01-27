@@ -109,9 +109,10 @@ func Config() {
 }
 
 func formatURI() string {
+
 	uri := URI
 	if Port != 0 {
-		uri = ":" + strconv.Itoa(Port)
+		uri += ":" + strconv.Itoa(Port)
 	}
 	if !strings.HasPrefix(uri, "http://") && !strings.HasPrefix(uri, "https://") {
 		uri = "http://" + uri
@@ -119,7 +120,6 @@ func formatURI() string {
 	if !strings.HasSuffix(uri, "/v1") {
 		uri += "/v1"
 	}
-
 	return uri
 }
 

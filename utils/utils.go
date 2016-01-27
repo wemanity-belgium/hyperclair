@@ -1,10 +1,6 @@
 package utils
 
-import (
-	"errors"
-	"net/http"
-	"strconv"
-)
+import "net/http"
 
 // Service represent a Web Service with Url and Port
 type Service struct {
@@ -13,17 +9,13 @@ type Service struct {
 }
 
 //Ping is use to ping an url
-func Ping(url string) error {
+func Ping(url string) (int, error) {
 	response, err := http.Get(url)
 
 	if err != nil {
-		return err
+		return response.StatusCode, err
 	}
-
-	if response.StatusCode != 200 {
-		return errors.New("StatusCode is " + strconv.Itoa(response.StatusCode))
-	}
-	return nil
+	return response.StatusCode, nil
 }
 
 func Substr(s string, pos, length int) string {

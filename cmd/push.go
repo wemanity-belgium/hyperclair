@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jgsqware/hyperclair/docker/image"
+	"github.com/jgsqware/hyperclair/server"
 	"github.com/spf13/cobra"
 	//"strings"
 	"errors"
@@ -19,6 +20,7 @@ var pushCmd = &cobra.Command{
 			return errors.New("hyperclair: \"push\" requires a minimum of 1 argument")
 		}
 
+		server.Serve()
 		image, err := image.Parse(args[0])
 		if err != nil {
 			return err
