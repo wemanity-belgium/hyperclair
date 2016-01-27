@@ -1,5 +1,5 @@
 
-[![Build Status](https://travis-ci.org/jgsqware/hyperclair.svg?branch=develop)](https://travis-ci.org/jgsqware/hyperclair)
+[![Build Status](https://travis-ci.org/wemanity-belgique/hyperclair.svg?branch=develop)](https://travis-ci.org/wemanity-belgique/hyperclair)
 # hyperclair
 A CLI tool for using CoreOS Clair with Docker Registry.
 
