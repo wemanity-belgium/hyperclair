@@ -29,6 +29,7 @@ hyperclair can be used for Docker Hub and for Personal Registry
 # Command
 
 ```
+hyperclair --help
 Analyse your docker image with Clair, directly from your registry.
 
 Usage:
@@ -39,23 +40,30 @@ Available Commands:
   pull        Pull Docker image information
   push        Push Docker image to Clair
   report      Generate Docker Image vulnerabilities report
+  serve       Create hyperclair Server
 
 Flags:
-      --config string   config file (default is $HOME/.hyperclair.yaml)
-  -h, --help            help for hyperclair
+      --config string   config file (default is ./.hyperclair.yml)
 
 Use "hyperclair [command] --help" for more information about a command.
+
 ```
 
 # Configuration
 
 ```yaml
 clair:
-  port: 6060      # Clair Port
-  uri: localhost  # Clair uri
-  link: registry  # [Optional] Docker link for registry container
-  priority: Low   # Clair Priority [Low, Medium, High, Critical]
+  port: 6060
+  uri: clair
+  link: registry
+  priority: Low
   report:
-    path: reports # Path where reports will be generated
-    format: html  # Output format [html, json]
+    path: reports
+    format: html
+auth:
+  uri: http://172.17.0.1:3000/v2/token
 ```
+
+# Contribution
+
+Go to /contrib
