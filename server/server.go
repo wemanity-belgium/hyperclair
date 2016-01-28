@@ -2,14 +2,13 @@ package server
 
 import (
 	"fmt"
-	"io/ioutil"
-	"log"
 	"net/http"
-	"strings"
+	"net/url"
 
+	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/wemanity-belgium/hyperclair/database"
-	"github.com/wemanity-belgium/hyperclair/docker/image"
+	"github.com/wunderlist/moxy"
 )
 
 var r *mux.Router
@@ -25,54 +24,34 @@ func Serve() error {
 
 func ListenAndServe() error {
 	fmt.Println("Starting Server on :9999")
+
 	return http.ListenAndServe(":9999", nil)
 }
 
+// NewReverseProxy returns a new ReverseProxy that load-balances the proxy requests between multiple hosts
+// It also allows to define a chain of filter functions to process the outgoing response(s)
+func NewReverseProxy(filters []FilterFunc) *ReverseProxy {
+	director := func(request *http.Request) {
+
+		inr := context.Get(request, "in_req").(*http.Request)
+		host, _ := database.GetRegistryMapping(mux.Vars(inr)["digest"])
+		out, _ := url.Parse("http://" + host)
+		request.URL.Scheme = out.Scheme
+		request.URL.Host = out.Host
+	}
+	return &ReverseProxy{
+		Transport: moxy.NewTransport(),
+		Director:  director,
+		Filters:   filters,
+	}
+}
+
 func init() {
-	r = mux.NewRouter()
-	r.PathPrefix("/v2/").Path("/{repository}/{image}/blobs/{digest}").HandlerFunc(BlobHandler)
+	// r.PathPrefix("/v2/").Path("/{repository}/{image}/blobs/{digest}").HandlerFunc(proxy.Director)
 	// r.HandleFunc("/", HomeHandler)
-	r.HandleFunc("/products", ProductsHandler)
+	filters := []FilterFunc{}
+	proxy := NewReverseProxy(filters)
+	r = mux.NewRouter()
+	r.PathPrefix("/v2").Path("/{repository}/{image}/blobs/{digest}").HandlerFunc(proxy.ServeHTTP)
 	http.Handle("/", r)
-}
-
-func BlobHandler(w http.ResponseWriter, r *http.Request) {
-	var image = image.DockerImage{
-		Repository: mux.Vars(r)["repository"],
-		ImageName:  mux.Vars(r)["image"],
-		Tag:        mux.Vars(r)["digest"],
-	}
-	log.Println("Blob Handler")
-	digest := mux.Vars(r)["digest"]
-	registry, err := database.GetRegistryMapping(digest)
-
-	if err != nil || registry == "" {
-		w.WriteHeader(http.StatusNotFound)
-		log.Println("No Mapping for ", digest)
-	} else {
-		log.Printf("Registry Mapping: %s[%s]\n", digest, registry)
-		log.Printf("Image %v\n", image.GetName())
-		log.Printf("URL: %v\n", r.URL.EscapedPath())
-
-		response, err := http.Get("http://" + registry + "/" + r.URL.EscapedPath())
-
-		if err != nil {
-			panic(err)
-		}
-		defer response.Body.Close()
-		for header, value := range response.Header {
-			log.Printf("Add %s:%s\n", header, value)
-			w.Header().Set(header, strings.Join(value, ","))
-		}
-		body, err := ioutil.ReadAll(response.Body)
-		w.Write(body)
-		log.Printf("Response:%s\n", response.Header)
-
-	}
-}
-
-func ProductsHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Product Handler")
-	fmt.Fprintf(w, "URL: %v\n", r.URL.EscapedPath())
-
 }

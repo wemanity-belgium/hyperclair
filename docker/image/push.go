@@ -1,11 +1,9 @@
 package image
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 
 	"github.com/wemanity-belgium/hyperclair/clair"
@@ -35,9 +33,10 @@ func (im *DockerImage) pushFromRegistry() error {
 
 		database.InsertRegistryMapping(layer.BlobSum, im.Registry)
 		payload := clair.Layer{
-			ID:       layer.BlobSum,
-			Path:     im.BlobsURI(layer.BlobSum),
-			ParentID: parentID,
+			ID:          layer.BlobSum,
+			Path:        im.BlobsURI(layer.BlobSum),
+			ParentID:    parentID,
+			ImageFormat: "Docker",
 		}
 		payload.Path = strings.Replace(payload.Path, im.Registry, "hyperclair:9999", 1)
 		log.Println("Path: ", payload.Path)
@@ -49,8 +48,6 @@ func (im *DockerImage) pushFromRegistry() error {
 			parentID = layer.BlobSum
 		}
 	}
-	reader := bufio.NewScanner(os.Stdin)
-	reader.Scan()
-	reader.Text()
+
 	return nil
 }

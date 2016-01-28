@@ -11,8 +11,8 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/wemanity-belgium/hyperclair/utils"
 	"github.com/spf13/viper"
+	"github.com/wemanity-belgium/hyperclair/utils"
 )
 
 //URI is Clair Uri
@@ -28,7 +28,7 @@ type ReportConfig struct {
 }
 
 type Layer struct {
-	ID, Path, ParentID string
+	ID, Path, ParentID, ImageFormat string
 }
 
 type Vulnerability struct {
