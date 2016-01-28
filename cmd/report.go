@@ -3,10 +3,11 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/wemanity-belgium/hyperclair/docker/image"
-	"github.com/spf13/cobra"
-	//"strings"
 	"errors"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"github.com/wemanity-belgium/hyperclair/docker/image"
 )
 
 var reportCmd = &cobra.Command{
@@ -38,4 +39,6 @@ var reportCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(reportCmd)
+	reportCmd.Flags().StringP("format", "f", "html", "Format for Report [html,json]")
+	viper.BindPFlag("clair.report.format", reportCmd.Flags().Lookup("format"))
 }

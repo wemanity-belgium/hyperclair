@@ -65,7 +65,6 @@ func initConfig() {
 	viper.SetConfigName(".hyperclair") // name of config file (without extension)
 	viper.AddConfigPath(".")           // adding home directory as first search path
 	viper.AutomaticEnv()               // read in environment variables that match
-
 	viper.SetDefault("clair.uri", "localhost")
 	viper.SetDefault("clair.port", "6060")
 	viper.SetDefault("clair.link", "registry")
