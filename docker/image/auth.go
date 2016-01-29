@@ -12,7 +12,8 @@ import (
 )
 
 func (image *DockerImage) login() error {
-	loginURI := AuthURI() + "?service=" + image.Registry + "&scope=repository:" + image.GetOnlyName() + ":pull"
+	loginURI := AuthURI() + "?service=docker_registry&scope=repository:" + image.GetOnlyName() + ":pull"
+	// loginURI := AuthURI() + "?service=" + image.Registry + "&scope=repository:" + image.GetOnlyName() + ":pull"
 	fmt.Println("LoginURI: ", loginURI)
 	reader := bufio.NewScanner(os.Stdin)
 	fmt.Print("Enter login: ")

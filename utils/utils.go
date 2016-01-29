@@ -18,6 +18,7 @@ func Ping(url string) (int, error) {
 	return response.StatusCode, nil
 }
 
+//Substr extract string of length in s starting at pos
 func Substr(s string, pos, length int) string {
 	runes := []rune(s)
 	l := pos + length

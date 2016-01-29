@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"github.com/wemanity-belgium/hyperclair/server"
 	"github.com/spf13/cobra"
+	"github.com/wemanity-belgium/hyperclair/server"
 )
 
 var serveCmd = &cobra.Command{

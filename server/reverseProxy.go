@@ -1,6 +1,7 @@
 package server
 
 // Modified version of the original golang HTTP reverse proxy handler
+// And Vars in Gorilla/mux
 // Added support for Filter functions
 
 // Copyright 2011 The Go Authors. All rights reserved.
