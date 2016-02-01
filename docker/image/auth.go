@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -49,4 +50,29 @@ func (image *DockerImage) login() error {
 
 	return err
 
+}
+
+//BearerAuthParams parse Bearer Token on Www-Authenticate header
+func BearerAuthParams(r *http.Response) map[string]string {
+	s := strings.Fields(r.Header.Get("Www-Authenticate"))
+
+	if len(s) != 2 || s[0] != "Bearer" {
+		return nil
+	}
+	result := map[string]string{}
+
+	for _, kv := range strings.Split(s[1], ",") {
+		fmt.Println("split: ", kv)
+		parts := strings.Split(kv, "=")
+		if len(parts) != 2 {
+			continue
+		}
+		result[strings.Trim(parts[0], "\" ")] = strings.Trim(parts[1], "\" ")
+	}
+	return result
+}
+
+//IsUnauthorized check if the StatusCode is 401
+func IsUnauthorized(response http.Response) bool {
+	return response.StatusCode == 401
 }

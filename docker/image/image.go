@@ -33,6 +33,8 @@ type token struct {
 	Token string
 }
 
+const HubURI = "https://registry-1.docker.io"
+
 func (image DockerImage) String() string {
 	b, err := json.Marshal(image)
 	if err != nil {
@@ -42,18 +44,18 @@ func (image DockerImage) String() string {
 	return string(b)
 }
 
-func formatURI(registry string) string {
-	if registry == "" {
-		registry = "https://registry-1.docker.io"
-	}
-	if !strings.HasPrefix(registry, "http://") && !strings.HasPrefix(registry, "https://") {
-		registry = "http://" + registry
-	}
-	if !strings.HasSuffix(registry, "/v2") {
-		registry += "/v2"
+func (im *DockerImage) RegistryURI() string {
+	if im.Registry == "" {
+		im.Registry = HubURI
 	}
 
-	return registry
+	if !strings.HasPrefix(im.Registry, "http://") && !strings.HasPrefix(im.Registry, "https://") {
+		im.Registry = "https://" + im.Registry
+	}
+	if !strings.HasSuffix(im.Registry, "/v2") {
+		im.Registry += "/v2"
+	}
+	return im.Registry
 }
 
 func (im DockerImage) ManifestURI() string {
@@ -62,7 +64,7 @@ func (im DockerImage) ManifestURI() string {
 	if im.Repository != "" {
 		imageName = strings.Join([]string{im.Repository, im.ImageName}, "/")
 	}
-	return strings.Join([]string{formatURI(im.Registry), imageName, "manifests", im.Tag}, "/")
+	return strings.Join([]string{im.RegistryURI(), imageName, "manifests", im.Tag}, "/")
 }
 
 func (im DockerImage) AuthURI() string {
@@ -79,7 +81,7 @@ func (im DockerImage) BlobsURI(digest string) string {
 	if im.Repository != "" {
 		imageName = strings.Join([]string{im.Repository, im.ImageName}, "/")
 	}
-	return strings.Join([]string{formatURI(im.Registry), imageName, "blobs", digest}, "/")
+	return strings.Join([]string{im.RegistryURI(), imageName, "blobs", digest}, "/")
 }
 
 // Parse is used to parse a docker image command

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/wemanity-belgium/hyperclair/docker/image"
 )
 
 var loginCmd = &cobra.Command{
@@ -29,7 +29,7 @@ var loginCmd = &cobra.Command{
 		}
 
 		if resp.StatusCode == 401 {
-			bearerToken := BearerAuthParams(resp)
+			bearerToken := image.BearerAuthParams(resp)
 
 			request, err := http.NewRequest("GET", bearerToken["realm"]+"?service="+bearerToken["service"]+"&scope="+bearerToken["scope"], nil)
 
@@ -55,26 +55,6 @@ var loginCmd = &cobra.Command{
 
 		return err
 	},
-}
-
-//BearerAuthParams(r *http.Response) parse Bearer Token on Www-Authenticate header
-func BearerAuthParams(r *http.Response) map[string]string {
-	s := strings.Fields(r.Header.Get("Www-Authenticate"))
-
-	if len(s) != 2 || s[0] != "Bearer" {
-		return nil
-	}
-	result := map[string]string{}
-
-	for _, kv := range strings.Split(s[1], ",") {
-		fmt.Println("split: ", kv)
-		parts := strings.Split(kv, "=")
-		if len(parts) != 2 {
-			continue
-		}
-		result[strings.Trim(parts[0], "\" ")] = strings.Trim(parts[1], "\" ")
-	}
-	return result
 }
 
 func init() {

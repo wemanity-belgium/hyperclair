@@ -1,6 +1,7 @@
 package image
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,7 +12,7 @@ import (
 )
 
 func (image DockerImage) isReachable() (int, error) {
-	statusCode, err := utils.Ping(formatURI(image.Registry))
+	statusCode, err := utils.Ping(image.RegistryURI())
 
 	if err != nil {
 		return statusCode, errors.New("Registry is not reachable: " + err.Error())
@@ -22,11 +23,63 @@ func (image DockerImage) isReachable() (int, error) {
 
 //Pull Image from Registry or Hub depending on image name
 func (image *DockerImage) Pull() error {
-	if image.Registry != "" {
-		return image.pullFromRegistry()
+	fmt.Println("Pull image: ", image.String())
+
+	tr := &http.Transport{
+		TLSClientConfig:    &tls.Config{InsecureSkipVerify: true},
+		DisableCompression: true,
+	}
+	client := &http.Client{Transport: tr}
+
+	resp, err := client.Get("http://registry:5000/v2/jgsqware/ubuntu-git/manifests/latest")
+
+	if err != nil {
+		return err
 	}
 
-	return image.pullFromHub()
+	if IsUnauthorized(*resp) {
+		bearerToken := BearerAuthParams(resp)
+
+		request, err := http.NewRequest("GET", bearerToken["realm"]+"?service="+bearerToken["service"]+"&scope="+bearerToken["scope"], nil)
+
+		if err != nil {
+			return err
+		}
+
+		request.SetBasicAuth("jgsqware", string("jgsqware"))
+
+		response, err := client.Do(request)
+
+		if err != nil {
+			return err
+		}
+
+		defer response.Body.Close()
+
+		body, err := ioutil.ReadAll(response.Body)
+
+		if err != nil {
+			return err
+		}
+
+		err = json.Unmarshal(body, &image.Token)
+
+		if err != nil {
+			return err
+		}
+
+		request, err = http.NewRequest("GET", "http://registry:5000/v2/jgsqware/ubuntu-git/manifests/latest", nil)
+		request.Header.Add("Authorization", "Bearer "+image.Token.Token)
+
+		resp, err = client.Do(request)
+
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return image.parseManifest(resp)
 }
 
 func (image *DockerImage) pullFromRegistry() error {
@@ -96,6 +149,7 @@ func (image *DockerImage) parseManifest(response *http.Response) error {
 	if response.StatusCode != 200 {
 		return fmt.Errorf("Got response %d with message %s", response.StatusCode, string(body))
 	}
+	fmt.Println("Manifest: ", string(body))
 	err = json.Unmarshal(body, &image.Manifest)
 
 	if err != nil {

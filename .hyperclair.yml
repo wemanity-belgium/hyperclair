@@ -6,5 +6,4 @@ clair:
   report:
     path: reports
     format: html
-auth:
-  uri: https://auth:5001/auth
+insecureSkipVerify: true
