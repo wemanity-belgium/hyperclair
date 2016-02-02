@@ -67,7 +67,6 @@ func initConfig() {
 	viper.AutomaticEnv()               // read in environment variables that match
 	viper.SetDefault("clair.uri", "localhost")
 	viper.SetDefault("clair.port", "6060")
-	viper.SetDefault("clair.link", "registry")
 	viper.SetDefault("clair.priority", "Low")
 	viper.SetDefault("clair.report.path", "reports")
 	viper.SetDefault("clair.report.format", "html")

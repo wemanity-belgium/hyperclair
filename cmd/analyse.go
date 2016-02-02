@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/wemanity-belgium/hyperclair/docker/image"
+	"github.com/wemanity-belgium/hyperclair/docker"
 	//"strings"
 	"errors"
 )
@@ -19,7 +19,7 @@ var analyseCmd = &cobra.Command{
 			return errors.New("hyperclair: \"analyse\" requires a minimum of 1 argument")
 		}
 
-		image, err := image.Parse(args[0])
+		image, err := docker.Parse(args[0])
 		if err != nil {
 			return err
 		}

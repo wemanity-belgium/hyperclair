@@ -4,14 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
 //Pull Image from Registry or Hub depending on image name
 func (image *Image) Pull() error {
 	fmt.Println("Pull image ", image.Name)
-	client := initClient()
+	client := InitClient()
 	request, err := http.NewRequest("GET", image.ManifestURI(), nil)
 	resp, err := client.Do(request)
 
@@ -20,8 +19,7 @@ func (image *Image) Pull() error {
 	}
 
 	if IsUnauthorized(*resp) {
-		log.Println("Pull is Unauthorized")
-		err := authenticate(resp, request)
+		err := Authenticate(resp, request)
 
 		if err != nil {
 			return err

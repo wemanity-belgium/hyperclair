@@ -9,6 +9,7 @@ package server
 // license that can be found in the LICENSE file.
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net"
@@ -90,6 +91,8 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	*outreq = *req // includes shallow copies of maps, but okay
 
 	context.Set(outreq, "in_req", req)
+
+	fmt.Println("Test")
 
 	p.Director(outreq)
 	outreq.Proto = "HTTP/1.1"

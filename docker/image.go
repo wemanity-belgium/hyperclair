@@ -76,6 +76,12 @@ func (image Image) ManifestURI() string {
 	return strings.Join([]string{image.Registry, image.Name, "manifests", image.Tag}, "/")
 }
 
+// BlobsURI run Blobs URI as <registry>/<imageName>/blobs/<digest>
+// eg: "http://registry:5000/v2/jgsqware/ubuntu-git/blobs/sha256:13be4a52fdee2f6c44948b99b5b65ec703b1ca76c1ab5d2d90ae9bf18347082e"
+func (image Image) BlobsURI(digest string) string {
+	return strings.Join([]string{image.Registry, image.Name, "blobs", digest}, "/")
+}
+
 func (image Image) String() string {
 	b, err := json.Marshal(image)
 	if err != nil {

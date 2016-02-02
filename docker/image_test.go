@@ -86,6 +86,19 @@ func TestManifestURI(t *testing.T) {
 	}
 }
 
+func TestMBlobstURI(t *testing.T) {
+	image, err := Parse("localhost:5000/alpine")
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	result := image.BlobsURI("sha256:13be4a52fdee2f6c44948b99b5b65ec703b1ca76c1ab5d2d90ae9bf18347082e")
+	if result != "http://localhost:5000/v2/alpine/blobs/sha256:13be4a52fdee2f6c44948b99b5b65ec703b1ca76c1ab5d2d90ae9bf18347082e" {
+		t.Errorf("Is %s, should be http://localhost:5000/v2/alpine/blobs/sha256:13be4a52fdee2f6c44948b99b5b65ec703b1ca76c1ab5d2d90ae9bf18347082e", result)
+	}
+}
+
 func TestUniqueLayer(t *testing.T) {
 	image := Image{
 		FsLayers: []Layer{Layer{"test1"}, Layer{"test1"}, Layer{"test2"}},

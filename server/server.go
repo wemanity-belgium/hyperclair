@@ -2,12 +2,14 @@ package server
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/wemanity-belgium/hyperclair/database"
+	"github.com/wemanity-belgium/hyperclair/docker"
 	"github.com/wunderlist/moxy"
 )
 
@@ -23,7 +25,6 @@ func Serve() error {
 //ListenAndServe Generate a server
 func ListenAndServe() error {
 	fmt.Println("Starting Server on :9999")
-
 	return http.ListenAndServe(":9999", nil)
 }
 
@@ -34,10 +35,19 @@ func NewReverseProxy(filters []FilterFunc) *ReverseProxy {
 
 		inr := context.Get(request, "in_req").(*http.Request)
 		host, _ := database.GetRegistryMapping(mux.Vars(inr)["digest"])
-		out, _ := url.Parse("http://" + host)
+		out, _ := url.Parse(host)
 		request.URL.Scheme = out.Scheme
 		request.URL.Host = out.Host
+		log.Println("test")
+		client := docker.InitClient()
+		req, _ := http.NewRequest("HEAD", request.URL.String(), nil)
+		resp, _ := client.Do(req)
+
+		if docker.IsUnauthorized(*resp) {
+			docker.Authenticate(resp, request)
+		}
 	}
+
 	return &ReverseProxy{
 		Transport: moxy.NewTransport(),
 		Director:  director,

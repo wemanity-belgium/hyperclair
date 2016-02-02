@@ -23,6 +23,13 @@ registry:
     - REGISTRY_AUTH_TOKEN_ISSUER="auth_service"
     - REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE=/ssl/server.pem
 
+# Uncomment to deploy an insecure registry
+# registry_insecure:
+#   image: registry:2.2.1
+#   ports:
+#     - 5002:5000
+#   container_name: "registry_insecure"
+
 clairdata:
   image: alpine
   volumes:

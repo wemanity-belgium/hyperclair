@@ -1,7 +1,6 @@
 clair:
   port: 6060
-  uri: clair
-  link: registry
+  uri: http://clair
   priority: Low
   report:
     path: reports
