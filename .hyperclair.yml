@@ -6,4 +6,7 @@ clair:
   report:
     path: reports
     format: html
-insecureSkipVerify: true
+auth:
+  user: jgsqware
+  password: jgsqware
+  insecureSkipVerify: true

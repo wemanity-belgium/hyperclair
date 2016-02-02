@@ -71,7 +71,7 @@ func initConfig() {
 	viper.SetDefault("clair.priority", "Low")
 	viper.SetDefault("clair.report.path", "reports")
 	viper.SetDefault("clair.report.format", "html")
-	viper.SetDefault("auth.uri", "https://auth.docker.io/token")
+	viper.SetDefault("auth.insecureSkipVerify", "false")
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {

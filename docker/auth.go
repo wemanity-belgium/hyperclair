@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/spf13/viper"
 )
 
 type token struct {
@@ -49,7 +51,7 @@ func authenticate(dockerResponse *http.Response, request *http.Request) error {
 		return err
 	}
 
-	req.SetBasicAuth("jgsqware", string("jgsqware"))
+	setBasicAuth(req)
 
 	response, err := initClient().Do(req)
 
@@ -70,14 +72,23 @@ func authenticate(dockerResponse *http.Response, request *http.Request) error {
 	if err != nil {
 		return err
 	}
-	request.Header.Set("Authorization", "Bearer "+tok.String())
+
+	setBearerAuthorization(request, tok.String())
 
 	return nil
 }
 
+func setBasicAuth(request *http.Request) {
+	request.SetBasicAuth(viper.GetString("auth.user"), viper.GetString("auth.password"))
+}
+
+func setBearerAuthorization(request *http.Request, token string) {
+	request.Header.Set("Authorization", "Bearer "+token)
+}
+
 func initClient() *http.Client {
 	tr := &http.Transport{
-		TLSClientConfig:    &tls.Config{InsecureSkipVerify: true},
+		TLSClientConfig:    &tls.Config{InsecureSkipVerify: viper.GetBool("auth.insecureSkipVerify")},
 		DisableCompression: true,
 	}
 	return &http.Client{Transport: tr}
