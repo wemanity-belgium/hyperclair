@@ -3,10 +3,11 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/wemanity-belgium/hyperclair/docker/image"
-	"github.com/spf13/cobra"
-	//"strings"
 	"errors"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"github.com/wemanity-belgium/hyperclair/docker"
 )
 
 var reportCmd = &cobra.Command{
@@ -19,7 +20,7 @@ var reportCmd = &cobra.Command{
 			return errors.New("hyperclair: \"report\" requires a minimum of 1 argument")
 		}
 
-		image, err := image.Parse(args[0])
+		image, err := docker.Parse(args[0])
 		if err != nil {
 			return err
 		}
@@ -38,4 +39,6 @@ var reportCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(reportCmd)
+	reportCmd.Flags().StringP("format", "f", "html", "Format for Report [html,json]")
+	viper.BindPFlag("clair.report.format", reportCmd.Flags().Lookup("format"))
 }

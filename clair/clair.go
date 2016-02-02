@@ -6,40 +6,38 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
-	"text/template"
 
 	"github.com/spf13/viper"
-	"github.com/wemanity-belgium/hyperclair/utils"
 )
 
-//URI is Clair Uri
-var URI string
-var Port int
-var Link string
-var Priority string
+var uri string
+var port int
+var link string
+var priority string
+
+//Report Reporting Config value
 var Report ReportConfig
 
-type ReportConfig struct {
-	Path   string
-	Format string
-}
-
+//Layer Clair Layer
 type Layer struct {
 	ID, Path, ParentID, ImageFormat string
 }
 
+//Vulnerability Clair vulnerabilities
 type Vulnerability struct {
 	ID, Link, Priority, Description, CausedByPackage string
 }
+
+//Analysis Clair analysis
 type Analysis struct {
 	ID              string
 	ImageName       string
 	Vulnerabilities []Vulnerability
 }
 
+//Count vulnarabilities regarding the priority
 func (analysis Analysis) Count(priority string) int {
 	count := 0
 	for _, vulnerability := range analysis.Vulnerabilities {
@@ -51,97 +49,36 @@ func (analysis Analysis) Count(priority string) int {
 	return count
 }
 
-func (analysis Analysis) ReportAsJSON() error {
-	if err := os.MkdirAll("reports/json", 0777); err != nil {
-		return err
-	}
-
-	reportsName := "reports/json/analysis-" + strings.Replace(utils.Substr(analysis.ID, 0, 12), ":", "", 1) + ".json"
-	f, err := os.Create(reportsName)
-	if err != nil {
-		return err
-	}
-
-	defer f.Close()
-	json, err := json.MarshalIndent(analysis, "", "\t")
-	if err != nil {
-		return err
-	}
-	f.Write(json)
-	fmt.Println("JSON report at ", reportsName)
-	return nil
-}
-
-func (analysis Analysis) ReportAsHTML() error {
-	if err := os.MkdirAll("reports/html", 0777); err != nil {
-		return err
-	}
-
-	t, err := template.New("analysis-template").ParseFiles("templates/analysis-template.html")
-	if err != nil {
-		return err
-	}
-	reportsName := "reports/html/analysis-" + strings.Replace(utils.Substr(analysis.ID, 0, 12), ":", "", 1) + ".html"
-	f, err := os.Create(reportsName)
-	if err != nil {
-		return err
-	}
-
-	defer f.Close()
-	var doc bytes.Buffer
-	err = t.ExecuteTemplate(&doc, "analysis-template.html", analysis)
-	if err != nil {
-		return err
-	}
-	f.WriteString(doc.String())
-	fmt.Println("HTML report at ", reportsName)
-	return nil
-}
-
 //Config configure Clair from configFile
 func Config() {
-	URI = viper.GetString("clair.uri")
-	Port = viper.GetInt("clair.port")
-	Link = viper.GetString("clair.link")
-	Priority = viper.GetString("clair.priority")
+	uri = viper.GetString("clair.uri")
+	port = viper.GetInt("clair.port")
+	formatURI()
+	priority = viper.GetString("clair.priority")
 	Report.Path = viper.GetString("clair.report.path")
 	Report.Format = viper.GetString("clair.report.format")
 }
 
 func formatURI() string {
-
-	uri := URI
-	if Port != 0 {
-		uri += ":" + strconv.Itoa(Port)
-	}
-	if !strings.HasPrefix(uri, "http://") && !strings.HasPrefix(uri, "https://") {
-		uri = "http://" + uri
+	if port != 0 {
+		uri += ":" + strconv.Itoa(port)
 	}
 	if !strings.HasSuffix(uri, "/v1") {
 		uri += "/v1"
 	}
-	return uri
+	return "http://clair:6060/v1"
 }
 
 func addLayerURI() string {
-	return strings.Join([]string{formatURI(), "layers"}, "/")
+	return strings.Join([]string{uri, "layers"}, "/")
 }
 
 func analyseLayerURI(id string) string {
-	return strings.Join([]string{formatURI(), "layers", id, "vulnerabilities"}, "/") + "?minimumPriority=" + Priority
+	return strings.Join([]string{uri, "layers", id, "vulnerabilities"}, "/") + "?minimumPriority=" + priority
 }
 
-func (layer *Layer) updateLayer() {
-	if strings.Contains(layer.Path, "localhost") {
-		layer.Path = strings.Replace(layer.Path, "localhost", Link, 1)
-	} else if strings.Contains(layer.Path, "127.0.0.1") {
-		layer.Path = strings.Replace(layer.Path, "127.0.0.1", Link, 1)
-	}
-}
-
+//AddLayer to Clair for analysis
 func AddLayer(layer Layer) error {
-	layer.updateLayer()
-
 	layerJSONPayload, err := json.MarshalIndent(layer, "", "\t")
 	if err != nil {
 		return err
@@ -168,6 +105,7 @@ func AddLayer(layer Layer) error {
 	return nil
 }
 
+//AnalyseLayer get Analysis os specified layer
 func AnalyseLayer(id string) (Analysis, error) {
 
 	response, err := http.Get(analyseLayerURI(id))

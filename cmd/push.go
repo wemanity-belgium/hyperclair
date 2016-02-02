@@ -3,9 +3,9 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/wemanity-belgium/hyperclair/docker/image"
-	"github.com/wemanity-belgium/hyperclair/server"
 	"github.com/spf13/cobra"
+	"github.com/wemanity-belgium/hyperclair/docker"
+	"github.com/wemanity-belgium/hyperclair/server"
 	//"strings"
 	"errors"
 )
@@ -21,7 +21,7 @@ var pushCmd = &cobra.Command{
 		}
 
 		server.Serve()
-		image, err := image.Parse(args[0])
+		image, err := docker.Parse(args[0])
 		if err != nil {
 			return err
 		}

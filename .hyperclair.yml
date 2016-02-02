@@ -1,10 +1,11 @@
 clair:
   port: 6060
-  uri: clair
-  link: registry
+  uri: http://clair
   priority: Low
   report:
     path: reports
     format: html
 auth:
-  uri: http://172.17.0.1:3000/v2/token
+  user: jgsqware
+  password: jgsqware
+  insecureSkipVerify: true

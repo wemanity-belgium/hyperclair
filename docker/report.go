@@ -1,4 +1,4 @@
-package image
+package docker
 
 import (
 	"fmt"
@@ -6,9 +6,10 @@ import (
 	"github.com/wemanity-belgium/hyperclair/clair"
 )
 
-func (im *DockerImage) Report() error {
+//Report generate Clair Report
+func (image *Image) Report() error {
 	clair.Config()
-	analysies, err := im.Analyse()
+	analysies, err := image.Analyse()
 	if err != nil {
 		return err
 	}

@@ -61,7 +61,7 @@ clair:
     path: reports
     format: html
 auth:
-  uri: http://172.17.0.1:3000/v2/token
+  uri: http://localhost:3000/v2/token
 ```
 
 # Contribution
