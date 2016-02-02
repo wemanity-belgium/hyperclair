@@ -2,7 +2,6 @@ package server
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 
@@ -38,7 +37,6 @@ func NewReverseProxy(filters []FilterFunc) *ReverseProxy {
 		out, _ := url.Parse(host)
 		request.URL.Scheme = out.Scheme
 		request.URL.Host = out.Host
-		log.Println("test")
 		client := docker.InitClient()
 		req, _ := http.NewRequest("HEAD", request.URL.String(), nil)
 		resp, _ := client.Do(req)
