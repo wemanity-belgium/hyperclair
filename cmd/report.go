@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/wemanity-belgium/hyperclair/docker/image"
+	"github.com/wemanity-belgium/hyperclair/docker"
 )
 
 var reportCmd = &cobra.Command{
@@ -20,7 +20,7 @@ var reportCmd = &cobra.Command{
 			return errors.New("hyperclair: \"report\" requires a minimum of 1 argument")
 		}
 
-		image, err := image.Parse(args[0])
+		image, err := docker.Parse(args[0])
 		if err != nil {
 			return err
 		}
