@@ -65,12 +65,17 @@ func initConfig() {
 	viper.SetConfigName(".hyperclair") // name of config file (without extension)
 	viper.AddConfigPath(".")           // adding home directory as first search path
 	viper.AutomaticEnv()               // read in environment variables that match
-	viper.SetDefault("clair.uri", "localhost")
+	viper.SetDefault("clair.uri", "http://localhost")
 	viper.SetDefault("clair.port", "6060")
 	viper.SetDefault("clair.priority", "Low")
 	viper.SetDefault("clair.report.path", "reports")
 	viper.SetDefault("clair.report.format", "html")
+
 	viper.SetDefault("auth.insecureSkipVerify", "false")
+	viper.SetDefault("auth.insecureSkipVerify", "false")
+
+	viper.SetDefault("hyperclair.uri", "http://localhost")
+	viper.SetDefault("hyperclair.port", "9999")
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {

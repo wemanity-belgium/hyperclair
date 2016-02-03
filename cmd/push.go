@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/wemanity-belgium/hyperclair/api/server"
 	"github.com/wemanity-belgium/hyperclair/docker"
-	"github.com/wemanity-belgium/hyperclair/server"
 	//"strings"
 	"errors"
 )

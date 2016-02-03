@@ -9,3 +9,6 @@ auth:
   user: jgsqware
   password: jgsqware
   insecureSkipVerify: true
+hyperclair:
+  uri: http://localhost
+  port: 9999
