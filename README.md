@@ -1,4 +1,6 @@
 # hyperclair
+
+[![Join the chat at https://gitter.im/wemanity-belgium/hyperclair](https://badges.gitter.im/wemanity-belgium/hyperclair.svg)](https://gitter.im/wemanity-belgium/hyperclair?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 A CLI tool for using CoreOS Clair with Docker Registry.
 
 > The Registry is a stateless, highly scalable server side application that stores and lets you distribute Docker images. The Registry is open-source, under the permissive Apache license.
