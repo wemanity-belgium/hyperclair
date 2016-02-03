@@ -105,13 +105,13 @@ HTTP/1.1 503 Service unavailable
 
 Return a light Manifest version of docker image
 
-  GET /v1/<name/<reference>
+  GET /v1/<name>?realm=<registry (default: Docker Hub)>&reference=<reference>
 
 The name and reference parameter identify the image and are required. The reference may include a tag or digest.
 
 ## Push Image to Clair
 
-  POST /v1/<name>/<reference>
+  POST /v1/<name>?realm=<registry (default: Docker Hub)>&reference=<reference>
 
 ## Get Image analysis as JSON
 

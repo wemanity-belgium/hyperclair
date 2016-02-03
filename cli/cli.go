@@ -2,6 +2,7 @@ package cli
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -11,6 +12,10 @@ import (
 	"github.com/wemanity-belgium/hyperclair/docker"
 )
 
+func hyperclairURI() string {
+	return viper.GetString("hyperclair.uri") + ":" + strconv.Itoa(viper.GetInt("hyperclair.port")) + "/v1"
+}
+
 //Pull call Hyperclair server to get Light Manifest
 func Pull(imageName string) (docker.Image, error) {
 	image, err := docker.Parse(imageName)
@@ -18,7 +23,7 @@ func Pull(imageName string) (docker.Image, error) {
 		return docker.Image{}, err
 	}
 	registry := strings.TrimSuffix(strings.TrimPrefix(image.Registry, "http://"), "/v2")
-	url := hyperclairURI() + "/v1/" + image.Name + "?realm=" + registry + "&reference=" + image.Tag
+	url := hyperclairURI() + "/" + image.Name + "?realm=" + registry + "&reference=" + image.Tag
 	response, err := http.Get(url)
 
 	if err != nil {
@@ -41,6 +46,26 @@ func Pull(imageName string) (docker.Image, error) {
 	return image, nil
 }
 
-func hyperclairURI() string {
-	return viper.GetString("hyperclair.uri") + ":" + strconv.Itoa(viper.GetInt("hyperclair.port"))
+func Push(imageName string) error {
+	image, err := docker.Parse(imageName)
+	if err != nil {
+		return err
+	}
+	registry := strings.TrimSuffix(strings.TrimPrefix(image.Registry, "http://"), "/v2")
+	url := hyperclairURI() + "/" + image.Name + "?realm=" + registry + "&reference=" + image.Tag
+	response, err := http.Post(url, "text/plain", nil)
+	if err != nil {
+		return err
+	}
+
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusNoContent {
+		body, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			return err
+		}
+		return fmt.Errorf("Got response %d with message %s", response.StatusCode, string(body))
+	}
+
+	return nil
 }
