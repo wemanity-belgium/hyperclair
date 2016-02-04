@@ -30,17 +30,37 @@ type Vulnerability struct {
 	ID, Link, Priority, Description, CausedByPackage string
 }
 
-//Analysis Clair analysis
-type Analysis struct {
+//LayerAnalysis Clair layer analysis
+type LayerAnalysis struct {
 	ID              string
-	ImageName       string
 	Vulnerabilities []Vulnerability
 }
 
-//Count vulnarabilities regarding the priority
-func (analysis Analysis) Count(priority string) int {
+//ImageAnalysis Full image analysis
+type ImageAnalysis struct {
+	Registry  string
+	ImageName string
+	Tag       string
+	Layers    []LayerAnalysis
+}
+
+func (imageAnalysis ImageAnalysis) Name() string {
+	return imageAnalysis.Registry + "/" + imageAnalysis.ImageName + ":" + imageAnalysis.Tag
+}
+
+//Count vulnarabilities in all layers regarding the priority
+func (imageAnalysis ImageAnalysis) Count(priority string) int {
 	count := 0
-	for _, vulnerability := range analysis.Vulnerabilities {
+	for _, layer := range imageAnalysis.Layers {
+		count += layer.Count(priority)
+	}
+	return count
+}
+
+//Count vulnarabilities regarding the priority
+func (layerAnalysis LayerAnalysis) Count(priority string) int {
+	count := 0
+	for _, vulnerability := range layerAnalysis.Vulnerabilities {
 		if vulnerability.Priority == priority {
 			count++
 		}
@@ -106,26 +126,26 @@ func AddLayer(layer Layer) error {
 }
 
 //AnalyseLayer get Analysis os specified layer
-func AnalyseLayer(id string) (Analysis, error) {
+func AnalyseLayer(id string) (LayerAnalysis, error) {
 
 	response, err := http.Get(analyseLayerURI(id))
 	if err != nil {
-		return Analysis{}, err
+		return LayerAnalysis{}, err
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != 200 {
 		body, _ := ioutil.ReadAll(response.Body)
-		return Analysis{}, fmt.Errorf("Got response %d with message %s", response.StatusCode, string(body))
+		return LayerAnalysis{}, fmt.Errorf("Got response %d with message %s", response.StatusCode, string(body))
 	}
 
 	body, _ := ioutil.ReadAll(response.Body)
 
-	var analysis Analysis
+	var analysis LayerAnalysis
 
 	err = json.Unmarshal(body, &analysis)
 	if err != nil {
-		return Analysis{}, err
+		return LayerAnalysis{}, err
 	}
 	analysis.ID = id
 	return analysis, nil

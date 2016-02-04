@@ -35,5 +35,9 @@ func init() {
 	router.PathPrefix("/v1").Path("/{name}").HandlerFunc(api.PullHandler).Methods("GET")
 	router.PathPrefix("/v1").Path("/{repository}/{name}").HandlerFunc(api.PushHandler).Methods("POST")
 	router.PathPrefix("/v1").Path("/{name}").HandlerFunc(api.PushHandler).Methods("POST")
+	router.PathPrefix("/v1").Path("/{repository}/{name}/analysis").HandlerFunc(api.AnalyseHandler).Methods("GET")
+	router.PathPrefix("/v1").Path("/{name}/analysis").HandlerFunc(api.AnalyseHandler).Methods("GET")
+	router.PathPrefix("/v1").Path("/{repository}/{name}/analysis/report").HandlerFunc(api.ReportHandler).Methods("GET")
+	router.PathPrefix("/v1").Path("/{name}/analysis/report").HandlerFunc(api.ReportHandler).Methods("GET")
 	http.Handle("/", router)
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/wemanity-belgium/hyperclair/docker"
 )
 
-//
+//PullHandler return the Light Manifest representation of the docker image
 func PullHandler(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/spf13/viper"
+	"github.com/wemanity-belgium/hyperclair/clair"
 	"github.com/wemanity-belgium/hyperclair/docker"
 )
 
@@ -67,5 +68,40 @@ func Push(imageName string) error {
 		return fmt.Errorf("Got response %d with message %s", response.StatusCode, string(body))
 	}
 
+	return nil
+}
+
+func Analyse(imageName string) (clair.ImageAnalysis, error) {
+	image, err := docker.Parse(imageName)
+	if err != nil {
+		return clair.ImageAnalysis{}, err
+	}
+	registry := strings.TrimSuffix(strings.TrimPrefix(image.Registry, "http://"), "/v2")
+	url := hyperclairURI() + "/" + image.Name + "/analysis" + "?realm=" + registry + "&reference=" + image.Tag
+	response, err := http.Get(url)
+	if err != nil {
+		return clair.ImageAnalysis{}, err
+	}
+
+	defer response.Body.Close()
+	body, err := ioutil.ReadAll(response.Body)
+	if response.StatusCode != http.StatusOK {
+		if err != nil {
+			return clair.ImageAnalysis{}, err
+		}
+		return clair.ImageAnalysis{}, fmt.Errorf("Got response %d with message %s", response.StatusCode, string(body))
+	}
+	imageAnalysis := clair.ImageAnalysis{}
+	json.Unmarshal(body, &imageAnalysis)
+	return imageAnalysis, nil
+}
+
+func Report(imageName string) error {
+	analyses, err := Analyse(imageName)
+
+	if err != nil {
+		return err
+	}
+	SaveAnalysisReport(analyses)
 	return nil
 }

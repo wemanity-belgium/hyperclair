@@ -1,13 +1,11 @@
 package cmd
 
 import (
-	"fmt"
-
 	"errors"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/wemanity-belgium/hyperclair/docker"
+	"github.com/wemanity-belgium/hyperclair/cli"
 )
 
 var reportCmd = &cobra.Command{
@@ -20,17 +18,7 @@ var reportCmd = &cobra.Command{
 			return errors.New("hyperclair: \"report\" requires a minimum of 1 argument")
 		}
 
-		image, err := docker.Parse(args[0])
-		if err != nil {
-			return err
-		}
-
-		if err := image.Pull(); err != nil {
-			return err
-		}
-
-		fmt.Println("Report Analysis as HTML")
-		if err := image.Report(); err != nil {
+		if err := cli.Report(args[0]); err != nil {
 			return err
 		}
 		return nil

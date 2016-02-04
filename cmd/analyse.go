@@ -4,7 +4,8 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/wemanity-belgium/hyperclair/docker"
+	"github.com/wemanity-belgium/hyperclair/cli"
+	"github.com/wemanity-belgium/hyperclair/utils"
 	//"strings"
 	"errors"
 )
@@ -19,18 +20,16 @@ var analyseCmd = &cobra.Command{
 			return errors.New("hyperclair: \"analyse\" requires a minimum of 1 argument")
 		}
 
-		image, err := docker.Parse(args[0])
+		imageAnalysis, err := cli.Analyse(args[0])
+
 		if err != nil {
 			return err
 		}
+		fmt.Printf("Image Analysis:\t %v/%v:%v\n\n", imageAnalysis.Registry, imageAnalysis.ImageName, imageAnalysis.Tag)
 
-		if err := image.Pull(); err != nil {
-			return err
-		}
+		for _, layerAnalysis := range imageAnalysis.Layers {
 
-		fmt.Println("analysing Image")
-		if _, err := image.Analyse(); err != nil {
-			return err
+			fmt.Printf("Analysis [%v] found %d vulnerabilities.\n", utils.Substr(layerAnalysis.ID, 0, 12), len(layerAnalysis.Vulnerabilities))
 		}
 		return nil
 	},
