@@ -58,3 +58,11 @@ hyperclair:
     - 9999:9999
   tty: true
   container_name: "hyperclair"
+  entrypoint: ["go","run","main.go","serve"]
+
+hyperclair_dev:
+  build: .
+  volumes:
+    - $GOPATH:/go
+  tty: true
+  container_name: "hyperclair_dev"
