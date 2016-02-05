@@ -11,7 +11,7 @@ It returns the versions of the Hyperclair api and connected Clair. We support on
 ### Example
 
 ```
-curl -s 127.0.0.1:7070/v1/versions
+curl -s http://localhost:9999/v1/versions
 ```
 
 ### Response
@@ -20,7 +20,7 @@ curl -s 127.0.0.1:7070/v1/versions
 HTTP/1.1 200 OK
 {
   "APIVersion": "1",
-  "ClairVersion": {
+  "Clair": {
     "APIVersion": "1",
     "EngineVersion": "1"
   }
@@ -36,37 +36,28 @@ Returns 200 if essential services are healthy (ie. database) and 503 otherwise.
 ### Example
 
 ```
-curl -s 127.0.0.1:7070/v1/health | python -m json.tool
+curl -s http://localhost:9999/v1/health
 ```
 
 ### Success Response
 
 ```
 HTTP/1.1 200 OK
-{  
-   "database":{  
-      "IsHealthy":true
-   },
-   "clair":{
-     "database":{  
-        "IsHealthy":true
-     },
-     "notifier":{  
-        "IsHealthy":true,
-        "Details":{  
-           "QueueSize":0
-        }
-     },
-     "updater":{  
-        "IsHealthy":true,
-        "Details":{  
-           "HealthIdentifier":"cf65a8f6-425c-4a9c-87fe-f59ddf75fc87",
-           "HealthLockOwner":"1e7fce65-ee67-4ca5-b2e9-61e9f5e0d3ed",
-           "LatestSuccessfulUpdate":"2015-09-30T14:47:47Z",
-           "ConsecutiveLocalFailures":0
-        }
-     }
-   }
+{
+  "clair": {
+    "database": {
+      "IsHealthy": true
+    },
+    "updater": {
+      "Details": {
+        "LatestSuccessfulUpdate": "2016-02-05T10:04:26Z"
+      },
+      "IsHealthy": true
+    }
+  },
+  "database": {
+    "IsHealthy": true
+  }
 }
 ```
 
@@ -74,29 +65,20 @@ HTTP/1.1 200 OK
 
 ```
 HTTP/1.1 503 Service unavailable
-{  
-  "database":{  
-     "IsHealthy":false
-  },
-  "clair":{
-    "database":{  
-       "IsHealthy":true
+{
+  "clair": {
+    "database": {
+      "IsHealthy": true
     },
-    "notifier":{  
-       "IsHealthy":true,
-       "Details":{  
-          "QueueSize":0
-       }
-    },
-    "updater":{  
-       "IsHealthy":true,
-       "Details":{  
-          "HealthIdentifier":"cf65a8f6-425c-4a9c-87fe-f59ddf75fc87",
-          "HealthLockOwner":"1e7fce65-ee67-4ca5-b2e9-61e9f5e0d3ed",
-          "LatestSuccessfulUpdate":"2015-09-30T14:47:47Z",
-          "ConsecutiveLocalFailures":0
-       }
+    "updater": {
+      "Details": {
+        "LatestSuccessfulUpdate": "2016-02-05T10:04:26Z"
+      },
+      "IsHealthy": true
     }
+  },
+  "database": {
+    "IsHealthy": false
   }
 }
 ```

@@ -26,17 +26,33 @@ func (health health) asJSON() string {
 func HealthHandler(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 
+	isHealthy := true
+
 	clairHealth, err := clair.IsHealthy()
+	if err != nil {
+		if err.Error() == string(http.StatusServiceUnavailable) {
+			isHealthy = false
+		} else {
+			rw.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(rw, "Error: %v", err)
+			return
+
+		}
+	}
+
+	databaseHealth, err := database.IsHealthy()
 
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(rw, "Error: %v", err)
-		return
+		isHealthy = false
+	}
+
+	if !isHealthy {
+		rw.WriteHeader(http.StatusServiceUnavailable)
 	}
 
 	healthBody := health{
 		Clair:    clairHealth,
-		Database: database.IsHealthy(),
+		Database: databaseHealth,
 	}
 
 	fmt.Fprint(rw, healthBody.asJSON())

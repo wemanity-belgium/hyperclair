@@ -81,6 +81,11 @@ func Config() {
 func HealthURI() string {
 	return uri + "/health"
 }
+
+func VersionsURI() string {
+	return uri + "/versions"
+}
+
 func formatClairURI() {
 	uri = viper.GetString("clair.uri")
 	port := viper.GetInt("clair.port")
@@ -158,6 +163,31 @@ func AnalyseLayer(id string) (LayerAnalysis, error) {
 	return analysis, nil
 }
 
+func Versions() (interface{}, error) {
+	Config()
+	response, err := http.Get(VersionsURI())
+
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var versionBody interface{}
+	err = json.Unmarshal(body, &versionBody)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return versionBody, nil
+}
+
 func IsHealthy() (Health, error) {
 	Config()
 	response, err := http.Get(HealthURI())
@@ -178,6 +208,10 @@ func IsHealthy() (Health, error) {
 
 	if err != nil {
 		return nil, err
+	}
+
+	if response.StatusCode == http.StatusServiceUnavailable {
+		return health, fmt.Errorf(string(http.StatusServiceUnavailable))
 	}
 
 	return health, nil

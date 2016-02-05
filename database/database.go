@@ -3,6 +3,7 @@ package database
 import (
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/boltdb/bolt"
 )
@@ -72,7 +73,7 @@ func open(dbName string) (*bolt.DB, error) {
 	return db, nil
 }
 
-func IsHealthy() interface{} {
+func IsHealthy() (interface{}, error) {
 	type Health struct {
 		IsHealthy bool
 	}
@@ -81,8 +82,8 @@ func IsHealthy() interface{} {
 	defer db.Close()
 
 	if err != nil {
-		return Health{false}
+		return Health{false}, fmt.Errorf(string(http.StatusServiceUnavailable))
 	}
 
-	return Health{true}
+	return Health{true}, nil
 }
