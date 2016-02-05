@@ -30,6 +30,8 @@ func ListenAndServe() error {
 
 func init() {
 	router = mux.NewRouter()
+	router.PathPrefix("/v1").Path("/health").HandlerFunc(api.HealthHandler).Methods("GET")
+
 	router.PathPrefix("/v2").Path("/{repository}/{name}/blobs/{digest}").HandlerFunc(api.ReverseRegistryHandler())
 	router.PathPrefix("/v1").Path("/{repository}/{name}").HandlerFunc(api.PullHandler).Methods("GET")
 	router.PathPrefix("/v1").Path("/{name}").HandlerFunc(api.PullHandler).Methods("GET")

@@ -13,7 +13,6 @@ import (
 )
 
 var uri string
-var port int
 var link string
 var priority string
 
@@ -44,6 +43,8 @@ type ImageAnalysis struct {
 	Layers    []LayerAnalysis
 }
 
+type Health interface{}
+
 func (imageAnalysis ImageAnalysis) Name() string {
 	return imageAnalysis.Registry + "/" + imageAnalysis.ImageName + ":" + imageAnalysis.Tag
 }
@@ -71,22 +72,28 @@ func (layerAnalysis LayerAnalysis) Count(priority string) int {
 
 //Config configure Clair from configFile
 func Config() {
-	uri = viper.GetString("clair.uri")
-	port = viper.GetInt("clair.port")
-	formatURI()
+	formatClairURI()
 	priority = viper.GetString("clair.priority")
 	Report.Path = viper.GetString("clair.report.path")
 	Report.Format = viper.GetString("clair.report.format")
 }
 
-func formatURI() string {
+func HealthURI() string {
+	return uri + "/health"
+}
+func formatClairURI() {
+	uri = viper.GetString("clair.uri")
+	port := viper.GetInt("clair.port")
+
 	if port != 0 {
 		uri += ":" + strconv.Itoa(port)
 	}
 	if !strings.HasSuffix(uri, "/v1") {
 		uri += "/v1"
 	}
-	return "http://clair:6060/v1"
+	if !strings.HasPrefix(uri, "http://") && !strings.HasPrefix(uri, "https://") {
+		uri = "http://" + uri
+	}
 }
 
 func addLayerURI() string {
@@ -149,4 +156,29 @@ func AnalyseLayer(id string) (LayerAnalysis, error) {
 	}
 	analysis.ID = id
 	return analysis, nil
+}
+
+func IsHealthy() (Health, error) {
+	Config()
+	response, err := http.Get(HealthURI())
+
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var health Health
+	err = json.Unmarshal(body, &health)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return health, nil
 }

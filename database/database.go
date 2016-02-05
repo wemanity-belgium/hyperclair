@@ -71,3 +71,18 @@ func open(dbName string) (*bolt.DB, error) {
 	})
 	return db, nil
 }
+
+func IsHealthy() interface{} {
+	type Health struct {
+		IsHealthy bool
+	}
+
+	db, err := open(HyperclairDB)
+	defer db.Close()
+
+	if err != nil {
+		return Health{false}
+	}
+
+	return Health{true}
+}
