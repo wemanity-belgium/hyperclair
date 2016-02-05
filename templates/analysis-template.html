@@ -5,10 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Bootstrap 3, from LayoutIt!</title>
-
-    <meta name="description" content="Source code generated using layoutit.com">
-    <meta name="author" content="LayoutIt!">
+    <title>Hyperclair Reports</title>
 
     <style>
     /*!
@@ -27,11 +24,14 @@
 			<div class="page-header">
 				<h1>
 					Hyperclair reports
-				</h1>
+        </h1>
+        <h2>
+          Image: {{ .Name}}
+				</h2>
 			</div>
+      {{range .Layers}}
 			<div class="row">
 				<div class="col-md-12">
-					<h2>{{.ImageName}}</h2>
           <h4>Layer {{.ID}}</h4>
 				</div>
 				<div class="col-md-3">
@@ -165,6 +165,7 @@
   			</div>
 
 		</div>
+    {{end}}
 	</div>
 </div>
 

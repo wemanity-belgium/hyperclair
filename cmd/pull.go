@@ -15,12 +15,11 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 
-	"errors"
-
 	"github.com/spf13/cobra"
-	"github.com/wemanity-belgium/hyperclair/docker"
+	"github.com/wemanity-belgium/hyperclair/cli"
 )
 
 // pingCmd represents the ping command
@@ -34,12 +33,8 @@ var pullCmd = &cobra.Command{
 			return errors.New("hyperclair: \"pull\" requires a minimum of 1 argument")
 		}
 
-		image, err := docker.Parse(args[0])
+		image, err := cli.Pull(args[0])
 		if err != nil {
-			return err
-		}
-
-		if err := image.Pull(); err != nil {
 			return err
 		}
 		fmt.Printf("Layers found: %d\n", len(image.FsLayers))

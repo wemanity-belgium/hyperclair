@@ -13,7 +13,6 @@ import (
 )
 
 var uri string
-var port int
 var link string
 var priority string
 
@@ -30,17 +29,39 @@ type Vulnerability struct {
 	ID, Link, Priority, Description, CausedByPackage string
 }
 
-//Analysis Clair analysis
-type Analysis struct {
+//LayerAnalysis Clair layer analysis
+type LayerAnalysis struct {
 	ID              string
-	ImageName       string
 	Vulnerabilities []Vulnerability
 }
 
-//Count vulnarabilities regarding the priority
-func (analysis Analysis) Count(priority string) int {
+//ImageAnalysis Full image analysis
+type ImageAnalysis struct {
+	Registry  string
+	ImageName string
+	Tag       string
+	Layers    []LayerAnalysis
+}
+
+type Health interface{}
+
+func (imageAnalysis ImageAnalysis) Name() string {
+	return imageAnalysis.Registry + "/" + imageAnalysis.ImageName + ":" + imageAnalysis.Tag
+}
+
+//Count vulnarabilities in all layers regarding the priority
+func (imageAnalysis ImageAnalysis) Count(priority string) int {
 	count := 0
-	for _, vulnerability := range analysis.Vulnerabilities {
+	for _, layer := range imageAnalysis.Layers {
+		count += layer.Count(priority)
+	}
+	return count
+}
+
+//Count vulnarabilities regarding the priority
+func (layerAnalysis LayerAnalysis) Count(priority string) int {
+	count := 0
+	for _, vulnerability := range layerAnalysis.Vulnerabilities {
 		if vulnerability.Priority == priority {
 			count++
 		}
@@ -51,22 +72,33 @@ func (analysis Analysis) Count(priority string) int {
 
 //Config configure Clair from configFile
 func Config() {
-	uri = viper.GetString("clair.uri")
-	port = viper.GetInt("clair.port")
-	formatURI()
+	formatClairURI()
 	priority = viper.GetString("clair.priority")
 	Report.Path = viper.GetString("clair.report.path")
 	Report.Format = viper.GetString("clair.report.format")
 }
 
-func formatURI() string {
+func HealthURI() string {
+	return uri + "/health"
+}
+
+func VersionsURI() string {
+	return uri + "/versions"
+}
+
+func formatClairURI() {
+	uri = viper.GetString("clair.uri")
+	port := viper.GetInt("clair.port")
+
 	if port != 0 {
 		uri += ":" + strconv.Itoa(port)
 	}
 	if !strings.HasSuffix(uri, "/v1") {
 		uri += "/v1"
 	}
-	return "http://clair:6060/v1"
+	if !strings.HasPrefix(uri, "http://") && !strings.HasPrefix(uri, "https://") {
+		uri = "http://" + uri
+	}
 }
 
 func addLayerURI() string {
@@ -106,27 +138,81 @@ func AddLayer(layer Layer) error {
 }
 
 //AnalyseLayer get Analysis os specified layer
-func AnalyseLayer(id string) (Analysis, error) {
+func AnalyseLayer(id string) (LayerAnalysis, error) {
 
 	response, err := http.Get(analyseLayerURI(id))
 	if err != nil {
-		return Analysis{}, err
+		return LayerAnalysis{}, err
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != 200 {
 		body, _ := ioutil.ReadAll(response.Body)
-		return Analysis{}, fmt.Errorf("Got response %d with message %s", response.StatusCode, string(body))
+		return LayerAnalysis{}, fmt.Errorf("Got response %d with message %s", response.StatusCode, string(body))
 	}
 
 	body, _ := ioutil.ReadAll(response.Body)
 
-	var analysis Analysis
+	var analysis LayerAnalysis
 
 	err = json.Unmarshal(body, &analysis)
 	if err != nil {
-		return Analysis{}, err
+		return LayerAnalysis{}, err
 	}
 	analysis.ID = id
 	return analysis, nil
+}
+
+func Versions() (interface{}, error) {
+	Config()
+	response, err := http.Get(VersionsURI())
+
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var versionBody interface{}
+	err = json.Unmarshal(body, &versionBody)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return versionBody, nil
+}
+
+func IsHealthy() (Health, error) {
+	Config()
+	response, err := http.Get(HealthURI())
+
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var health Health
+	err = json.Unmarshal(body, &health)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if response.StatusCode == http.StatusServiceUnavailable {
+		return health, fmt.Errorf(string(http.StatusServiceUnavailable))
+	}
+
+	return health, nil
 }

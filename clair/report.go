@@ -3,12 +3,7 @@ package clair
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
-	"os"
-	"strings"
 	"text/template"
-
-	"github.com/wemanity-belgium/hyperclair/utils"
 )
 
 //ReportConfig  Reporting configuration
@@ -18,50 +13,35 @@ type ReportConfig struct {
 }
 
 //ReportAsJSON report analysis as Json
-func (analysis Analysis) ReportAsJSON() error {
-	if err := os.MkdirAll("reports/json", 0777); err != nil {
-		return err
-	}
+func (analyses ImageAnalysis) ReportAsJSON() ([]byte, error) {
 
-	reportsName := "reports/json/analysis-" + strings.Replace(utils.Substr(analysis.ID, 0, 12), ":", "", 1) + ".json"
-	f, err := os.Create(reportsName)
+	analysesAsJSON, err := json.MarshalIndent(analyses, "", "\t")
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	defer f.Close()
-	json, err := json.MarshalIndent(analysis, "", "\t")
-	if err != nil {
-		return err
-	}
-	f.Write(json)
-	fmt.Println("JSON report at ", reportsName)
-	return nil
+	return analysesAsJSON, nil
 }
 
-//ReportAsHTML report analysis as Htll
-func (analysis Analysis) ReportAsHTML() error {
-	if err := os.MkdirAll("reports/html", 0777); err != nil {
-		return err
-	}
+//ReportAsHTML report analysis as HTML
+func (analyses ImageAnalysis) ReportAsHTML() (string, error) {
 
-	t, err := template.New("analysis-template").ParseFiles("templates/analysis-template.html")
+	templte, err := template.New("analysis-template").ParseFiles("templates/analysis-template.html")
 	if err != nil {
-		return err
+		return "", err
 	}
-	reportsName := "reports/html/analysis-" + strings.Replace(utils.Substr(analysis.ID, 0, 12), ":", "", 1) + ".html"
-	f, err := os.Create(reportsName)
-	if err != nil {
-		return err
-	}
-
-	defer f.Close()
 	var doc bytes.Buffer
-	err = t.ExecuteTemplate(&doc, "analysis-template.html", analysis)
+	err = templte.ExecuteTemplate(&doc, "analysis-template.html", analyses)
 	if err != nil {
-		return err
+		return "", err
 	}
-	f.WriteString(doc.String())
-	fmt.Println("HTML report at ", reportsName)
-	return nil
+	return doc.String(), nil
+}
+
+//ReportAsJSON report analysis as Json
+func (layerAnalysis LayerAnalysis) ReportAsJSON() (string, error) {
+	json, err := json.MarshalIndent(layerAnalysis, "", "\t")
+	if err != nil {
+		return "", err
+	}
+	return string(json), nil
 }

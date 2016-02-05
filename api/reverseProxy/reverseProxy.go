@@ -1,4 +1,4 @@
-package server
+package reverseProxy
 
 // Modified version of the original golang HTTP reverse proxy handler
 // And Vars in Gorilla/mux
@@ -13,11 +13,16 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/gorilla/context"
+	"github.com/gorilla/mux"
+	"github.com/wemanity-belgium/hyperclair/database"
+	"github.com/wemanity-belgium/hyperclair/docker"
+	"github.com/wunderlist/moxy"
 )
 
 // FilterFunc is a function that is called to process a proxy response
@@ -201,3 +206,29 @@ func (m *maxLatencyWriter) flushLoop() {
 }
 
 func (m *maxLatencyWriter) stop() { m.done <- true }
+
+// NewReverseProxy returns a new ReverseProxy that load-balances the proxy requests between multiple hosts defined by the RegistryMapping in the database
+// It also allows to define a chain of filter functions to process the outgoing response(s)
+func NewReverseProxy(filters []FilterFunc) *ReverseProxy {
+	director := func(request *http.Request) {
+
+		inr := context.Get(request, "in_req").(*http.Request)
+		host, _ := database.GetRegistryMapping(mux.Vars(inr)["digest"])
+		out, _ := url.Parse(host)
+		request.URL.Scheme = out.Scheme
+		request.URL.Host = out.Host
+		client := docker.InitClient()
+		req, _ := http.NewRequest("HEAD", request.URL.String(), nil)
+		resp, _ := client.Do(req)
+
+		if docker.IsUnauthorized(*resp) {
+			docker.Authenticate(resp, request)
+		}
+	}
+
+	return &ReverseProxy{
+		Transport: moxy.NewTransport(),
+		Director:  director,
+		Filters:   filters,
+	}
+}

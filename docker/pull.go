@@ -13,7 +13,6 @@ func (image *Image) Pull() error {
 	client := InitClient()
 	request, err := http.NewRequest("GET", image.ManifestURI(), nil)
 	resp, err := client.Do(request)
-
 	if err != nil {
 		return err
 	}

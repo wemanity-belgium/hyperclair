@@ -22,7 +22,7 @@ type Layer struct {
 }
 
 const dockerImageRegex = "^(?:([^/]+)/)?(?:([^/]+)/)?([^@:/]+)(?:[@:](.+))?"
-const hubURI = "https://registry-1.docker.io"
+const hubURI = "https://registry-1.docker.io/v2"
 
 // Parse is used to parse a docker image command
 //
