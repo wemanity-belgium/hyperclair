@@ -54,8 +54,8 @@ func TestRepositoryNameImage(t *testing.T) {
 		t.Error(imageName + " should be valid")
 	}
 
-	if image.Registry != "https://registry-1.docker.io" {
-		t.Errorf("Registry: %v vs %v", "https://registry-1.docker.io", image.Registry)
+	if image.Registry != hubURI {
+		t.Errorf("Registry: %v vs %v", hubURI, image.Registry)
 	}
 
 	if image.Name != "wemanity-belgium/registry-backup" {

@@ -46,8 +46,8 @@ func IsUnauthorized(response http.Response) bool {
 
 func Authenticate(dockerResponse *http.Response, request *http.Request) error {
 	bearerToken := BearerAuthParams(dockerResponse)
-
-	req, err := http.NewRequest("GET", bearerToken["realm"]+"?service="+bearerToken["service"]+"&scope="+bearerToken["scope"], nil)
+	url := bearerToken["realm"] + "?service=" + bearerToken["service"] + "&scope=" + bearerToken["scope"]
+	req, err := http.NewRequest("GET", url, nil)
 
 	if err != nil {
 		return err

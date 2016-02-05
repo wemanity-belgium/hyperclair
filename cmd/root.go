@@ -31,7 +31,8 @@ var RootCmd = &cobra.Command{
 	Long:  ``,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	//	Run: func(cmd *cobra.Command, args []string) { },
+	// Run: func(cmd *cobra.Command, args []string) {
+	// },
 }
 
 // Execute adds all child commands to the root command sets flags appropriately.
@@ -71,7 +72,6 @@ func initConfig() {
 	viper.SetDefault("clair.report.path", "reports")
 	viper.SetDefault("clair.report.format", "html")
 
-	viper.SetDefault("auth.insecureSkipVerify", "false")
 	viper.SetDefault("auth.insecureSkipVerify", "false")
 
 	viper.SetDefault("hyperclair.uri", "http://localhost")

@@ -14,12 +14,14 @@ func PullHandler(rw http.ResponseWriter, request *http.Request) {
 	image, err := docker.Parse(parseImageURL(request))
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(rw, "Error: %v", err)
+		fmt.Fprintf(rw, "Parsing Error: %v", err)
+		return
 	}
 
 	if err := image.Pull(); err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(rw, "Error: %v", err)
+		fmt.Fprintf(rw, "Pulling Image Error: %v", err)
+		return
 	}
 
 	fmt.Fprint(rw, image.String())
