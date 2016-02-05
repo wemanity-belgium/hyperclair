@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -94,6 +95,59 @@ func Analyse(imageName string) (clair.ImageAnalysis, error) {
 	imageAnalysis := clair.ImageAnalysis{}
 	json.Unmarshal(body, &imageAnalysis)
 	return imageAnalysis, nil
+}
+
+func Health() error {
+
+	url := hyperclairURI() + "/health"
+	response, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+
+	defer response.Body.Close()
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+	if response.StatusCode != http.StatusOK {
+		fmt.Println("Hyperclair in Unhealthy state")
+	}
+
+	var prettyJSON bytes.Buffer
+	err = json.Indent(&prettyJSON, body, "", "\t")
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(prettyJSON.Bytes()))
+	return nil
+}
+
+func Versions() error {
+
+	url := hyperclairURI() + "/versions"
+	response, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+
+	defer response.Body.Close()
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+
+	var prettyJSON bytes.Buffer
+	err = json.Indent(&prettyJSON, body, "", "\t")
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(prettyJSON.Bytes()))
+	return nil
 }
 
 func Report(imageName string) error {
