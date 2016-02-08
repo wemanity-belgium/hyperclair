@@ -16,23 +16,25 @@ A CLI tool for using CoreOS Clair with Docker Registry.
 
 hyperclair is tool to make the link between the Docker Registry and the CoreOS Clair tool.
 
+![hyperclair](https://cloud.githubusercontent.com/assets/3304363/12849755/9caa0fac-cc21-11e5-8b89-ddfa8535a3dc.png)
+
+# Usage
+
+[![asciicast](https://asciinema.org/a/35912.png)](https://asciinema.org/a/35912)
+
 # Notification
-There is two way:
-
-1. Automatic: Registry notify through event **hyperclair** when a new image is pulled, then **hyperclair** push it to Clair
-
+1. Api: `hyperclair serve` run a web server to interact with the Registry and Clair. It play as Reverse Proxy for Registry Authentication
 2. On-Demand: the CLI tool is used to pull image from Registry then push it to Clair
 
 # Reporting
 
-**hyperclair** get vulnerabilities report from Clair and generate and HTML report
+**hyperclair** get vulnerabilities report from Clair and generate HTML report
 
-hyperclair can be used for Docker Hub and for Personal Registry
+hyperclair can be used for Docker Hub and self-hosted Registry
 
 # Command
 
 ```
-hyperclair --help
 Analyse your docker image with Clair, directly from your registry.
 
 Usage:
@@ -40,13 +42,16 @@ Usage:
 
 Available Commands:
   analyse     Analyse Docker image
+  health      Get Health of Hyperclair and underlying services
   pull        Pull Docker image information
   push        Push Docker image to Clair
   report      Generate Docker Image vulnerabilities report
   serve       Create hyperclair Server
+  version     Get Versions of Hyperclair and underlying services
 
 Flags:
       --config string   config file (default is ./.hyperclair.yml)
+  -h, --help            help for hyperclair
 
 Use "hyperclair [command] --help" for more information about a command.
 
@@ -57,16 +62,20 @@ Use "hyperclair [command] --help" for more information about a command.
 ```yaml
 clair:
   port: 6060
-  uri: clair
-  link: registry
+  uri: http://clair
   priority: Low
   report:
     path: reports
     format: html
 auth:
-  uri: http://localhost:3000/v2/token
+  user: jgsqware
+  password: jgsqware
+  insecureSkipVerify: true
+hyperclair:
+  uri: http://hyperclair
+  port: 9999
 ```
 
-# Contribution
+# Contribution and Test
 
 Go to /contrib folder

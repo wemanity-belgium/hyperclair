@@ -1,68 +1,71 @@
-auth:
-  image: cesanta/docker_auth
-  ports:
-    - "5001:5001"
-  volumes:
-    - ./auth_server/config:/config:ro
-    - ./auth_server/ssl:/ssl
-  command: /config/auth_config.yml
-  container_name: "auth"
+version: '2'
 
-registry:
-  image: registry:2.2.1
-  ports:
-    - 5000:5000
-  volumes:
-    - ./auth_server/ssl:/ssl
-  container_name: "registry"
-  environment:
-    - REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY=/var/lib/registry
-    - REGISTRY_AUTH=token
-    - REGISTRY_AUTH_TOKEN_REALM=https://auth:5001/auth
-    - REGISTRY_AUTH_TOKEN_SERVICE="docker_registry"
-    - REGISTRY_AUTH_TOKEN_ISSUER="auth_service"
-    - REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE=/ssl/server.pem
+services:
+  auth:
+    image: cesanta/docker_auth
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./auth_server/config:/config:ro
+      - ./auth_server/ssl:/ssl
+    command: /config/auth_config.yml
+    container_name: "auth"
 
-# Uncomment to deploy an insecure registry
-# registry_insecure:
-#   image: registry:2.2.1
-#   ports:
-#     - 5002:5000
-#   container_name: "registry_insecure"
+  registry:
+    image: registry:2.2.1
+    ports:
+      - 5000:5000
+    volumes:
+      - ./auth_server/ssl:/ssl
+    container_name: "registry"
+    environment:
+      - REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY=/var/lib/registry
+      - REGISTRY_AUTH=token
+      - REGISTRY_AUTH_TOKEN_REALM=https://auth:5001/auth
+      - REGISTRY_AUTH_TOKEN_SERVICE="docker_registry"
+      - REGISTRY_AUTH_TOKEN_ISSUER="auth_service"
+      - REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE=/ssl/server.pem
 
-clairdata:
-  image: alpine
-  volumes:
-   - /var/local/
-  command: "true"
-  container_name: "clairdata"
+  # Uncomment to deploy an insecure registry
+  # registry_insecure:
+  #   image: registry:2.2.1
+  #   ports:
+  #     - 5002:5000
+  #   container_name: "registry_insecure"
 
-clair:
-  image: quay.io/coreos/clair:latest
-  volumes:
-    - /tmp:/tmp
-    - ./config:/config
-  volumes_from:
-    - clairdata
-  ports:
-    - 6060:6060
-    - 6061:6061
-  container_name: "clair"
-  command: --config=/config/clair.yml
 
-hyperclair:
-  build: .
-  volumes:
-    - $GOPATH:/go
-  ports:
-    - 9999:9999
-  tty: true
-  container_name: "hyperclair"
-  entrypoint: ["go","run","main.go","serve"]
+  clair:
+    image: quay.io/coreos/clair:latest
+    volumes:
+      - /tmp:/tmp
+      - ./config:/config
+      - clair-data:/var/local
+    ports:
+      - 6060:6060
+      - 6061:6061
+    container_name: "clair"
+    command: --config=/config/clair.yml
 
-hyperclair_dev:
-  build: .
-  volumes:
-    - $GOPATH:/go
-  tty: true
-  container_name: "hyperclair_dev"
+  hyperclair:
+    build: .
+    volumes:
+      - $GOPATH:/go
+      - hyperclair-data:/data
+    ports:
+      - 9999:9999
+    tty: true
+    container_name: "hyperclair"
+    entrypoint: ["go","run","main.go","serve"]
+
+  hyperclair_dev:
+    build: .
+    volumes:
+      - $GOPATH:/go
+    tty: true
+    container_name: "hyperclair_dev"
+
+volumes:
+  clair-data:
+    driver: local
+  hyperclair-data:
+    driver: local
