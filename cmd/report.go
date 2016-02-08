@@ -13,11 +13,9 @@ var reportCmd = &cobra.Command{
 	Short: "Generate Docker Image vulnerabilities report",
 	Long:  `Generate Docker Image vulnerabilities report as HTML or JSON`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-
 		if len(args) != 1 {
 			return errors.New("hyperclair: \"report\" requires a minimum of 1 argument")
 		}
-
 		if err := cli.Report(args[0]); err != nil {
 			return err
 		}

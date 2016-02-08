@@ -152,7 +152,6 @@ func Versions() error {
 
 func Report(imageName string) error {
 	analyses, err := Analyse(imageName)
-
 	if err != nil {
 		return err
 	}

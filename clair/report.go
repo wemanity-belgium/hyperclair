@@ -6,6 +6,8 @@ import (
 	"text/template"
 )
 
+//go:generate go-bindata -pkg clair -o templates.go templates/...
+
 //ReportConfig  Reporting configuration
 type ReportConfig struct {
 	Path   string
@@ -24,13 +26,15 @@ func (analyses ImageAnalysis) ReportAsJSON() ([]byte, error) {
 
 //ReportAsHTML report analysis as HTML
 func (analyses ImageAnalysis) ReportAsHTML() (string, error) {
-
-	templte, err := template.New("analysis-template").ParseFiles("templates/analysis-template.html")
+	asset, err := Asset("templates/analysis-template.html")
 	if err != nil {
 		return "", err
 	}
+
+	templte := template.Must(template.New("analysis-template").Parse(string(asset)))
+
 	var doc bytes.Buffer
-	err = templte.ExecuteTemplate(&doc, "analysis-template.html", analyses)
+	err = templte.Execute(&doc, analyses)
 	if err != nil {
 		return "", err
 	}

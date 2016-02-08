@@ -13,11 +13,9 @@ import (
 func SaveAnalysisReport(analyses clair.ImageAnalysis) error {
 	clair.Config()
 	imageName := strings.Replace(analyses.ImageName, "/", "-", -1) + "-" + analyses.Tag
-
 	switch clair.Report.Format {
 	case "html":
 		html, err := analyses.ReportAsHTML()
-
 		if err != nil {
 			return err
 		}

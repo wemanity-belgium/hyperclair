@@ -33,12 +33,6 @@ services:
   #     - 5002:5000
   #   container_name: "registry_insecure"
 
-  # clairdata:
-  #   image: alpine
-  #   volumes:
-  #    - /var/local/
-  #   command: "true"
-  #   container_name: "clairdata"
 
   clair:
     image: quay.io/coreos/clair:latest
