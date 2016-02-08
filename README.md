@@ -18,6 +18,10 @@ hyperclair is tool to make the link between the Docker Registry and the CoreOS C
 
 ![hyperclair](https://cloud.githubusercontent.com/assets/3304363/12849755/9caa0fac-cc21-11e5-8b89-ddfa8535a3dc.png)
 
+# Usage
+
+[![asciicast](https://asciinema.org/a/35912.png)](https://asciinema.org/a/35912)
+
 # Notification
 1. Api: `hyperclair serve` run a web server to interact with the Registry and Clair. It play as Reverse Proxy for Registry Authentication
 2. On-Demand: the CLI tool is used to pull image from Registry then push it to Clair
