@@ -56,11 +56,12 @@ services:
     build: .
     volumes:
       - $GOPATH:/go
+      - hyperclair-data:/data
     ports:
       - 9999:9999
     tty: true
     container_name: "hyperclair"
-    # entrypoint: ["go","run","main.go","serve"]
+    entrypoint: ["go","run","main.go","serve"]
 
   hyperclair_dev:
     build: .
@@ -71,4 +72,6 @@ services:
 
 volumes:
   clair-data:
+    driver: local
+  hyperclair-data:
     driver: local

@@ -8,7 +8,7 @@ import (
 	"github.com/boltdb/bolt"
 )
 
-const HyperclairDB = "hyperclair.db"
+const HyperclairDB = "/data/hyperclair.db"
 const RegistryBucket = "Registries"
 
 func InsertRegistryMapping(layerDigest string, registryURI string) error {
@@ -60,15 +60,18 @@ func GetRegistryMapping(layerDigest string) (string, error) {
 
 func open(dbName string) (*bolt.DB, error) {
 	db, err := bolt.Open(dbName, 0600, nil)
+
 	if err != nil {
+		fmt.Println("err:",err.Error())
 		return nil, err
 	}
+
 	db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists([]byte(RegistryBucket))
 		if err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
-		return err
+		return nil
 	})
 	return db, nil
 }
@@ -79,11 +82,11 @@ func IsHealthy() (interface{}, error) {
 	}
 
 	db, err := open(HyperclairDB)
-	defer db.Close()
-
 	if err != nil {
 		return Health{false}, fmt.Errorf(string(http.StatusServiceUnavailable))
 	}
+
+	defer db.Close()
 
 	return Health{true}, nil
 }
