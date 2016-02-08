@@ -33,20 +33,19 @@ services:
   #     - 5002:5000
   #   container_name: "registry_insecure"
 
-  clairdata:
-    image: alpine
-    volumes:
-     - /var/local/
-    command: "true"
-    container_name: "clairdata"
+  # clairdata:
+  #   image: alpine
+  #   volumes:
+  #    - /var/local/
+  #   command: "true"
+  #   container_name: "clairdata"
 
   clair:
     image: quay.io/coreos/clair:latest
     volumes:
       - /tmp:/tmp
       - ./config:/config
-    volumes_from:
-      - clairdata
+      - clair-data:/var/local
     ports:
       - 6060:6060
       - 6061:6061
@@ -61,13 +60,15 @@ services:
       - 9999:9999
     tty: true
     container_name: "hyperclair"
-    entrypoint: ["go","run","main.go","serve"]
+    # entrypoint: ["go","run","main.go","serve"]
 
   hyperclair_dev:
     build: .
     volumes:
       - $GOPATH:/go
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /usr/local/bin/docker:/bin/docker
     tty: true
     container_name: "hyperclair_dev"
+
+volumes:
+  clair-data:
+    driver: local
