@@ -68,10 +68,10 @@ auth:
   password: jgsqware
   insecureSkipVerify: true
 hyperclair:
-  uri: http://localhost
+  uri: http://hyperclair
   port: 9999
 ```
 
-# Contribution
+# Contribution and Test
 
 Go to /contrib folder
