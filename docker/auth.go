@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 
@@ -38,12 +37,6 @@ func BearerAuthParams(r *http.Response) map[string]string {
 	return result
 }
 
-//IsUnauthorized check if the StatusCode is 401
-func IsUnauthorized(response http.Response) bool {
-	log.Println("Pull is Unauthorized")
-	return response.StatusCode == 401
-}
-
 func Authenticate(dockerResponse *http.Response, request *http.Request) error {
 	bearerToken := BearerAuthParams(dockerResponse)
 	url := bearerToken["realm"] + "?service=" + bearerToken["service"] + "&scope=" + bearerToken["scope"]
@@ -53,7 +46,12 @@ func Authenticate(dockerResponse *http.Response, request *http.Request) error {
 		return err
 	}
 
-	setBasicAuth(req)
+	serviceAuthorization := strings.Replace(bearerToken["service"], ".", "_", -1)
+	authorizations := viper.Sub("auth." + serviceAuthorization)
+
+	user := authorizations.GetString("user")
+	password := authorizations.GetString("password")
+	req.SetBasicAuth(user, password)
 
 	response, err := InitClient().Do(req)
 
@@ -74,18 +72,9 @@ func Authenticate(dockerResponse *http.Response, request *http.Request) error {
 	if err != nil {
 		return err
 	}
-
-	setBearerAuthorization(request, tok.String())
+	request.Header.Set("Authorization", "Bearer "+tok.String())
 
 	return nil
-}
-
-func setBasicAuth(request *http.Request) {
-	request.SetBasicAuth(viper.GetString("auth.user"), viper.GetString("auth.password"))
-}
-
-func setBearerAuthorization(request *http.Request, token string) {
-	request.Header.Set("Authorization", "Bearer "+token)
 }
 
 //InitClient create a http.Client with Transport configuration
