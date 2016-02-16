@@ -1,4 +1,4 @@
-package utils
+package str
 
 //Substr extract string of length in s starting at pos
 func Substr(s string, pos, length int) string {

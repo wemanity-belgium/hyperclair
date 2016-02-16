@@ -15,11 +15,15 @@
 package cmd
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/wemanity-belgium/hyperclair/cli"
+	"github.com/wemanity-belgium/hyperclair/docker"
 )
 
 // pingCmd represents the ping command
@@ -33,7 +37,7 @@ var pullCmd = &cobra.Command{
 			return errors.New("hyperclair: \"pull\" requires a minimum of 1 argument")
 		}
 
-		image, err := cli.Pull(args[0])
+		image, err := pull(args[0])
 		if err != nil {
 			return err
 		}
@@ -44,6 +48,35 @@ var pullCmd = &cobra.Command{
 
 		return nil
 	},
+}
+
+func pull(imageName string) (docker.Image, error) {
+	image, err := docker.Parse(imageName)
+	if err != nil {
+		return docker.Image{}, err
+	}
+	registry := strings.TrimSuffix(strings.TrimPrefix(image.Registry, "http://"), "/v2")
+	url := HyperclairURI + "/" + image.Name + "?realm=" + registry + "&reference=" + image.Tag
+	response, err := http.Get(url)
+
+	if err != nil {
+		return docker.Image{}, err
+	}
+
+	defer response.Body.Close()
+	body, err := ioutil.ReadAll(response.Body)
+
+	if err != nil {
+		return docker.Image{}, err
+	}
+
+	err = json.Unmarshal(body, &image)
+
+	if err != nil {
+		return docker.Image{}, err
+	}
+
+	return image, nil
 }
 
 func init() {

@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/wemanity-belgium/hyperclair/clair"
-	"github.com/wemanity-belgium/hyperclair/utils"
+	"github.com/wemanity-belgium/hyperclair/str"
 )
 
 //Analyse return Clair Image analysis
@@ -17,9 +17,9 @@ func (image *Image) Analyse() clair.ImageAnalysis {
 		layer := image.FsLayers[layerCount-index-1]
 
 		if analysis, err := clair.AnalyseLayer(layer.BlobSum); err != nil {
-			log.Printf("Error analysing layer [%v] %d/%d: %v\n", utils.Substr(layer.BlobSum, 0, 12), index+1, layerCount, err)
+			log.Printf("Error analysing layer [%v] %d/%d: %v\n", str.Substr(layer.BlobSum, 0, 12), index+1, layerCount, err)
 		} else {
-			log.Printf("Analysis [%v] found %d vulnerabilities.\n", utils.Substr(layer.BlobSum, 0, 12), len(analysis.Vulnerabilities))
+			log.Printf("Analysis [%v] found %d vulnerabilities.\n", str.Substr(layer.BlobSum, 0, 12), len(analysis.Vulnerabilities))
 			analysisResult = append(analysisResult, analysis)
 		}
 	}
