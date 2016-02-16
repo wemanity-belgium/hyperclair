@@ -6,7 +6,7 @@ import (
 
 	"github.com/wemanity-belgium/hyperclair/clair"
 	"github.com/wemanity-belgium/hyperclair/database"
-	"github.com/wemanity-belgium/hyperclair/str"
+	"github.com/wemanity-belgium/hyperclair/xstrings"
 )
 
 //Push image to Clair for analysis
@@ -28,7 +28,7 @@ func (image Image) Push() error {
 		//FIXME Update to TLS
 		payload.Path = strings.Replace(payload.Path, image.Registry, "http://hyperclair:9999/v2", 1)
 		if err := clair.AddLayer(payload); err != nil {
-			fmt.Printf("Error adding layer [%v] %d/%d: %v\n", str.Substr(layer.BlobSum, 0, 12), index+1, layerCount, err)
+			fmt.Printf("Error adding layer [%v] %d/%d: %v\n", xstrings.Substr(layer.BlobSum, 0, 12), index+1, layerCount, err)
 			parentID = ""
 		} else {
 			parentID = layer.BlobSum

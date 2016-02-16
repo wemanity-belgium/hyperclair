@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/wemanity-belgium/hyperclair/clair"
 	"github.com/wemanity-belgium/hyperclair/docker"
-	"github.com/wemanity-belgium/hyperclair/str"
+	"github.com/wemanity-belgium/hyperclair/xstrings"
 )
 
 var analyseCmd = &cobra.Command{
@@ -34,7 +34,7 @@ var analyseCmd = &cobra.Command{
 
 		for _, layerAnalysis := range imageAnalysis.Layers {
 
-			fmt.Printf("Analysis [%v] found %d vulnerabilities.\n", str.Substr(layerAnalysis.ID, 0, 12), len(layerAnalysis.Vulnerabilities))
+			fmt.Printf("Analysis [%v] found %d vulnerabilities.\n", xstrings.Substr(layerAnalysis.ID, 0, 12), len(layerAnalysis.Vulnerabilities))
 		}
 		return nil
 	},
