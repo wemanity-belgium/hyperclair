@@ -28,6 +28,7 @@ func VersionsHandler(rw http.ResponseWriter, request *http.Request) {
 	b, err := json.Marshal(version)
 	if err != nil {
 		xerrors.PrintStatusInternalServerError(rw, fmt.Errorf("cannot marshal version:%v", err))
+		return
 	}
 
 	fmt.Fprint(rw, string(b))
