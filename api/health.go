@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/wemanity-belgium/hyperclair/api/xerrors"
 	"github.com/wemanity-belgium/hyperclair/clair"
 	"github.com/wemanity-belgium/hyperclair/database"
 )
@@ -14,39 +15,25 @@ type health struct {
 	Database interface{} `json:"database"`
 }
 
-func (health health) asJSON() string {
+func (health health) asJSON() (string, error) {
 	b, err := json.Marshal(health)
 	if err != nil {
-		fmt.Println(err)
-		return string("Cannot marshal health")
+		return "", fmt.Errorf("cannot marshal health: %v", err)
 	}
-	return string(b)
+	return string(b), nil
 }
 
 func HealthHandler(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 
-	isHealthy := true
-
-	clairHealth, err := clair.IsHealthy()
-	if err != nil {
-		if err.Error() == string(http.StatusServiceUnavailable) {
-			isHealthy = false
-		} else {
-			rw.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(rw, "Error: %v", err)
-			return
-
-		}
+	clairHealth, ok := clair.IsHealthy()
+	if !ok {
+		rw.WriteHeader(http.StatusServiceUnavailable)
 	}
 
-	databaseHealth, err := database.IsHealthy()
+	databaseHealth, ok := database.IsHealthy()
 
-	if err != nil {
-		isHealthy = false
-	}
-
-	if !isHealthy {
+	if !ok {
 		rw.WriteHeader(http.StatusServiceUnavailable)
 	}
 
@@ -55,5 +42,10 @@ func HealthHandler(rw http.ResponseWriter, request *http.Request) {
 		Database: databaseHealth,
 	}
 
-	fmt.Fprint(rw, healthBody.asJSON())
+	j, err := healthBody.asJSON()
+	if err != nil {
+		xerrors.PrintStatusInternalServerError(rw, err)
+		return
+	}
+	fmt.Fprint(rw, j)
 }

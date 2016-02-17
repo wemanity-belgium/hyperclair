@@ -43,8 +43,6 @@ type ImageAnalysis struct {
 	Layers    []LayerAnalysis
 }
 
-type Health interface{}
-
 func (imageAnalysis ImageAnalysis) Name() string {
 	return imageAnalysis.Registry + "/" + imageAnalysis.ImageName + ":" + imageAnalysis.Tag
 }
@@ -76,10 +74,6 @@ func Config() {
 	priority = viper.GetString("clair.priority")
 	Report.Path = viper.GetString("clair.report.path")
 	Report.Format = viper.GetString("clair.report.format")
-}
-
-func HealthURI() string {
-	return uri + "/health"
 }
 
 func formatClairURI() {
@@ -157,33 +151,4 @@ func AnalyseLayer(id string) (LayerAnalysis, error) {
 	}
 	analysis.ID = id
 	return analysis, nil
-}
-
-func IsHealthy() (Health, error) {
-	Config()
-	response, err := http.Get(HealthURI())
-
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	body, err := ioutil.ReadAll(response.Body)
-
-	if err != nil {
-		return nil, err
-	}
-
-	var health Health
-	err = json.Unmarshal(body, &health)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if response.StatusCode == http.StatusServiceUnavailable {
-		return health, fmt.Errorf(string(http.StatusServiceUnavailable))
-	}
-
-	return health, nil
 }

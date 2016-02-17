@@ -3,7 +3,6 @@ package database
 import (
 	"errors"
 	"fmt"
-	"net/http"
 
 	"github.com/boltdb/bolt"
 )
@@ -62,7 +61,7 @@ func open(dbName string) (*bolt.DB, error) {
 	db, err := bolt.Open(dbName, 0600, nil)
 
 	if err != nil {
-		fmt.Println("err:",err.Error())
+		fmt.Println("err:", err.Error())
 		return nil, err
 	}
 
@@ -76,17 +75,17 @@ func open(dbName string) (*bolt.DB, error) {
 	return db, nil
 }
 
-func IsHealthy() (interface{}, error) {
+func IsHealthy() (interface{}, bool) {
 	type Health struct {
 		IsHealthy bool
 	}
 
 	db, err := open(HyperclairDB)
 	if err != nil {
-		return Health{false}, fmt.Errorf(string(http.StatusServiceUnavailable))
+		return Health{false}, false
 	}
 
 	defer db.Close()
 
-	return Health{true}, nil
+	return Health{true}, true
 }
