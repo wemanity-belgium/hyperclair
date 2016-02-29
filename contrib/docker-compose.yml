@@ -36,7 +36,7 @@ services:
 
 
   clair:
-    image: quay.io/coreos/clair:latest
+    image: quay.io/coreos/clair:v1.0.0-rc1
     volumes:
       - /tmp:/tmp
       - ./config:/config
