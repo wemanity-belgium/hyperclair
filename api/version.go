@@ -5,40 +5,30 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/wemanity-belgium/hyperclair/api/xerrors"
 	"github.com/wemanity-belgium/hyperclair/clair"
 )
 
-const Version = "1"
-
-type version struct {
-	APIVersion string
-	Clair      interface{}
-}
-
-func (version version) asJSON() string {
-	b, err := json.Marshal(version)
-	if err != nil {
-		fmt.Println(err)
-		return string("Cannot marshal health")
-	}
-	return string(b)
-}
+const v = "1"
 
 func VersionsHandler(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
-
 	clairVersion, err := clair.Versions()
 
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(rw, "Error: %v", err)
+		xerrors.PrintStatusInternalServerError(rw, err)
 		return
 	}
 
-	versionBody := version{
-		APIVersion: Version,
-		Clair:      clairVersion,
+	version := struct {
+		APIVersion string
+		Clair      interface{}
+	}{v, clairVersion}
+
+	b, err := json.Marshal(version)
+	if err != nil {
+		xerrors.PrintStatusInternalServerError(rw, fmt.Errorf("cannot marshal version:%v", err))
 	}
 
-	fmt.Fprint(rw, versionBody.asJSON())
+	fmt.Fprint(rw, string(b))
 }
