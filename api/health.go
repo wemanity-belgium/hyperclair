@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/wemanity-belgium/hyperclair/api/xerrors"
 	"github.com/wemanity-belgium/hyperclair/clair"
 	"github.com/wemanity-belgium/hyperclair/database"
 )
@@ -23,7 +22,7 @@ func (health health) asJSON() (string, error) {
 	return string(b), nil
 }
 
-func HealthHandler(rw http.ResponseWriter, request *http.Request) {
+func HealthHandler(rw http.ResponseWriter, request *http.Request) error {
 	rw.Header().Set("Content-Type", "application/json")
 
 	clairHealth, ok := clair.IsHealthy()
@@ -44,8 +43,8 @@ func HealthHandler(rw http.ResponseWriter, request *http.Request) {
 
 	j, err := healthBody.asJSON()
 	if err != nil {
-		xerrors.PrintStatusInternalServerError(rw, err)
-		return
+		return err
 	}
 	fmt.Fprint(rw, j)
+	return nil
 }

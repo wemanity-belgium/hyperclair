@@ -17,3 +17,11 @@ func TestSubstrFromCharFive(t *testing.T) {
 		t.Errorf("is %v, expect %v", s, expected)
 	}
 }
+
+func TestTrimPrefixSuffix(t *testing.T) {
+	v := "http://registry:5555/v2"
+	e := "registry:5555"
+	if s := TrimPrefixSuffix(v, "http://", "/v2"); s != e {
+		t.Errorf("is %v, expect %v", s, e)
+	}
+}

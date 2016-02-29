@@ -16,11 +16,13 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/wemanity-belgium/hyperclair/clair"
 )
 
 var cfgFile string
@@ -75,7 +77,8 @@ func initConfig() {
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+		log.Println("Using config file:", viper.ConfigFileUsed())
+		clair.Config()
 	}
 
 	HyperclairURI = viper.GetString("hyperclair.uri") + ":" + strconv.Itoa(viper.GetInt("hyperclair.port")) + "/v1"

@@ -5,19 +5,17 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/wemanity-belgium/hyperclair/api/xerrors"
 	"github.com/wemanity-belgium/hyperclair/clair"
 )
 
 const v = "1"
 
-func VersionsHandler(rw http.ResponseWriter, request *http.Request) {
+func VersionsHandler(rw http.ResponseWriter, request *http.Request) error {
 	rw.Header().Set("Content-Type", "application/json")
 	clairVersion, err := clair.Versions()
 
 	if err != nil {
-		xerrors.PrintStatusInternalServerError(rw, err)
-		return
+		return err
 	}
 
 	version := struct {
@@ -27,9 +25,8 @@ func VersionsHandler(rw http.ResponseWriter, request *http.Request) {
 
 	b, err := json.Marshal(version)
 	if err != nil {
-		xerrors.PrintStatusInternalServerError(rw, fmt.Errorf("cannot marshal version:%v", err))
-		return
+		return fmt.Errorf("cannot marshal version:%v", err)
 	}
-
 	fmt.Fprint(rw, string(b))
+	return nil
 }

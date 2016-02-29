@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -9,22 +8,16 @@ import (
 )
 
 //PushHandler push image to Clair
-func PushHandler(rw http.ResponseWriter, request *http.Request) {
-	image, err := docker.Parse(parseImageURL(request))
+func PushHandler(rw http.ResponseWriter, request *http.Request) error {
+	image, err := docker.Pull(parseImageURL(request))
 	if err != nil {
-		rw.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(rw, "Error: %v", err)
-	}
-
-	if err := image.Pull(); err != nil {
-		rw.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(rw, "Error: %v", err)
+		return err
 	}
 
 	log.Println("Pushing Image")
-	if err := image.Push(); err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(rw, "Error: %v", err)
+	if err := docker.Push(image); err != nil {
+		return err
 	}
-	rw.WriteHeader(http.StatusNoContent)
+	rw.WriteHeader(http.StatusCreated)
+	return nil
 }

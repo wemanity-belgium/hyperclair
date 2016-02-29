@@ -22,6 +22,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/wemanity-belgium/hyperclair/database"
 	"github.com/wemanity-belgium/hyperclair/docker"
+	"github.com/wemanity-belgium/hyperclair/docker/httpclient"
 	"github.com/wunderlist/moxy"
 )
 
@@ -217,12 +218,12 @@ func NewReverseProxy(filters []FilterFunc) *ReverseProxy {
 		out, _ := url.Parse(host)
 		request.URL.Scheme = out.Scheme
 		request.URL.Host = out.Host
-		client := docker.InitClient()
+		client := httpclient.Get()
 		req, _ := http.NewRequest("HEAD", request.URL.String(), nil)
 		resp, _ := client.Do(req)
 
 		if resp.StatusCode == http.StatusUnauthorized {
-			log.Println("Pull is Unauthorized")
+			log.Println("pull from clair is unauthorized")
 			docker.Authenticate(resp, request)
 		}
 	}

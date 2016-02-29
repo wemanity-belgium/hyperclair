@@ -2,7 +2,7 @@ package clair
 
 import (
 	"bytes"
-	"encoding/json"
+	"fmt"
 	"text/template"
 )
 
@@ -14,21 +14,11 @@ type ReportConfig struct {
 	Format string
 }
 
-//ReportAsJSON report analysis as Json
-func (analyses ImageAnalysis) ReportAsJSON() ([]byte, error) {
-
-	analysesAsJSON, err := json.MarshalIndent(analyses, "", "\t")
-	if err != nil {
-		return nil, err
-	}
-	return analysesAsJSON, nil
-}
-
 //ReportAsHTML report analysis as HTML
-func (analyses ImageAnalysis) ReportAsHTML() (string, error) {
+func ReportAsHTML(analyses ImageAnalysis) (string, error) {
 	asset, err := Asset("templates/analysis-template.html")
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("accessing template: %v", err)
 	}
 
 	templte := template.Must(template.New("analysis-template").Parse(string(asset)))
@@ -36,16 +26,7 @@ func (analyses ImageAnalysis) ReportAsHTML() (string, error) {
 	var doc bytes.Buffer
 	err = templte.Execute(&doc, analyses)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("rendering HTML report: %v", err)
 	}
 	return doc.String(), nil
-}
-
-//ReportAsJSON report analysis as Json
-func (layerAnalysis LayerAnalysis) ReportAsJSON() (string, error) {
-	json, err := json.MarshalIndent(layerAnalysis, "", "\t")
-	if err != nil {
-		return "", err
-	}
-	return string(json), nil
 }

@@ -1,19 +1,14 @@
 package clair
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/spf13/viper"
+	"github.com/wemanity-belgium/hyperclair/xstrings"
 )
 
 var uri string
-var link string
 var priority string
 
 //Report Reporting Config value
@@ -43,13 +38,13 @@ type ImageAnalysis struct {
 	Layers    []LayerAnalysis
 }
 
-func (imageAnalysis ImageAnalysis) Name() string {
+func (imageAnalysis ImageAnalysis) String() string {
 	return imageAnalysis.Registry + "/" + imageAnalysis.ImageName + ":" + imageAnalysis.Tag
 }
 
 //Count vulnarabilities in all layers regarding the priority
 func (imageAnalysis ImageAnalysis) Count(priority string) int {
-	count := 0
+	var count int
 	for _, layer := range imageAnalysis.Layers {
 		count += layer.Count(priority)
 	}
@@ -58,7 +53,7 @@ func (imageAnalysis ImageAnalysis) Count(priority string) int {
 
 //Count vulnarabilities regarding the priority
 func (layerAnalysis LayerAnalysis) Count(priority string) int {
-	count := 0
+	var count int
 	for _, vulnerability := range layerAnalysis.Vulnerabilities {
 		if vulnerability.Priority == priority {
 			count++
@@ -68,18 +63,12 @@ func (layerAnalysis LayerAnalysis) Count(priority string) int {
 	return count
 }
 
-//Config configure Clair from configFile
-func Config() {
-	formatClairURI()
-	priority = viper.GetString("clair.priority")
-	Report.Path = viper.GetString("clair.report.path")
-	Report.Format = viper.GetString("clair.report.format")
+func (l LayerAnalysis) ShortName() string {
+	return xstrings.Substr(l.ID, 0, 12)
 }
 
-func formatClairURI() {
-	uri = viper.GetString("clair.uri")
-	port := viper.GetInt("clair.port")
-
+func fmtURI(u string, port int) {
+	uri = u
 	if port != 0 {
 		uri += ":" + strconv.Itoa(port)
 	}
@@ -91,64 +80,10 @@ func formatClairURI() {
 	}
 }
 
-func addLayerURI() string {
-	return strings.Join([]string{uri, "layers"}, "/")
-}
-
-func analyseLayerURI(id string) string {
-	return strings.Join([]string{uri, "layers", id, "vulnerabilities"}, "/") + "?minimumPriority=" + priority
-}
-
-//AddLayer to Clair for analysis
-func AddLayer(layer Layer) error {
-	layerJSONPayload, err := json.MarshalIndent(layer, "", "\t")
-	if err != nil {
-		return err
-	}
-
-	request, err := http.NewRequest("POST", addLayerURI(), bytes.NewBuffer(layerJSONPayload))
-	if err != nil {
-		return err
-	}
-	request.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	response, err := client.Do(request)
-	if err != nil {
-		return err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != 201 {
-		body, _ := ioutil.ReadAll(response.Body)
-		return fmt.Errorf("Got response %d with message %s", response.StatusCode, string(body))
-	}
-
-	return nil
-}
-
-//AnalyseLayer get Analysis os specified layer
-func AnalyseLayer(id string) (LayerAnalysis, error) {
-
-	response, err := http.Get(analyseLayerURI(id))
-	if err != nil {
-		return LayerAnalysis{}, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != 200 {
-		body, _ := ioutil.ReadAll(response.Body)
-		return LayerAnalysis{}, fmt.Errorf("Got response %d with message %s", response.StatusCode, string(body))
-	}
-
-	body, _ := ioutil.ReadAll(response.Body)
-
-	var analysis LayerAnalysis
-
-	err = json.Unmarshal(body, &analysis)
-	if err != nil {
-		return LayerAnalysis{}, err
-	}
-	analysis.ID = id
-	return analysis, nil
+//Config configure Clair from configFile
+func Config() {
+	fmtURI(viper.GetString("clair.uri"), viper.GetInt("clair.port"))
+	priority = viper.GetString("clair.priority")
+	Report.Path = viper.GetString("clair.report.path")
+	Report.Format = viper.GetString("clair.report.format")
 }
