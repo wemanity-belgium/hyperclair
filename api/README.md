@@ -148,7 +148,7 @@ curl -X POST -s http://localhost:9999/v1/jgsqware/ubuntu-git?realm=registry:5000
 ### Success Response
 
 ```
-HTTP/1.1 204 No Content
+HTTP/1.1 201 Created
 ```
 
 ## Get Image analysis as JSON

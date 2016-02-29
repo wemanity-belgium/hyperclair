@@ -17,6 +17,7 @@ services:
       - 5000:5000
     volumes:
       - ./auth_server/ssl:/ssl
+      - registry-data:/var/lib/registry
     container_name: "registry"
     environment:
       - REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY=/var/lib/registry
@@ -68,4 +69,6 @@ volumes:
   clair-data:
     driver: local
   hyperclair-data:
+    driver: local
+  registry-data:
     driver: local

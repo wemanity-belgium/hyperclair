@@ -2,31 +2,31 @@ package docker
 
 import (
 	"log"
-	"strings"
 
 	"github.com/wemanity-belgium/hyperclair/clair"
 	"github.com/wemanity-belgium/hyperclair/xstrings"
 )
 
 //Analyse return Clair Image analysis
-func (image *Image) Analyse() clair.ImageAnalysis {
-	clair.Config()
-	layerCount := len(image.FsLayers)
-	analysisResult := []clair.LayerAnalysis{}
-	for index := range image.FsLayers {
-		layer := image.FsLayers[layerCount-index-1]
+func Analyse(image Image) clair.ImageAnalysis {
+	c := len(image.FsLayers)
+	res := []clair.LayerAnalysis{}
 
-		if analysis, err := clair.AnalyseLayer(layer.BlobSum); err != nil {
-			log.Printf("Error analysing layer [%v] %d/%d: %v\n", xstrings.Substr(layer.BlobSum, 0, 12), index+1, layerCount, err)
+	for i := range image.FsLayers {
+		l := image.FsLayers[c-i-1].BlobSum
+		lShort := xstrings.Substr(l, 0, 12)
+
+		if a, err := clair.Analyse(l); err != nil {
+			log.Printf("analysing layer [%v] %d/%d: %v", lShort, i+1, c, err)
 		} else {
-			log.Printf("Analysis [%v] found %d vulnerabilities.\n", xstrings.Substr(layer.BlobSum, 0, 12), len(analysis.Vulnerabilities))
-			analysisResult = append(analysisResult, analysis)
+			log.Printf("analysing layer [%v] %d/%d", lShort, i+1, c)
+			res = append(res, a)
 		}
 	}
 	return clair.ImageAnalysis{
-		Registry:  strings.TrimSuffix(strings.TrimPrefix(image.Registry, "http://"), "/v2"),
+		Registry:  xstrings.TrimPrefixSuffix(image.Registry, "http://", "/v2"),
 		ImageName: image.Name,
 		Tag:       image.Tag,
-		Layers:    analysisResult,
+		Layers:    res,
 	}
 }

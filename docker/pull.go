@@ -6,46 +6,71 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+
+	"github.com/wemanity-belgium/hyperclair/docker/httpclient"
+	"github.com/wemanity-belgium/hyperclair/xerrors"
 )
 
 //Pull Image from Registry or Hub depending on image name
-func (image *Image) Pull() error {
-	fmt.Println("Pull image ", image.Name)
-	client := InitClient()
-	request, err := http.NewRequest("GET", image.ManifestURI(), nil)
-	resp, err := client.Do(request)
+func Pull(imageName string) (Image, error) {
+	image, err := Parse(imageName)
 	if err != nil {
-		return err
+		return Image{}, err
 	}
 
-	if resp.StatusCode == http.StatusUnauthorized {
+	log.Println("pulling image: ", image)
+
+	mURI := fmt.Sprintf("%v/%v/manifests/%v", image.Registry, image.Name, image.Tag)
+
+	client := httpclient.Get()
+	request, err := http.NewRequest("GET", mURI, nil)
+	response, err := client.Do(request)
+	if err != nil {
+		return Image{}, fmt.Errorf("retrieving manifest: %v", err)
+	}
+
+	if response.StatusCode == http.StatusUnauthorized {
 		log.Println("Pull is Unauthorized")
-		err := Authenticate(resp, request)
+		err := Authenticate(response, request)
 
 		if err != nil {
-			return err
+			return Image{}, fmt.Errorf("authenticating: %v", err)
 		}
 
-		resp, err = client.Do(request)
-
+		response, err = client.Do(request)
 		if err != nil {
-			return err
+			return Image{}, fmt.Errorf("retrieving manifest: %v", err)
 		}
-
 	}
 
-	return image.parseManifest(resp)
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return Image{}, fmt.Errorf("reading manifest body: %v", err)
+	}
+
+	if response.StatusCode != 200 {
+		switch response.StatusCode {
+		case http.StatusUnauthorized:
+			return Image{}, xerrors.Unauthorized
+		case http.StatusNotFound:
+			return Image{}, xerrors.NotFound
+		default:
+			return Image{}, fmt.Errorf("%d - %s", response.StatusCode, string(body))
+		}
+	}
+	if err := image.parseManifest(body); err != nil {
+		return Image{}, fmt.Errorf("parsing manifest: %v", err)
+	}
+
+	return image, nil
 }
 
-func (image *Image) parseManifest(response *http.Response) error {
-	body, err := ioutil.ReadAll(response.Body)
-	if response.StatusCode != 200 {
-		return fmt.Errorf("Got response %d with message %s", response.StatusCode, string(body))
-	}
-	err = json.Unmarshal(body, &image)
+func (image *Image) parseManifest(body []byte) error {
+
+	err := json.Unmarshal(body, &image)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("unmarshalling manifest body: %v", err)
 	}
 
 	image.uniqueLayers()

@@ -16,67 +16,81 @@ package cmd
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
-	"strings"
+	"os"
+	"text/template"
 
 	"github.com/spf13/cobra"
+	"github.com/wemanity-belgium/hyperclair/cmd/xerrors"
 	"github.com/wemanity-belgium/hyperclair/docker"
 )
+
+const pullTplt = `
+Image: {{.String}}
+ {{.FsLayers | len}} layers found
+ {{range .FsLayers}} ➜ {{.BlobSum}}
+ {{end}}
+`
 
 // pingCmd represents the ping command
 var pullCmd = &cobra.Command{
 	Use:   "pull IMAGE",
 	Short: "Pull Docker image information",
 	Long:  `Pull image information from Docker Hub or Registry`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		//TODO how to use args with viper
 		if len(args) != 1 {
-			return errors.New("hyperclair: \"pull\" requires a minimum of 1 argument")
+			fmt.Printf("hyperclair: \"pull\" requires a minimum of 1 argument\n")
+			os.Exit(1)
 		}
 
-		image, err := pull(args[0])
+		im := args[0]
+		url, err := getHyperclairURI(im)
 		if err != nil {
-			return err
-		}
-		fmt.Printf("Layers found: %d\n", len(image.FsLayers))
-		for _, layer := range image.FsLayers {
-			fmt.Printf("Layer: %s\n", layer.BlobSum)
+			log.Fatalf("parsing image: %v", err)
 		}
 
-		return nil
+		response, err := http.Get(url)
+
+		if err != nil {
+			fmt.Println(xerrors.ServerUnavailable)
+			log.Fatalf("pulling image on %v: %v", url, err)
+		}
+
+		defer response.Body.Close()
+		body, err := ioutil.ReadAll(response.Body)
+
+		if err != nil {
+			fmt.Println(xerrors.InternalError)
+			log.Fatalf("reading manifest body of %v: %v", url, err)
+		}
+
+		if response.StatusCode != http.StatusOK {
+			switch response.StatusCode {
+			case http.StatusUnauthorized:
+				fmt.Println(xerrors.Unauthorized)
+			}
+			fmt.Println(xerrors.InternalError)
+			log.Fatalf("response from server: \n %v: %v", http.StatusText(response.StatusCode), string(body))
+
+		}
+		var image docker.Image
+		err = json.Unmarshal(body, &image)
+
+		if err != nil {
+			fmt.Println(xerrors.InternalError)
+			log.Fatalf("unmarshalling manifest JSON: body: %v: %v", string(body), err)
+		}
+
+		err = template.Must(template.New("pull").Parse(pullTplt)).Execute(os.Stdout, image)
+		if err != nil {
+			fmt.Println(xerrors.InternalError)
+			log.Fatalf("rendering image: %v", err)
+		}
 	},
-}
-
-func pull(imageName string) (docker.Image, error) {
-	image, err := docker.Parse(imageName)
-	if err != nil {
-		return docker.Image{}, err
-	}
-	registry := strings.TrimSuffix(strings.TrimPrefix(image.Registry, "http://"), "/v2")
-	url := HyperclairURI + "/" + image.Name + "?realm=" + registry + "&reference=" + image.Tag
-	response, err := http.Get(url)
-
-	if err != nil {
-		return docker.Image{}, err
-	}
-
-	defer response.Body.Close()
-	body, err := ioutil.ReadAll(response.Body)
-
-	if err != nil {
-		return docker.Image{}, err
-	}
-
-	err = json.Unmarshal(body, &image)
-
-	if err != nil {
-		return docker.Image{}, err
-	}
-
-	return image, nil
 }
 
 func init() {

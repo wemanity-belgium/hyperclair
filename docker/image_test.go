@@ -73,19 +73,6 @@ func TestRepositoryNameTagImage(t *testing.T) {
 	}
 }
 
-func TestManifestURI(t *testing.T) {
-	image, err := Parse("localhost:5000/alpine")
-
-	if err != nil {
-		t.Error(err)
-	}
-
-	result := image.ManifestURI()
-	if result != "http://localhost:5000/v2/alpine/manifests/latest" {
-		t.Errorf("Is %s, should be http://localhost:5000/v2/alpine/manifests/latest", result)
-	}
-}
-
 func TestMBlobstURI(t *testing.T) {
 	image, err := Parse("localhost:5000/alpine")
 

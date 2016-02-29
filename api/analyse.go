@@ -5,27 +5,24 @@ import (
 	"net/http"
 
 	"github.com/wemanity-belgium/hyperclair/docker"
+	"github.com/wemanity-belgium/hyperclair/xstrings"
 )
 
-func AnalyseHandler(rw http.ResponseWriter, request *http.Request) {
+func AnalyseHandler(rw http.ResponseWriter, request *http.Request) error {
 	rw.Header().Set("Content-Type", "application/json")
-	image, err := docker.Parse(parseImageURL(request))
+
+	image, err := docker.Pull(parseImageURL(request))
+
 	if err != nil {
-		rw.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(rw, "Error: %v", err)
+		return err
 	}
 
-	if err := image.Pull(); err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(rw, "Error: %v", err)
-	}
-
-	analyses := image.Analyse()
-	analysesJSON, err := analyses.ReportAsJSON()
+	analyses := docker.Analyse(image)
+	analysesJSON, err := xstrings.ToIndentJSON(analyses)
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(rw, "Error: %v", err)
+		return err
 	}
 
 	fmt.Fprint(rw, string(analysesJSON))
+	return nil
 }

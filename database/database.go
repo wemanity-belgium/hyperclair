@@ -1,9 +1,8 @@
 package database
 
 import (
-	"errors"
 	"fmt"
-	"net/http"
+	"log"
 
 	"github.com/boltdb/bolt"
 )
@@ -19,14 +18,10 @@ func InsertRegistryMapping(layerDigest string, registryURI string) error {
 	defer db.Close()
 
 	return db.Update(func(tx *bolt.Tx) error {
-		b, err := tx.CreateBucketIfNotExists([]byte(RegistryBucket))
-		if err != nil {
-			return fmt.Errorf("create bucket: %s", err)
-		}
-		fmt.Printf("Saving %s[%s]\n", layerDigest, registryURI)
-		err = b.Put([]byte(layerDigest), []byte(registryURI))
+		log.Printf("Saving %s[%s]\n", layerDigest, registryURI)
+		err = tx.Bucket([]byte(RegistryBucket)).Put([]byte(layerDigest), []byte(registryURI))
 
-		return err
+		return fmt.Errorf("adding registry mapping: %v", err)
 	})
 
 }
@@ -50,10 +45,10 @@ func GetRegistryMapping(layerDigest string) (string, error) {
 	})
 
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("retrieving registry mapping: %v", err)
 	}
 	if value == nil {
-		return "", errors.New(layerDigest + " Mapping not found")
+		return "", fmt.Errorf("%v mapping not found", layerDigest)
 	}
 	return string(value), nil
 }
@@ -62,31 +57,34 @@ func open(dbName string) (*bolt.DB, error) {
 	db, err := bolt.Open(dbName, 0600, nil)
 
 	if err != nil {
-		fmt.Println("err:",err.Error())
-		return nil, err
+		return nil, fmt.Errorf("opening db: %v", err)
 	}
 
-	db.Update(func(tx *bolt.Tx) error {
+	err = db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists([]byte(RegistryBucket))
 		if err != nil {
-			return fmt.Errorf("create bucket: %s", err)
+			return fmt.Errorf("creating bucket: %v", err)
 		}
 		return nil
 	})
+
+	if err != nil {
+		return nil, fmt.Errorf("updating db: %v", err)
+	}
 	return db, nil
 }
 
-func IsHealthy() (interface{}, error) {
+func IsHealthy() (interface{}, bool) {
 	type Health struct {
 		IsHealthy bool
 	}
 
 	db, err := open(HyperclairDB)
 	if err != nil {
-		return Health{false}, fmt.Errorf(string(http.StatusServiceUnavailable))
+		return Health{false}, false
 	}
 
 	defer db.Close()
 
-	return Health{true}, nil
+	return Health{true}, true
 }

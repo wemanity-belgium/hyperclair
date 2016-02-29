@@ -1,13 +1,14 @@
 package docker
 
 import (
-	"crypto/tls"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"strings"
 
 	"github.com/spf13/viper"
+	"github.com/wemanity-belgium/hyperclair/docker/httpclient"
+	"github.com/wemanity-belgium/hyperclair/xerrors"
 )
 
 type token struct {
@@ -53,10 +54,14 @@ func Authenticate(dockerResponse *http.Response, request *http.Request) error {
 	password := authorizations.GetString("password")
 	req.SetBasicAuth(user, password)
 
-	response, err := InitClient().Do(req)
+	response, err := httpclient.Get().Do(req)
 
 	if err != nil {
 		return err
+	}
+
+	if response.StatusCode == http.StatusUnauthorized {
+		return xerrors.Unauthorized
 	}
 
 	defer response.Body.Close()
@@ -75,13 +80,4 @@ func Authenticate(dockerResponse *http.Response, request *http.Request) error {
 	request.Header.Set("Authorization", "Bearer "+tok.String())
 
 	return nil
-}
-
-//InitClient create a http.Client with Transport configuration
-func InitClient() *http.Client {
-	tr := &http.Transport{
-		TLSClientConfig:    &tls.Config{InsecureSkipVerify: viper.GetBool("auth.insecureSkipVerify")},
-		DisableCompression: true,
-	}
-	return &http.Client{Transport: tr}
 }
