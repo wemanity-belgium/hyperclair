@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -17,7 +18,8 @@ func (image *Image) Pull() error {
 		return err
 	}
 
-	if IsUnauthorized(*resp) {
+	if resp.StatusCode == http.StatusUnauthorized {
+		log.Println("Pull is Unauthorized")
 		err := Authenticate(resp, request)
 
 		if err != nil {

@@ -22,7 +22,7 @@ services:
       - REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY=/var/lib/registry
       - REGISTRY_AUTH=token
       - REGISTRY_AUTH_TOKEN_REALM=https://auth:5001/auth
-      - REGISTRY_AUTH_TOKEN_SERVICE="docker_registry"
+      - REGISTRY_AUTH_TOKEN_SERVICE="registry"
       - REGISTRY_AUTH_TOKEN_ISSUER="auth_service"
       - REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE=/ssl/server.pem
 

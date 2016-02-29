@@ -221,7 +221,8 @@ func NewReverseProxy(filters []FilterFunc) *ReverseProxy {
 		req, _ := http.NewRequest("HEAD", request.URL.String(), nil)
 		resp, _ := client.Do(req)
 
-		if docker.IsUnauthorized(*resp) {
+		if resp.StatusCode == http.StatusUnauthorized {
+			log.Println("Pull is Unauthorized")
 			docker.Authenticate(resp, request)
 		}
 	}

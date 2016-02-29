@@ -6,8 +6,12 @@ clair:
     path: ./reports
     format: html
 auth:
-  user: jgsqware
-  password: jgsqware
+  registry: # = service argument in Www-authenticate header of the registry 401 response
+    user: jgsqware
+    password: jgsqware
+  registry_docker_io: # = value of HUB repository
+    user: jgsqware
+    password: hubPassword
   insecureSkipVerify: true
 hyperclair:
   uri: http://hyperclair

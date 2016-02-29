@@ -4,7 +4,16 @@
 
 [![Build Status](https://travis-ci.org/wemanity-belgium/hyperclair.svg?branch=develop)](https://travis-ci.org/wemanity-belgium/hyperclair) [![Join the chat at https://gitter.im/wemanity-belgium/hyperclair](https://badges.gitter.im/wemanity-belgium/hyperclair.svg)](https://gitter.im/wemanity-belgium/hyperclair?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-A CLI tool for using CoreOS Clair with Docker Registry.
+> Tracking container vulnerabilities, that's should be *Hyperclair*
+
+Tracking vulnerabilities in your container images, it's easy with CoreOS Clair.
+Integrate it inside your CI/CD pipeline is easier with Hyperclair.
+
+Hyperclair is a lightweight api doing the bridge between Registries as Docker Hub, Docker Registry or Quay.io, and the CoreOS vulnerability tracker, Clair.
+It's easily integrated< in your CI/CD pipeline, mapping Registry events on its api, and Hyperclair will play as reverse proxy for authentication.
+
+
+
 
 > The Registry is a stateless, highly scalable server side application that stores and lets you distribute Docker images. The Registry is open-source, under the permissive Apache license.
 >
