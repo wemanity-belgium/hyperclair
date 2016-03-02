@@ -14,11 +14,6 @@ var priority string
 //Report Reporting Config value
 var Report ReportConfig
 
-//Layer Clair Layer
-type Layer struct {
-	ID, Path, ParentID, ImageFormat string
-}
-
 //Vulnerability Clair vulnerabilities
 type Vulnerability struct {
 	ID, Link, Priority, Description, CausedByPackage string

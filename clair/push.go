@@ -6,10 +6,19 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/wemanity-belgium/hyperclair/xstrings"
 )
+
+//Layer Clair Layer
+type Layer struct {
+	Name, Path, ParentName, Format string
+}
 
 //Push send a layer to Clair for analysis
 func Push(layer Layer) error {
+	j, _ := xstrings.ToIndentJSON(layer)
+	fmt.Println("layer: ", string(j))
 	lJSON, err := json.Marshal(layer)
 	if err != nil {
 		return fmt.Errorf("marshalling layer: %v", err)

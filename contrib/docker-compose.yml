@@ -47,6 +47,12 @@ services:
     container_name: "clair"
     command: --config=/config/clair.yml
 
+  postgres:
+    image: postgres
+    container_name: "postgres"
+    environment:
+      - POSTGRES_PASSWORD=root
+
   hyperclair:
     build: .
     volumes:

@@ -22,10 +22,10 @@ func Push(image Image) error {
 
 		go database.InsertRegistryMapping(layer.BlobSum, image.Registry)
 		payload := clair.Layer{
-			ID:          layer.BlobSum,
-			Path:        image.BlobsURI(layer.BlobSum),
-			ParentID:    parentID,
-			ImageFormat: "Docker",
+			Name:       layer.BlobSum,
+			Path:       image.BlobsURI(layer.BlobSum),
+			ParentName: parentID,
+			Format:     "Docker",
 		}
 		//FIXME Update to TLS
 		hURL := fmt.Sprintf("http://hyperclair:%d/v2", viper.GetInt("hyperclair.port"))
