@@ -21,7 +21,8 @@ func Push(image Image) error {
 		fmt.Printf("Pushing Layer %d/%d [%v]\n", index+1, layerCount, lUID)
 
 		go database.InsertRegistryMapping(layer.BlobSum, image.Registry)
-		payload := clair.Layer{
+
+		payload := clair.LayerInfo{
 			Name:       layer.BlobSum,
 			Path:       image.BlobsURI(layer.BlobSum),
 			ParentName: parentID,
