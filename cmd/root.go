@@ -60,10 +60,6 @@ func init() {
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
 
-	if cfgFile != "" { // enable ability to specify config file via flag
-
-	}
-
 	viper.SetEnvPrefix("hyperclair")
 	viper.SetConfigName(".hyperclair") // name of config file (without extension)
 	viper.AddConfigPath(".")           // adding home directory as first search path
