@@ -6,22 +6,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/coreos/clair/api/v1"
 )
 
-//Layer Clair Layer
-
-type Layer struct {
-	Layer LayerInfo
-}
-
-type LayerInfo struct {
-	Name, Path, ParentName, Format string
-}
-
 //Push send a layer to Clair for analysis
-func Push(layer LayerInfo) error {
-	l := uploadLayer{layer}
-	lJSON, err := json.Marshal(l)
+func Push(layer v1.LayerEnvelope) error {
+	lJSON, err := json.Marshal(layer)
 	if err != nil {
 		return fmt.Errorf("marshalling layer: %v", err)
 	}

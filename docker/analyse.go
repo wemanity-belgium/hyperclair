@@ -3,14 +3,17 @@ package docker
 import (
 	"log"
 
+	"github.com/coreos/clair/api/v1"
 	"github.com/wemanity-belgium/hyperclair/clair"
 	"github.com/wemanity-belgium/hyperclair/xstrings"
 )
 
+//ImageAnalysis Full image analysis
+
 //Analyse return Clair Image analysis
 func Analyse(image Image) clair.ImageAnalysis {
 	c := len(image.FsLayers)
-	res := []clair.LayerAnalysis{}
+	res := []v1.LayerEnvelope{}
 
 	for i := range image.FsLayers {
 		l := image.FsLayers[c-i-1].BlobSum

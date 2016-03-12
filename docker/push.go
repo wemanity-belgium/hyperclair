@@ -5,6 +5,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/coreos/clair/api/v1"
 	"github.com/spf13/viper"
 	"github.com/wemanity-belgium/hyperclair/clair"
 	"github.com/wemanity-belgium/hyperclair/database"
@@ -22,15 +23,15 @@ func Push(image Image) error {
 
 		go database.InsertRegistryMapping(layer.BlobSum, image.Registry)
 
-		payload := clair.LayerInfo{
+		payload := v1.LayerEnvelope{Layer: &v1.Layer{
 			Name:       layer.BlobSum,
 			Path:       image.BlobsURI(layer.BlobSum),
 			ParentName: parentID,
 			Format:     "Docker",
-		}
+		}}
 		//FIXME Update to TLS
 		hURL := fmt.Sprintf("http://hyperclair:%d/v2", viper.GetInt("hyperclair.port"))
-		payload.Path = strings.Replace(payload.Path, image.Registry, hURL, 1)
+		payload.Layer.Path = strings.Replace(payload.Layer.Path, image.Registry, hURL, 1)
 		if err := clair.Push(payload); err != nil {
 			log.Printf("adding layer %d/%d [%v]: %v\n", index+1, layerCount, lUID, err)
 			if err != clair.OSNotSupported {
