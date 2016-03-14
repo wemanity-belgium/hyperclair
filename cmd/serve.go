@@ -27,6 +27,8 @@ func getHyperclairURI(imageName string, path ...string) (string, error) {
 		return "", err
 	}
 	registry := xstrings.TrimPrefixSuffix(image.Registry, "http://", "/v2")
+	registry = xstrings.TrimPrefixSuffix(registry, "https://", "/v2")
+	fmt.Println("registry: ", registry)
 	url := fmt.Sprintf("%v/%v", HyperclairURI, image.Name)
 	for _, p := range path {
 		url = fmt.Sprintf("%v/%v", url, p)

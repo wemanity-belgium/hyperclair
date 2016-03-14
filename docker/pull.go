@@ -20,8 +20,8 @@ func Pull(imageName string) (Image, error) {
 
 	log.Println("pulling image: ", image)
 
+	fmt.Println("image:", image.Registry)
 	mURI := fmt.Sprintf("%v/%v/manifests/%v", image.Registry, image.Name, image.Tag)
-
 	client := httpclient.Get()
 	request, err := http.NewRequest("GET", mURI, nil)
 	response, err := client.Do(request)
@@ -36,7 +36,6 @@ func Pull(imageName string) (Image, error) {
 		if err != nil {
 			return Image{}, fmt.Errorf("authenticating: %v", err)
 		}
-
 		response, err = client.Do(request)
 		if err != nil {
 			return Image{}, fmt.Errorf("retrieving manifest: %v", err)
@@ -47,7 +46,6 @@ func Pull(imageName string) (Image, error) {
 	if err != nil {
 		return Image{}, fmt.Errorf("reading manifest body: %v", err)
 	}
-
 	if response.StatusCode != 200 {
 		switch response.StatusCode {
 		case http.StatusUnauthorized:

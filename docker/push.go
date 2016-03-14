@@ -21,8 +21,10 @@ func Push(image Image) error {
 		lUID := xstrings.Substr(layer.BlobSum, 0, 12)
 		fmt.Printf("Pushing Layer %d/%d [%v]\n", index+1, layerCount, lUID)
 
-		go database.InsertRegistryMapping(layer.BlobSum, image.Registry)
-
+		err := database.InsertRegistryMapping(layer.BlobSum, image.Registry)
+		if err != nil {
+			return err
+		}
 		payload := v1.LayerEnvelope{Layer: &v1.Layer{
 			Name:       layer.BlobSum,
 			Path:       image.BlobsURI(layer.BlobSum),

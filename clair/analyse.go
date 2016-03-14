@@ -4,9 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
-	"strconv"
 
 	"github.com/coreos/clair/api/v1"
 )
@@ -27,7 +25,6 @@ func Analyse(id string) (v1.LayerEnvelope, error) {
 	if err != nil {
 		return v1.LayerEnvelope{}, fmt.Errorf("reading layer analysis: %v", err)
 	}
-	ioutil.WriteFile("./"+strconv.Itoa(rand.Int())+".json", body, 777)
 	if response.StatusCode != 200 {
 		return v1.LayerEnvelope{}, fmt.Errorf("%d - %s", response.StatusCode, string(body))
 	}

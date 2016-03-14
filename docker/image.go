@@ -55,7 +55,12 @@ func Parse(image string) (Image, error) {
 	} else {
 		//FIXME We need to move to https. <error: tls: oversized record received with length 20527>
 		//Maybe using a `insecure-registry` flag in configuration
-		registry = "http://" + registry + "/v2"
+		if strings.Contains(registry, "docker") {
+			registry = "https://" + registry + "/v2"
+
+		} else {
+			registry = "http://" + registry + "/v2"
+		}
 	}
 
 	if repository != "" {

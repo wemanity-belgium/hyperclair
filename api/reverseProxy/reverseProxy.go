@@ -9,6 +9,7 @@ package reverseProxy
 // license that can be found in the LICENSE file.
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net"
@@ -96,7 +97,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	*outreq = *req // includes shallow copies of maps, but okay
 
 	context.Set(outreq, "in_req", req)
-
 	p.Director(outreq)
 	outreq.Proto = "HTTP/1.1"
 	outreq.ProtoMajor = 1
@@ -220,11 +220,17 @@ func NewReverseProxy(filters []FilterFunc) *ReverseProxy {
 		request.URL.Host = out.Host
 		client := httpclient.Get()
 		req, _ := http.NewRequest("HEAD", request.URL.String(), nil)
-		resp, _ := client.Do(req)
+		resp, err := client.Do(req)
+
+		if err != nil {
+			log.Printf("response error: %v", err)
+			return
+		}
 
 		if resp.StatusCode == http.StatusUnauthorized {
 			log.Println("pull from clair is unauthorized")
 			docker.Authenticate(resp, request)
+			fmt.Println("h: ", request.Header)
 		}
 	}
 

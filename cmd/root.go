@@ -23,6 +23,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/wemanity-belgium/hyperclair/clair"
+	"github.com/wemanity-belgium/hyperclair/database"
 )
 
 var cfgFile string
@@ -37,8 +38,9 @@ var RootCmd = &cobra.Command{
 	Long:  ``,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) {
-	// },
+	Run: func(cmd *cobra.Command, args []string) {
+		database.List()
+	},
 }
 
 // Execute adds all child commands to the root command sets flags appropriately.

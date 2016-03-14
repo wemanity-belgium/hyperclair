@@ -2,6 +2,7 @@ package docker
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -22,7 +23,8 @@ func (tok token) String() string {
 //BearerAuthParams parse Bearer Token on Www-Authenticate header
 func BearerAuthParams(r *http.Response) map[string]string {
 	s := strings.Fields(r.Header.Get("Www-Authenticate"))
-
+	fmt.Println("Www-Authenticate: ", s)
+	fmt.Println("Headers: ", r.Header)
 	if len(s) != 2 || s[0] != "Bearer" {
 		return nil
 	}
@@ -48,12 +50,17 @@ func Authenticate(dockerResponse *http.Response, request *http.Request) error {
 	}
 
 	serviceAuthorization := strings.Replace(bearerToken["service"], ".", "_", -1)
+	a := viper.Get("auth." + serviceAuthorization)
+	if a == nil {
+		return fmt.Errorf("no login information for %v", serviceAuthorization)
+	}
 	authorizations := viper.Sub("auth." + serviceAuthorization)
 
 	user := authorizations.GetString("user")
 	password := authorizations.GetString("password")
 	req.SetBasicAuth(user, password)
 
+	fmt.Println("req: ", req.URL)
 	response, err := httpclient.Get().Do(req)
 
 	if err != nil {
