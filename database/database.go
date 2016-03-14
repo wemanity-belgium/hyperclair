@@ -65,7 +65,6 @@ func GetRegistryMapping(layerDigest string) (string, error) {
 		return nil
 	})
 
-	fmt.Println("value: ", value)
 	if err != nil {
 		return "", fmt.Errorf("retrieving registry mapping: %v", err)
 	}

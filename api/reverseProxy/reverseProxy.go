@@ -9,7 +9,6 @@ package reverseProxy
 // license that can be found in the LICENSE file.
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"net"
@@ -88,6 +87,7 @@ var hopHeaders = []string{
 }
 
 func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+
 	transport := p.Transport
 	if transport == nil {
 		transport = http.DefaultTransport
@@ -102,7 +102,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	outreq.ProtoMajor = 1
 	outreq.ProtoMinor = 1
 	outreq.Close = false
-
 	// Remove hop-by-hop headers to the backend.  Especially
 	// important is "Connection" because we want a persistent
 	// connection, regardless of what the client sent to us.  This
@@ -221,7 +220,6 @@ func NewReverseProxy(filters []FilterFunc) *ReverseProxy {
 		client := httpclient.Get()
 		req, _ := http.NewRequest("HEAD", request.URL.String(), nil)
 		resp, err := client.Do(req)
-
 		if err != nil {
 			log.Printf("response error: %v", err)
 			return
@@ -230,8 +228,12 @@ func NewReverseProxy(filters []FilterFunc) *ReverseProxy {
 		if resp.StatusCode == http.StatusUnauthorized {
 			log.Println("pull from clair is unauthorized")
 			docker.Authenticate(resp, request)
-			fmt.Println("h: ", request.Header)
 		}
+
+		r, _ := http.NewRequest("GET", request.URL.String(), nil)
+		r.Header.Set("Authorization", request.Header.Get("Authorization"))
+		r.Header.Set("Accept-Encoding", request.Header.Get("Accept-Encoding"))
+		*request = *r
 	}
 
 	return &ReverseProxy{
