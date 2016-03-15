@@ -25,7 +25,7 @@ func (health health) asJSON() (string, error) {
 func HealthHandler(rw http.ResponseWriter, request *http.Request) error {
 	rw.Header().Set("Content-Type", "application/json")
 
-	clairHealth, ok := clair.IsHealthy()
+	ok := clair.IsHealthy()
 	if !ok {
 		rw.WriteHeader(http.StatusServiceUnavailable)
 	}
@@ -37,7 +37,7 @@ func HealthHandler(rw http.ResponseWriter, request *http.Request) error {
 	}
 
 	healthBody := health{
-		Clair:    clairHealth,
+		Clair:    ok,
 		Database: databaseHealth,
 	}
 

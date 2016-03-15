@@ -15,10 +15,7 @@ import (
 
 const healthTplt = `
 Database: {{if .database.IsHealthy}}✔{{else}}✘{{end}}
-Clair: {{if .clair.Available}}✔{{else}}✘{{end}}
-{{if .clair.Status}} Database: {{if .clair.Status.database.IsHealthy}}✔{{else}}✘{{end}}
- Updater: {{if .clair.Status.updater.IsHealthy}}✔{{else}}✘{{end}}
- {{end}}
+Clair: {{if .clair}}✔{{else}}✘{{end}}
 `
 
 var healthCmd = &cobra.Command{

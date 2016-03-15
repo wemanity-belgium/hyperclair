@@ -11,6 +11,7 @@ import (
 
 var uri string
 var priority string
+var healthPort int
 
 //Report Reporting Config value
 var Report ReportConfig
@@ -96,6 +97,7 @@ func fmtURI(u string, port int) {
 func Config() {
 	fmtURI(viper.GetString("clair.uri"), viper.GetInt("clair.port"))
 	priority = viper.GetString("clair.priority")
+	healthPort = viper.GetInt("clair.healthPort")
 	Report.Path = viper.GetString("clair.report.path")
 	Report.Format = viper.GetString("clair.report.format")
 }

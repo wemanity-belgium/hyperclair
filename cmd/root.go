@@ -70,6 +70,7 @@ func initConfig() {
 	viper.SetConfigFile(cfgFile)
 	viper.SetDefault("clair.uri", "http://localhost")
 	viper.SetDefault("clair.port", "6060")
+	viper.SetDefault("clair.healthPort", "6061")
 	viper.SetDefault("clair.priority", "Low")
 	viper.SetDefault("clair.report.path", "reports")
 	viper.SetDefault("clair.report.format", "html")
@@ -79,7 +80,6 @@ func initConfig() {
 	viper.SetDefault("hyperclair.uri", "http://localhost")
 	viper.SetDefault("hyperclair.port", "9999")
 
-	fmt.Println("config:", viper.Get("config"))
 	err := viper.ReadInConfig()
 	if err != nil {
 		fmt.Println("hyperclair: config file not found")
