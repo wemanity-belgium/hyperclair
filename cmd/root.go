@@ -16,10 +16,10 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 
+	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/wemanity-belgium/hyperclair/clair"
@@ -85,7 +85,7 @@ func initConfig() {
 		fmt.Println("hyperclair: config file not found")
 		os.Exit(1)
 	}
-	log.Println("Using config file:", viper.ConfigFileUsed())
+	glog.Info("Using config file:", viper.ConfigFileUsed())
 	clair.Config()
 
 	HyperclairURI = viper.GetString("hyperclair.uri") + ":" + strconv.Itoa(viper.GetInt("hyperclair.port")) + "/v1"
