@@ -15,7 +15,6 @@ import (
 
 const versionTplt = `
 Hyperclair version {{.APIVersion}}
-Clair API version {{.Clair.APIVersion}}, engine version {{.Clair.EngineVersion}}
 `
 
 var templ = template.Must(template.New("versions").Parse(versionTplt))

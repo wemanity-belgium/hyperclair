@@ -4,24 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
-	"github.com/wemanity-belgium/hyperclair/clair"
 )
 
-const v = "1"
+const v = "0.2.0"
 
 func VersionsHandler(rw http.ResponseWriter, request *http.Request) error {
 	rw.Header().Set("Content-Type", "application/json")
-	clairVersion, err := clair.Versions()
-
-	if err != nil {
-		return err
-	}
 
 	version := struct {
 		APIVersion string
-		Clair      interface{}
-	}{v, clairVersion}
+	}{v}
 
 	b, err := json.Marshal(version)
 	if err != nil {
