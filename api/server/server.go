@@ -2,15 +2,14 @@ package server
 
 import (
 	"fmt"
+	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
 	"github.com/wemanity-belgium/hyperclair/api"
+	"github.com/wemanity-belgium/hyperclair/xerrors"
 )
-
-var router *mux.Router
 
 //Serve Generate a server in a go routine
 func Serve() error {
@@ -22,25 +21,45 @@ func Serve() error {
 
 //ListenAndServe Generate a server
 func ListenAndServe() error {
-	port := strconv.Itoa(viper.GetInt("hyperclair.port"))
-	fmt.Println("Starting Server on :", port)
+	sURL := fmt.Sprintf(":%d", viper.GetInt("hyperclair.port"))
+	fmt.Println("Starting Server on ", sURL)
 
-	return http.ListenAndServe(":"+port, nil)
+	return http.ListenAndServe(sURL, nil)
 }
 
 func init() {
-	router = mux.NewRouter()
-	router.PathPrefix("/v1").Path("/health").HandlerFunc(api.HealthHandler).Methods("GET")
-	router.PathPrefix("/v1").Path("/versions").HandlerFunc(api.VersionsHandler).Methods("GET")
+
+	router := mux.NewRouter()
+	router.PathPrefix("/v1").Path("/health").HandlerFunc(errorHandler(api.HealthHandler)).Methods("GET")
+	router.PathPrefix("/v1").Path("/versions").HandlerFunc(errorHandler(api.VersionsHandler)).Methods("GET")
 
 	router.PathPrefix("/v2").Path("/{repository}/{name}/blobs/{digest}").HandlerFunc(api.ReverseRegistryHandler())
-	router.PathPrefix("/v1").Path("/{repository}/{name}").HandlerFunc(api.PullHandler).Methods("GET")
-	router.PathPrefix("/v1").Path("/{name}").HandlerFunc(api.PullHandler).Methods("GET")
-	router.PathPrefix("/v1").Path("/{repository}/{name}").HandlerFunc(api.PushHandler).Methods("POST")
-	router.PathPrefix("/v1").Path("/{name}").HandlerFunc(api.PushHandler).Methods("POST")
-	router.PathPrefix("/v1").Path("/{repository}/{name}/analysis").HandlerFunc(api.AnalyseHandler).Methods("GET")
-	router.PathPrefix("/v1").Path("/{name}/analysis").HandlerFunc(api.AnalyseHandler).Methods("GET")
-	router.PathPrefix("/v1").Path("/{repository}/{name}/analysis/report").HandlerFunc(api.ReportHandler).Methods("GET")
-	router.PathPrefix("/v1").Path("/{name}/analysis/report").HandlerFunc(api.ReportHandler).Methods("GET")
+	router.PathPrefix("/v1").Path("/{repository}/{name}").HandlerFunc(errorHandler(api.PullHandler)).Methods("GET")
+	router.PathPrefix("/v1").Path("/{name}").HandlerFunc(errorHandler(api.PullHandler)).Methods("GET")
+	router.PathPrefix("/v1").Path("/{repository}/{name}").HandlerFunc(errorHandler(api.PushHandler)).Methods("POST")
+	router.PathPrefix("/v1").Path("/{name}").HandlerFunc(errorHandler(api.PushHandler)).Methods("POST")
+	router.PathPrefix("/v1").Path("/{repository}/{name}/analysis").HandlerFunc(errorHandler(api.AnalyseHandler)).Methods("GET")
+	router.PathPrefix("/v1").Path("/{name}/analysis").HandlerFunc(errorHandler(api.AnalyseHandler)).Methods("GET")
+	router.PathPrefix("/v1").Path("/{repository}/{name}/analysis/report").HandlerFunc(errorHandler(api.ReportHandler)).Methods("GET")
+	router.PathPrefix("/v1").Path("/{name}/analysis/report").HandlerFunc(errorHandler(api.ReportHandler)).Methods("GET")
 	http.Handle("/", router)
+}
+
+func errorHandler(f func(rw http.ResponseWriter, req *http.Request) error) http.HandlerFunc {
+	return func(rw http.ResponseWriter, req *http.Request) {
+		err := f(rw, req)
+		if err != nil {
+			errorMsg := fmt.Sprintf("handling %q: %v", req.RequestURI, err)
+			log.Printf(errorMsg)
+			switch err {
+			case xerrors.Unauthorized:
+				http.Error(rw, errorMsg, http.StatusUnauthorized)
+			case xerrors.NotFound:
+				http.Error(rw, errorMsg, http.StatusNotFound)
+			default:
+				http.Error(rw, errorMsg, http.StatusInternalServerError)
+
+			}
+		}
+	}
 }

@@ -8,21 +8,19 @@ import (
 )
 
 //PullHandler return the Light Manifest representation of the docker image
-func PullHandler(rw http.ResponseWriter, request *http.Request) {
+func PullHandler(rw http.ResponseWriter, request *http.Request) error {
 	rw.Header().Set("Content-Type", "application/json")
 
-	image, err := docker.Parse(parseImageURL(request))
+	image, err := docker.Pull(parseImageURL(request))
 	if err != nil {
-		rw.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(rw, "Parsing Error: %v", err)
-		return
+		return err
 	}
 
-	if err := image.Pull(); err != nil {
-		rw.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(rw, "Pulling Image Error: %v", err)
-		return
-	}
+	j, err := image.AsJSON()
 
-	fmt.Fprint(rw, image.String())
+	if err != nil {
+		return err
+	}
+	fmt.Fprint(rw, j)
+	return nil
 }

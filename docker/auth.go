@@ -1,14 +1,15 @@
 package docker
 
 import (
-	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 
 	"github.com/spf13/viper"
+	"github.com/wemanity-belgium/hyperclair/docker/httpclient"
+	"github.com/wemanity-belgium/hyperclair/xerrors"
 )
 
 type token struct {
@@ -22,7 +23,6 @@ func (tok token) String() string {
 //BearerAuthParams parse Bearer Token on Www-Authenticate header
 func BearerAuthParams(r *http.Response) map[string]string {
 	s := strings.Fields(r.Header.Get("Www-Authenticate"))
-
 	if len(s) != 2 || s[0] != "Bearer" {
 		return nil
 	}
@@ -38,12 +38,6 @@ func BearerAuthParams(r *http.Response) map[string]string {
 	return result
 }
 
-//IsUnauthorized check if the StatusCode is 401
-func IsUnauthorized(response http.Response) bool {
-	log.Println("Pull is Unauthorized")
-	return response.StatusCode == 401
-}
-
 func Authenticate(dockerResponse *http.Response, request *http.Request) error {
 	bearerToken := BearerAuthParams(dockerResponse)
 	url := bearerToken["realm"] + "?service=" + bearerToken["service"] + "&scope=" + bearerToken["scope"]
@@ -53,12 +47,25 @@ func Authenticate(dockerResponse *http.Response, request *http.Request) error {
 		return err
 	}
 
-	setBasicAuth(req)
+	serviceAuthorization := strings.Replace(bearerToken["service"], ".", "_", -1)
+	a := viper.Get("auth." + serviceAuthorization)
+	if a == nil {
+		return fmt.Errorf("no login information for %v", serviceAuthorization)
+	}
+	authorizations := viper.Sub("auth." + serviceAuthorization)
 
-	response, err := InitClient().Do(req)
+	user := authorizations.GetString("user")
+	password := authorizations.GetString("password")
+	req.SetBasicAuth(user, password)
+
+	response, err := httpclient.Get().Do(req)
 
 	if err != nil {
 		return err
+	}
+
+	if response.StatusCode == http.StatusUnauthorized {
+		return xerrors.Unauthorized
 	}
 
 	defer response.Body.Close()
@@ -74,25 +81,7 @@ func Authenticate(dockerResponse *http.Response, request *http.Request) error {
 	if err != nil {
 		return err
 	}
-
-	setBearerAuthorization(request, tok.String())
+	request.Header.Set("Authorization", "Bearer "+tok.String())
 
 	return nil
-}
-
-func setBasicAuth(request *http.Request) {
-	request.SetBasicAuth(viper.GetString("auth.user"), viper.GetString("auth.password"))
-}
-
-func setBearerAuthorization(request *http.Request, token string) {
-	request.Header.Set("Authorization", "Bearer "+token)
-}
-
-//InitClient create a http.Client with Transport configuration
-func InitClient() *http.Client {
-	tr := &http.Transport{
-		TLSClientConfig:    &tls.Config{InsecureSkipVerify: viper.GetBool("auth.insecureSkipVerify")},
-		DisableCompression: true,
-	}
-	return &http.Client{Transport: tr}
 }

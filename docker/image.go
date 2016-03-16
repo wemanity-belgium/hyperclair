@@ -2,7 +2,6 @@ package docker
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -40,23 +39,28 @@ func Parse(image string) (Image, error) {
 	imageRegex := regexp.MustCompile(dockerImageRegex)
 
 	if imageRegex.MatchString(image) == false {
-		return Image{}, errors.New(image + "is not an correct docker image.")
+		return Image{}, fmt.Errorf("cannot parse image name: %v", image)
 	}
 	groups := imageRegex.FindStringSubmatch(image)
 
-	if groups[4] == "" {
-		groups[4] = "latest"
-	}
-
 	registry, repository, name, tag := groups[1], groups[2], groups[3], groups[4]
 
+	if tag == "" {
+		tag = "latest"
+	}
+
 	if repository == "" && !strings.ContainsAny(registry, ":.") {
-		repository, registry = registry, hubURI
+		repository, registry = registry, hubURI //Regex problem, if no registry in url, regex parse repository as registry, so need to invert it
 
 	} else {
 		//FIXME We need to move to https. <error: tls: oversized record received with length 20527>
+		//Maybe using a `insecure-registry` flag in configuration
+		if strings.Contains(registry, "docker") {
+			registry = "https://" + registry + "/v2"
 
-		registry = "http://" + registry + "/v2"
+		} else {
+			registry = "http://" + registry + "/v2"
+		}
 	}
 
 	if repository != "" {
@@ -70,12 +74,6 @@ func Parse(image string) (Image, error) {
 	}, nil
 }
 
-// ManifestURI return Manifest URI as <registry>/<imageName>/manifests/<digest|tag>
-// eg: "http://registry:5000/v2/jgsqware/ubuntu-git/manifests/latest"
-func (image Image) ManifestURI() string {
-	return strings.Join([]string{image.Registry, image.Name, "manifests", image.Tag}, "/")
-}
-
 // BlobsURI run Blobs URI as <registry>/<imageName>/blobs/<digest>
 // eg: "http://registry:5000/v2/jgsqware/ubuntu-git/blobs/sha256:13be4a52fdee2f6c44948b99b5b65ec703b1ca76c1ab5d2d90ae9bf18347082e"
 func (image Image) BlobsURI(digest string) string {
@@ -83,10 +81,13 @@ func (image Image) BlobsURI(digest string) string {
 }
 
 func (image Image) String() string {
+	return image.Registry + "/" + image.Name + ":" + image.Tag
+}
+
+func (image Image) AsJSON() (string, error) {
 	b, err := json.Marshal(image)
 	if err != nil {
-		fmt.Println(err)
-		return string("Cannot marshal image")
+		return "", fmt.Errorf("cannot marshal image: %v", err)
 	}
-	return string(b)
+	return string(b), nil
 }

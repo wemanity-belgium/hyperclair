@@ -1,95 +1,87 @@
 package clair
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"net/http"
 	"strconv"
 	"strings"
 
+	"github.com/coreos/clair/api/v1"
 	"github.com/spf13/viper"
+	"github.com/wemanity-belgium/hyperclair/xstrings"
 )
 
 var uri string
-var link string
 var priority string
+var healthPort int
 
 //Report Reporting Config value
 var Report ReportConfig
-
-//Layer Clair Layer
-type Layer struct {
-	ID, Path, ParentID, ImageFormat string
-}
-
-//Vulnerability Clair vulnerabilities
-type Vulnerability struct {
-	ID, Link, Priority, Description, CausedByPackage string
-}
-
-//LayerAnalysis Clair layer analysis
-type LayerAnalysis struct {
-	ID              string
-	Vulnerabilities []Vulnerability
-}
 
 //ImageAnalysis Full image analysis
 type ImageAnalysis struct {
 	Registry  string
 	ImageName string
 	Tag       string
-	Layers    []LayerAnalysis
+	Layers    []v1.LayerEnvelope
 }
 
-type Health interface{}
-
-func (imageAnalysis ImageAnalysis) Name() string {
+func (imageAnalysis ImageAnalysis) String() string {
 	return imageAnalysis.Registry + "/" + imageAnalysis.ImageName + ":" + imageAnalysis.Tag
 }
 
-//Count vulnarabilities in all layers regarding the priority
-func (imageAnalysis ImageAnalysis) Count(priority string) int {
+func (imageAnalysis ImageAnalysis) ShortName(l v1.Layer) string {
+	return xstrings.Substr(l.Name, 0, 12)
+}
+
+func (imageAnalysis ImageAnalysis) CountVulnerabilities(l v1.Layer) int {
 	count := 0
-	for _, layer := range imageAnalysis.Layers {
-		count += layer.Count(priority)
+	for _, f := range l.Features {
+		count += len(f.Vulnerabilities)
 	}
 	return count
 }
 
-//Count vulnarabilities regarding the priority
-func (layerAnalysis LayerAnalysis) Count(priority string) int {
-	count := 0
-	for _, vulnerability := range layerAnalysis.Vulnerabilities {
-		if vulnerability.Priority == priority {
-			count++
+type Vulnerability struct {
+	Name, Severity, IntroduceBy, Description, Layer string
+}
+
+func (imageAnalysis ImageAnalysis) SortVulnerabilities() []Vulnerability {
+	low := []Vulnerability{}
+	medium := []Vulnerability{}
+	high := []Vulnerability{}
+	critical := []Vulnerability{}
+	defcon1 := []Vulnerability{}
+
+	for _, l := range imageAnalysis.Layers {
+		for _, f := range l.Layer.Features {
+			for _, v := range f.Vulnerabilities {
+				nv := Vulnerability{
+					Name:        v.Name,
+					Severity:    v.Severity,
+					IntroduceBy: f.Name + ":" + f.Version,
+					Description: v.Description,
+					Layer:       l.Layer.Name,
+				}
+				switch strings.ToLower(v.Severity) {
+				case "low":
+					low = append(low, nv)
+				case "medium":
+					medium = append(medium, nv)
+				case "high":
+					high = append(high, nv)
+				case "critical":
+					critical = append(critical, nv)
+				case "defcon1":
+					defcon1 = append(defcon1, nv)
+				}
+			}
 		}
 	}
 
-	return count
+	return append(defcon1, append(critical, append(high, append(medium, low...)...)...)...)
 }
 
-//Config configure Clair from configFile
-func Config() {
-	formatClairURI()
-	priority = viper.GetString("clair.priority")
-	Report.Path = viper.GetString("clair.report.path")
-	Report.Format = viper.GetString("clair.report.format")
-}
-
-func HealthURI() string {
-	return uri + "/health"
-}
-
-func VersionsURI() string {
-	return uri + "/versions"
-}
-
-func formatClairURI() {
-	uri = viper.GetString("clair.uri")
-	port := viper.GetInt("clair.port")
-
+func fmtURI(u string, port int) {
+	uri = u
 	if port != 0 {
 		uri += ":" + strconv.Itoa(port)
 	}
@@ -101,118 +93,11 @@ func formatClairURI() {
 	}
 }
 
-func addLayerURI() string {
-	return strings.Join([]string{uri, "layers"}, "/")
-}
-
-func analyseLayerURI(id string) string {
-	return strings.Join([]string{uri, "layers", id, "vulnerabilities"}, "/") + "?minimumPriority=" + priority
-}
-
-//AddLayer to Clair for analysis
-func AddLayer(layer Layer) error {
-	layerJSONPayload, err := json.MarshalIndent(layer, "", "\t")
-	if err != nil {
-		return err
-	}
-
-	request, err := http.NewRequest("POST", addLayerURI(), bytes.NewBuffer(layerJSONPayload))
-	if err != nil {
-		return err
-	}
-	request.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	response, err := client.Do(request)
-	if err != nil {
-		return err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != 201 {
-		body, _ := ioutil.ReadAll(response.Body)
-		return fmt.Errorf("Got response %d with message %s", response.StatusCode, string(body))
-	}
-
-	return nil
-}
-
-//AnalyseLayer get Analysis os specified layer
-func AnalyseLayer(id string) (LayerAnalysis, error) {
-
-	response, err := http.Get(analyseLayerURI(id))
-	if err != nil {
-		return LayerAnalysis{}, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != 200 {
-		body, _ := ioutil.ReadAll(response.Body)
-		return LayerAnalysis{}, fmt.Errorf("Got response %d with message %s", response.StatusCode, string(body))
-	}
-
-	body, _ := ioutil.ReadAll(response.Body)
-
-	var analysis LayerAnalysis
-
-	err = json.Unmarshal(body, &analysis)
-	if err != nil {
-		return LayerAnalysis{}, err
-	}
-	analysis.ID = id
-	return analysis, nil
-}
-
-func Versions() (interface{}, error) {
-	Config()
-	response, err := http.Get(VersionsURI())
-
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	body, err := ioutil.ReadAll(response.Body)
-
-	if err != nil {
-		return nil, err
-	}
-
-	var versionBody interface{}
-	err = json.Unmarshal(body, &versionBody)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return versionBody, nil
-}
-
-func IsHealthy() (Health, error) {
-	Config()
-	response, err := http.Get(HealthURI())
-
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	body, err := ioutil.ReadAll(response.Body)
-
-	if err != nil {
-		return nil, err
-	}
-
-	var health Health
-	err = json.Unmarshal(body, &health)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if response.StatusCode == http.StatusServiceUnavailable {
-		return health, fmt.Errorf(string(http.StatusServiceUnavailable))
-	}
-
-	return health, nil
+//Config configure Clair from configFile
+func Config() {
+	fmtURI(viper.GetString("clair.uri"), viper.GetInt("clair.port"))
+	priority = viper.GetString("clair.priority")
+	healthPort = viper.GetInt("clair.healthPort")
+	Report.Path = viper.GetString("clair.report.path")
+	Report.Format = viper.GetString("clair.report.format")
 }

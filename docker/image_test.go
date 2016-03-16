@@ -1,8 +1,6 @@
 package docker
 
-import (
-	"testing"
-)
+import "testing"
 
 func TestNamespacePortRepositoryNameImage(t *testing.T) {
 	imageName := "register.com:5080/wemanity-belgium/alpine"
@@ -47,6 +45,20 @@ func TestNameImage(t *testing.T) {
 		t.Error(imageName + " should be valid")
 	}
 }
+
+func TestNameImageWithRepo(t *testing.T) {
+	imageName := "jgsqware/ubuntu-git"
+	i, err := Parse(imageName)
+	if err != nil {
+		t.Error(imageName + " should be valid")
+	}
+
+	e := hubURI + "/" + imageName + ":latest"
+	if i.String() != e {
+		t.Errorf("Should be %v, is %v", e, i)
+	}
+}
+
 func TestRepositoryNameImage(t *testing.T) {
 	imageName := "wemanity-belgium/registry-backup"
 	image, err := Parse(imageName)
@@ -70,19 +82,6 @@ func TestRepositoryNameTagImage(t *testing.T) {
 	imageName := "wemanity-belgium/alpine:latest"
 	if _, err := Parse(imageName); err != nil {
 		t.Error(imageName + " should be valid")
-	}
-}
-
-func TestManifestURI(t *testing.T) {
-	image, err := Parse("localhost:5000/alpine")
-
-	if err != nil {
-		t.Error(err)
-	}
-
-	result := image.ManifestURI()
-	if result != "http://localhost:5000/v2/alpine/manifests/latest" {
-		t.Errorf("Is %s, should be http://localhost:5000/v2/alpine/manifests/latest", result)
 	}
 }
 
