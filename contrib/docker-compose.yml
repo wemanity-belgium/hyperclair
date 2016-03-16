@@ -2,13 +2,13 @@ version: '2'
 
 services:
   auth:
-    image: cesanta/docker_auth
+    image: cesanta/docker_auth:stable
     ports:
       - "5001:5001"
     volumes:
       - ./auth_server/config:/config:ro
       - ./auth_server/ssl:/ssl
-    command: /config/auth_config.yml
+    command: --v=2 --alsologtostderr /config/auth_config.yml
     container_name: "auth"
 
   registry:
@@ -36,7 +36,7 @@ services:
 
 
   clair:
-    image: quay.io/coreos/clair:latest
+    image: quay.io/coreos/clair:v1.0.0-rc1
     volumes:
       - /tmp:/tmp
       - ./config:/config
@@ -45,7 +45,13 @@ services:
       - 6060:6060
       - 6061:6061
     container_name: "clair"
-    command: --config=/config/clair.yml
+    command: --log-level=debug --config=/config/clair.yml
+
+  postgres:
+    image: postgres
+    container_name: "postgres"
+    environment:
+      - POSTGRES_PASSWORD=root
 
   hyperclair:
     build: .
@@ -58,12 +64,21 @@ services:
     container_name: "hyperclair"
     entrypoint: ["go","run","main.go","serve"]
 
-  hyperclair_dev:
-    build: .
-    volumes:
-      - $GOPATH:/go
-    tty: true
-    container_name: "hyperclair_dev"
+  ui:
+    image: jgsqware/registry-ui
+    ports:
+      - 5080:8080
+    environment:
+      - REGISTRYUI_HUB_URI=registry:5000
+      - REGISTRYUI_ACCOUNT_MGMT_ENABLED=true
+      - REGISTRYUI_ACCOUNT_MGMT_CONFIG=./config/auth_config.yml
+      - REGISTRYUI_HYPERCLAIR_REPORT_ENABLED=true
+  # hyperclair_dev:
+  #   build: .
+  #   volumes:
+  #     - $GOPATH:/go
+  #   tty: true
+  #   container_name: "hyperclair_dev"
 
 volumes:
   clair-data:

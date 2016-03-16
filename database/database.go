@@ -20,10 +20,31 @@ func InsertRegistryMapping(layerDigest string, registryURI string) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		log.Printf("Saving %s[%s]\n", layerDigest, registryURI)
 		err = tx.Bucket([]byte(RegistryBucket)).Put([]byte(layerDigest), []byte(registryURI))
-
-		return fmt.Errorf("adding registry mapping: %v", err)
+		if err != nil {
+			return fmt.Errorf("adding registry mapping: %v", err)
+		}
+		return nil
 	})
 
+}
+func List() {
+	db, err := open("hyperclair.db")
+	defer db.Close()
+	if err != nil {
+		log.Fatalf("db list: %v", err)
+	}
+	db.View(func(tx *bolt.Tx) error {
+		// Assume bucket exists and has keys
+		b := tx.Bucket([]byte(RegistryBucket))
+
+		c := b.Cursor()
+
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			fmt.Printf("key=%s, value=%s\n", k, v)
+		}
+
+		return nil
+	})
 }
 
 func GetRegistryMapping(layerDigest string) (string, error) {

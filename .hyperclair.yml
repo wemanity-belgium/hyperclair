@@ -1,5 +1,6 @@
 clair:
   port: 6060
+  healthPort: 6061
   uri: http://clair
   priority: Low
   report:
@@ -11,7 +12,10 @@ auth:
     password: jgsqware
   registry_docker_io: # = value of HUB repository
     user: jgsqware
-    password: hubPassword
+    password: ""
+  quay_io:
+    user: jgsqware
+    password: ""
   insecureSkipVerify: true
 hyperclair:
   uri: http://hyperclair

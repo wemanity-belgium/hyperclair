@@ -27,7 +27,7 @@ api:
 updater:
   # Frequency at which the vulnerability updater will run.
   # Use 0 to disable the updater entirely.
-  interval: 2h
+  interval: 0
 notifier:
   # How many attempts will the notifier do when a notifier backend fails.
   attempts: 3

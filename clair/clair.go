@@ -4,67 +4,80 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/coreos/clair/api/v1"
 	"github.com/spf13/viper"
 	"github.com/wemanity-belgium/hyperclair/xstrings"
 )
 
 var uri string
 var priority string
+var healthPort int
 
 //Report Reporting Config value
 var Report ReportConfig
-
-//Layer Clair Layer
-type Layer struct {
-	ID, Path, ParentID, ImageFormat string
-}
-
-//Vulnerability Clair vulnerabilities
-type Vulnerability struct {
-	ID, Link, Priority, Description, CausedByPackage string
-}
-
-//LayerAnalysis Clair layer analysis
-type LayerAnalysis struct {
-	ID              string
-	Vulnerabilities []Vulnerability
-}
 
 //ImageAnalysis Full image analysis
 type ImageAnalysis struct {
 	Registry  string
 	ImageName string
 	Tag       string
-	Layers    []LayerAnalysis
+	Layers    []v1.LayerEnvelope
 }
 
 func (imageAnalysis ImageAnalysis) String() string {
 	return imageAnalysis.Registry + "/" + imageAnalysis.ImageName + ":" + imageAnalysis.Tag
 }
 
-//Count vulnarabilities in all layers regarding the priority
-func (imageAnalysis ImageAnalysis) Count(priority string) int {
-	var count int
-	for _, layer := range imageAnalysis.Layers {
-		count += layer.Count(priority)
+func (imageAnalysis ImageAnalysis) ShortName(l v1.Layer) string {
+	return xstrings.Substr(l.Name, 0, 12)
+}
+
+func (imageAnalysis ImageAnalysis) CountVulnerabilities(l v1.Layer) int {
+	count := 0
+	for _, f := range l.Features {
+		count += len(f.Vulnerabilities)
 	}
 	return count
 }
 
-//Count vulnarabilities regarding the priority
-func (layerAnalysis LayerAnalysis) Count(priority string) int {
-	var count int
-	for _, vulnerability := range layerAnalysis.Vulnerabilities {
-		if vulnerability.Priority == priority {
-			count++
+type Vulnerability struct {
+	Name, Severity, IntroduceBy, Description, Layer string
+}
+
+func (imageAnalysis ImageAnalysis) SortVulnerabilities() []Vulnerability {
+	low := []Vulnerability{}
+	medium := []Vulnerability{}
+	high := []Vulnerability{}
+	critical := []Vulnerability{}
+	defcon1 := []Vulnerability{}
+
+	for _, l := range imageAnalysis.Layers {
+		for _, f := range l.Layer.Features {
+			for _, v := range f.Vulnerabilities {
+				nv := Vulnerability{
+					Name:        v.Name,
+					Severity:    v.Severity,
+					IntroduceBy: f.Name + ":" + f.Version,
+					Description: v.Description,
+					Layer:       l.Layer.Name,
+				}
+				switch strings.ToLower(v.Severity) {
+				case "low":
+					low = append(low, nv)
+				case "medium":
+					medium = append(medium, nv)
+				case "high":
+					high = append(high, nv)
+				case "critical":
+					critical = append(critical, nv)
+				case "defcon1":
+					defcon1 = append(defcon1, nv)
+				}
+			}
 		}
 	}
 
-	return count
-}
-
-func (l LayerAnalysis) ShortName() string {
-	return xstrings.Substr(l.ID, 0, 12)
+	return append(defcon1, append(critical, append(high, append(medium, low...)...)...)...)
 }
 
 func fmtURI(u string, port int) {
@@ -84,6 +97,7 @@ func fmtURI(u string, port int) {
 func Config() {
 	fmtURI(viper.GetString("clair.uri"), viper.GetInt("clair.port"))
 	priority = viper.GetString("clair.priority")
+	healthPort = viper.GetInt("clair.healthPort")
 	Report.Path = viper.GetString("clair.report.path")
 	Report.Format = viper.GetString("clair.report.format")
 }

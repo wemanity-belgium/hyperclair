@@ -16,10 +16,10 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 
+	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/wemanity-belgium/hyperclair/clair"
@@ -57,15 +57,18 @@ func init() {
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	if cfgFile != "" { // enable ability to specify config file via flag
-		viper.SetConfigFile(cfgFile)
-	}
 
+	viper.SetEnvPrefix("hyperclair")
 	viper.SetConfigName(".hyperclair") // name of config file (without extension)
 	viper.AddConfigPath(".")           // adding home directory as first search path
 	viper.AutomaticEnv()               // read in environment variables that match
+	if cfgFile == "" {                 // enable ability to specify config file via flag
+		cfgFile = viper.GetString("config")
+	}
+	viper.SetConfigFile(cfgFile)
 	viper.SetDefault("clair.uri", "http://localhost")
 	viper.SetDefault("clair.port", "6060")
+	viper.SetDefault("clair.healthPort", "6061")
 	viper.SetDefault("clair.priority", "Low")
 	viper.SetDefault("clair.report.path", "reports")
 	viper.SetDefault("clair.report.format", "html")
@@ -75,11 +78,13 @@ func initConfig() {
 	viper.SetDefault("hyperclair.uri", "http://localhost")
 	viper.SetDefault("hyperclair.port", "9999")
 
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		log.Println("Using config file:", viper.ConfigFileUsed())
-		clair.Config()
+	err := viper.ReadInConfig()
+	if err != nil {
+		fmt.Println("hyperclair: config file not found")
+		os.Exit(1)
 	}
+	glog.Info("Using config file:", viper.ConfigFileUsed())
+	clair.Config()
 
 	HyperclairURI = viper.GetString("hyperclair.uri") + ":" + strconv.Itoa(viper.GetInt("hyperclair.port")) + "/v1"
 }

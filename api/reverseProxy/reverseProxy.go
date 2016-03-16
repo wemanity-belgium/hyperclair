@@ -87,6 +87,7 @@ var hopHeaders = []string{
 }
 
 func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+
 	transport := p.Transport
 	if transport == nil {
 		transport = http.DefaultTransport
@@ -96,13 +97,11 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	*outreq = *req // includes shallow copies of maps, but okay
 
 	context.Set(outreq, "in_req", req)
-
 	p.Director(outreq)
 	outreq.Proto = "HTTP/1.1"
 	outreq.ProtoMajor = 1
 	outreq.ProtoMinor = 1
 	outreq.Close = false
-
 	// Remove hop-by-hop headers to the backend.  Especially
 	// important is "Connection" because we want a persistent
 	// connection, regardless of what the client sent to us.  This
@@ -220,12 +219,21 @@ func NewReverseProxy(filters []FilterFunc) *ReverseProxy {
 		request.URL.Host = out.Host
 		client := httpclient.Get()
 		req, _ := http.NewRequest("HEAD", request.URL.String(), nil)
-		resp, _ := client.Do(req)
+		resp, err := client.Do(req)
+		if err != nil {
+			log.Printf("response error: %v", err)
+			return
+		}
 
 		if resp.StatusCode == http.StatusUnauthorized {
 			log.Println("pull from clair is unauthorized")
 			docker.Authenticate(resp, request)
 		}
+
+		r, _ := http.NewRequest("GET", request.URL.String(), nil)
+		r.Header.Set("Authorization", request.Header.Get("Authorization"))
+		r.Header.Set("Accept-Encoding", request.Header.Get("Accept-Encoding"))
+		*request = *r
 	}
 
 	return &ReverseProxy{

@@ -18,7 +18,8 @@ import (
 const analyseTplt = `
 Image: {{.String}}
  {{.Layers | len}} layers found
- {{range .Layers}} ➜ "Analysis [{{.ShortName}}] found {{.Vulnerabilities | len}} vulnerabilities.
+ {{$ia := .}}
+ {{range .Layers}} ➜ {{with .Layer}}Analysis [{{.|$ia.ShortName}}] found {{.|$ia.CountVulnerabilities}} vulnerabilities.{{end}}
  {{end}}
 `
 

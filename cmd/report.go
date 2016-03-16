@@ -33,8 +33,10 @@ var reportCmd = &cobra.Command{
 				log.Fatalf("generating HTML report: %v", err)
 			}
 			err = saveReport(imageName, string(html))
-			fmt.Println(xerrors.InternalError)
-			log.Fatalf("saving HTML report: %v", err)
+			if err != nil {
+				fmt.Println(xerrors.InternalError)
+				log.Fatalf("saving HTML report: %v", err)
+			}
 
 		case "json":
 			json, err := xstrings.ToIndentJSON(analyses)
@@ -44,8 +46,11 @@ var reportCmd = &cobra.Command{
 				log.Fatalf("indenting JSON: %v", err)
 			}
 			err = saveReport(imageName, string(json))
-			fmt.Println(xerrors.InternalError)
-			log.Fatalf("saving JSON report: %v", err)
+			if err != nil {
+				fmt.Println(xerrors.InternalError)
+				log.Fatalf("saving JSON report: %v", err)
+			}
+
 		default:
 			fmt.Printf("Unsupported Report format: %v", clair.Report.Format)
 			log.Fatalf("Unsupported Report format: %v", clair.Report.Format)

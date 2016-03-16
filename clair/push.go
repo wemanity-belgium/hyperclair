@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/coreos/clair/api/v1"
 )
 
 //Push send a layer to Clair for analysis
-func Push(layer Layer) error {
+func Push(layer v1.LayerEnvelope) error {
 	lJSON, err := json.Marshal(layer)
 	if err != nil {
 		return fmt.Errorf("marshalling layer: %v", err)
@@ -29,6 +31,10 @@ func Push(layer Layer) error {
 	defer response.Body.Close()
 
 	if response.StatusCode != 201 {
+		if response.StatusCode == 422 {
+			return OSNotSupported
+		}
+
 		body, err := ioutil.ReadAll(response.Body)
 		if err != nil {
 			return fmt.Errorf("reading 'add layer' response : %v", err)
@@ -39,11 +45,6 @@ func Push(layer Layer) error {
 		if err != nil {
 			return fmt.Errorf("unmarshalling 'add layer' error message: %v", err)
 		}
-
-		if lErr.Message == oSNotSupportedValue {
-			return OSNotSupported
-		}
-
 		return fmt.Errorf("%d - %s", response.StatusCode, string(body))
 	}
 

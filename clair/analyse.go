@@ -5,34 +5,35 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/coreos/clair/api/v1"
 )
 
 //Analyse get Analysis os specified layer
-func Analyse(id string) (LayerAnalysis, error) {
+func Analyse(id string) (v1.LayerEnvelope, error) {
 
-	lURI := fmt.Sprintf("%v/layers/%v/vulnerabilities?minimumPriority=%v", uri, id, priority)
+	lURI := fmt.Sprintf("%v/layers/%v?vulnerabilities", uri, id)
+	// lURI := fmt.Sprintf("%v/layers/%v/vulnerabilities?minimumPriority=%v", uri, id, priority)
 	response, err := http.Get(lURI)
 	if err != nil {
-		return LayerAnalysis{}, fmt.Errorf("analysing layer %v: %v", id, err)
+		return v1.LayerEnvelope{}, fmt.Errorf("analysing layer %v: %v", id, err)
 	}
 	defer response.Body.Close()
 
 	body, err := ioutil.ReadAll(response.Body)
 
 	if err != nil {
-		return LayerAnalysis{}, fmt.Errorf("reading layer analysis: %v", err)
+		return v1.LayerEnvelope{}, fmt.Errorf("reading layer analysis: %v", err)
 	}
-
 	if response.StatusCode != 200 {
-		return LayerAnalysis{}, fmt.Errorf("%d - %s", response.StatusCode, string(body))
+		return v1.LayerEnvelope{}, fmt.Errorf("%d - %s", response.StatusCode, string(body))
 	}
 
-	var analysis LayerAnalysis
+	var analysis v1.LayerEnvelope
 
 	err = json.Unmarshal(body, &analysis)
 	if err != nil {
-		return LayerAnalysis{}, fmt.Errorf("unmarshalling layer analysis: %v", err)
+		return v1.LayerEnvelope{}, fmt.Errorf("unmarshalling layer analysis: %v", err)
 	}
-	analysis.ID = id
 	return analysis, nil
 }
