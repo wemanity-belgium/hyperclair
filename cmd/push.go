@@ -3,10 +3,10 @@ package cmd
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/wemanity-belgium/hyperclair/cmd/xerrors"
 	//"strings"
@@ -25,12 +25,12 @@ var pushCmd = &cobra.Command{
 		im := args[0]
 		url, err := getHyperclairURI(im)
 		if err != nil {
-			log.Fatalf("parsing image: %v", err)
+			logrus.Fatalf("parsing image: %v", err)
 		}
 		response, err := http.Post(url, "text/plain", nil)
 		if err != nil {
 			fmt.Println(xerrors.ServerUnavailable)
-			log.Fatalf("pushing image on %v: %v", url, err)
+			logrus.Fatalf("pushing image on %v: %v", url, err)
 		}
 
 		defer response.Body.Close()
@@ -38,10 +38,10 @@ var pushCmd = &cobra.Command{
 			body, err := ioutil.ReadAll(response.Body)
 			if err != nil {
 				fmt.Println(xerrors.InternalError)
-				log.Fatalf("reading manifest body of %v: %v", url, err)
+				logrus.Fatalf("reading manifest body of %v: %v", url, err)
 			}
 			fmt.Println(xerrors.InternalError)
-			log.Fatalf("response from server: \n %v: %v", http.StatusText(response.StatusCode), string(body))
+			logrus.Fatalf("response from server: \n %v: %v", http.StatusText(response.StatusCode), string(body))
 		}
 
 		fmt.Printf("%v has been pushed to Clair\n", im)

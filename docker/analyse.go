@@ -1,8 +1,7 @@
 package docker
 
 import (
-	"log"
-
+	"github.com/Sirupsen/logrus"
 	"github.com/coreos/clair/api/v1"
 	"github.com/wemanity-belgium/hyperclair/clair"
 	"github.com/wemanity-belgium/hyperclair/xstrings"
@@ -20,9 +19,9 @@ func Analyse(image Image) clair.ImageAnalysis {
 		lShort := xstrings.Substr(l, 0, 12)
 
 		if a, err := clair.Analyse(l); err != nil {
-			log.Printf("analysing layer [%v] %d/%d: %v", lShort, i+1, c, err)
+			logrus.Infof("analysing layer [%v] %d/%d: %v", lShort, i+1, c, err)
 		} else {
-			log.Printf("analysing layer [%v] %d/%d", lShort, i+1, c)
+			logrus.Infof("analysing layer [%v] %d/%d", lShort, i+1, c)
 			res = append(res, a)
 		}
 	}

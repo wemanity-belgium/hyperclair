@@ -1,9 +1,9 @@
 package api
 
 import (
-	"log"
 	"net/http"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/wemanity-belgium/hyperclair/docker"
 )
 
@@ -14,7 +14,7 @@ func PushHandler(rw http.ResponseWriter, request *http.Request) error {
 		return err
 	}
 
-	log.Println("Pushing Image")
+	logrus.Info("Pushing Image")
 	if err := docker.Push(image); err != nil {
 		return err
 	}
