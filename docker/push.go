@@ -2,9 +2,9 @@ package docker
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/coreos/clair/api/v1"
 	"github.com/spf13/viper"
 	"github.com/wemanity-belgium/hyperclair/clair"
@@ -19,7 +19,7 @@ func Push(image Image) error {
 	parentID := ""
 	for index, layer := range image.FsLayers {
 		lUID := xstrings.Substr(layer.BlobSum, 0, 12)
-		fmt.Printf("Pushing Layer %d/%d [%v]\n", index+1, layerCount, lUID)
+		logrus.Infof("Pushing Layer %d/%d [%v]\n", index+1, layerCount, lUID)
 
 		err := database.InsertRegistryMapping(layer.BlobSum, image.Registry)
 		if err != nil {
@@ -35,7 +35,7 @@ func Push(image Image) error {
 		hURL := fmt.Sprintf("http://hyperclair:%d/v2", viper.GetInt("hyperclair.port"))
 		payload.Layer.Path = strings.Replace(payload.Layer.Path, image.Registry, hURL, 1)
 		if err := clair.Push(payload); err != nil {
-			log.Printf("adding layer %d/%d [%v]: %v\n", index+1, layerCount, lUID, err)
+			logrus.Infof("adding layer %d/%d [%v]: %v\n", index+1, layerCount, lUID, err)
 			if err != clair.OSNotSupported {
 				return err
 			}

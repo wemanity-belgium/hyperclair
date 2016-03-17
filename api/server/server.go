@@ -2,9 +2,9 @@ package server
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
 	"github.com/wemanity-belgium/hyperclair/api"
@@ -22,7 +22,7 @@ func Serve() error {
 //ListenAndServe Generate a server
 func ListenAndServe() error {
 	sURL := fmt.Sprintf(":%d", viper.GetInt("hyperclair.port"))
-	fmt.Println("Starting Server on ", sURL)
+	logrus.Info("Starting Server on ", sURL)
 
 	return http.ListenAndServe(sURL, nil)
 }
@@ -50,7 +50,7 @@ func errorHandler(f func(rw http.ResponseWriter, req *http.Request) error) http.
 		err := f(rw, req)
 		if err != nil {
 			errorMsg := fmt.Sprintf("handling %q: %v", req.RequestURI, err)
-			log.Printf(errorMsg)
+			logrus.Error(errorMsg)
 			switch err {
 			case xerrors.Unauthorized:
 				http.Error(rw, errorMsg, http.StatusUnauthorized)
