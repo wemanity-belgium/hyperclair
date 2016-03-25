@@ -23,6 +23,10 @@ var reportCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
+		if local {
+			StartLocalServer()
+		}
+
 		analyses := Analyse(args[0])
 		imageName := strings.Replace(analyses.ImageName, "/", "-", -1) + "-" + analyses.Tag
 		switch clair.Report.Format {
@@ -81,6 +85,7 @@ func saveReport(name string, content string) error {
 
 func init() {
 	RootCmd.AddCommand(reportCmd)
+	reportCmd.Flags().BoolVarP(&local, "local", "l", false, "Use local images")
 	reportCmd.Flags().StringP("format", "f", "html", "Format for Report [html,json]")
 	viper.BindPFlag("clair.report.format", reportCmd.Flags().Lookup("format"))
 }

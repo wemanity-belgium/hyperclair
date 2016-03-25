@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/spf13/viper"
 )
 
 //Image represent Image Manifest from Docker image, including the registry URL
@@ -18,11 +20,18 @@ type Image struct {
 //Layer represent the digest of a image layer
 type Layer struct {
 	BlobSum string
+	History string
 }
 
 const dockerImageRegex = "^(?:([^/]+)/)?(?:([^/]+)/)?([^@:/]+)(?:[@:](.+))?"
 const DockerHub = "registry-1.docker.io"
 const hubURI = "https://" + DockerHub + "/v2"
+
+var IsLocal = false
+
+func TmpLocal() string {
+	return viper.GetString("hyperclair.local.tempFolder")
+}
 
 // Parse is used to parse a docker image command
 //
