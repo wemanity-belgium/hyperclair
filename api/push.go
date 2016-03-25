@@ -9,9 +9,29 @@ import (
 
 //PushHandler push image to Clair
 func PushHandler(rw http.ResponseWriter, request *http.Request) error {
-	image, err := docker.Pull(parseImageURL(request))
-	if err != nil {
-		return err
+	local := request.URL.Query()["local"]
+
+	docker.IsLocal = len(local) > 0
+	logrus.Debugf("Hyperclair is local: %v", docker.IsLocal)
+
+	var image docker.Image
+	if !docker.IsLocal {
+		var err error
+		image, err = docker.Pull(parseImageURL(request))
+		if err != nil {
+			return err
+		}
+	} else {
+		var err error
+		image, err = docker.Parse(parseImageURL(request))
+		if err != nil {
+			return err
+		}
+		err = docker.Prepare(&image)
+		logrus.Debugf("prepared image layers: %d", len(image.FsLayers))
+		if err != nil {
+			return err
+		}
 	}
 
 	logrus.Info("Pushing Image")

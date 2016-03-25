@@ -7,8 +7,6 @@ import (
 	"github.com/wemanity-belgium/hyperclair/xstrings"
 )
 
-//ImageAnalysis Full image analysis
-
 //Analyse return Clair Image analysis
 func Analyse(image Image) clair.ImageAnalysis {
 	c := len(image.FsLayers)

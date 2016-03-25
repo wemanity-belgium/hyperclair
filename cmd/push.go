@@ -12,6 +12,8 @@ import (
 	//"strings"
 )
 
+var local bool
+
 var pushCmd = &cobra.Command{
 	Use:   "push IMAGE",
 	Short: "Push Docker image to Clair",
@@ -22,10 +24,18 @@ var pushCmd = &cobra.Command{
 			fmt.Printf("hyperclair: \"push\" requires a minimum of 1 argument\n")
 			os.Exit(1)
 		}
+
+		if local {
+			StartLocalServer()
+		}
 		im := args[0]
 		url, err := getHyperclairURI(im)
 		if err != nil {
 			logrus.Fatalf("parsing image: %v", err)
+		}
+
+		if local {
+			url += "&local=true"
 		}
 		response, err := http.Post(url, "text/plain", nil)
 		if err != nil {
@@ -50,4 +60,5 @@ var pushCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(pushCmd)
+	pushCmd.Flags().BoolVarP(&local, "local", "l", false, "Use local images")
 }
