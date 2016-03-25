@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"text/template"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/wemanity-belgium/hyperclair/cmd/xerrors"
 )
@@ -27,14 +27,14 @@ var healthCmd = &cobra.Command{
 		response, err := http.Get(url)
 		if err != nil {
 			fmt.Println(xerrors.ServerUnavailable)
-			log.Fatalf("Hyperclair server is unavailable: checking health on %v: %v", url, err)
+			logrus.Fatalf("Hyperclair server is unavailable: checking health on %v: %v", url, err)
 		}
 
 		defer response.Body.Close()
 		body, err := ioutil.ReadAll(response.Body)
 		if err != nil {
 			fmt.Println(xerrors.InternalError)
-			log.Fatalf("reading health body of %v: %v", url, err)
+			logrus.Fatalf("reading health body of %v: %v", url, err)
 		}
 
 		var health interface{}
@@ -42,13 +42,13 @@ var healthCmd = &cobra.Command{
 
 		if err != nil {
 			fmt.Println(xerrors.InternalError)
-			log.Fatalf("unmarshalling health JSON: %v", err)
+			logrus.Fatalf("unmarshalling health JSON: %v", err)
 		}
 
 		err = template.Must(template.New("health").Parse(healthTplt)).Execute(os.Stdout, health)
 		if err != nil {
 			fmt.Println(xerrors.InternalError)
-			log.Fatalf("rendering the health: %v", err)
+			logrus.Fatalf("rendering the health: %v", err)
 		}
 
 	},

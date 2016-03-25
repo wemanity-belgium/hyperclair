@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"text/template"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/wemanity-belgium/hyperclair/clair"
@@ -40,7 +40,8 @@ var analyseCmd = &cobra.Command{
 		err := template.Must(template.New("analysis").Parse(analyseTplt)).Execute(os.Stdout, ia)
 		if err != nil {
 			fmt.Println(xerrors.InternalError)
-			log.Fatalf("rendering analysis: %v", err)
+
+			logrus.Fatalf("rendering analysis: %v", err)
 		}
 	},
 }
@@ -49,12 +50,12 @@ func Analyse(imageName string) clair.ImageAnalysis {
 	url, err := getHyperclairURI(imageName, "analysis")
 
 	if err != nil {
-		log.Fatalf("parsing image: %v", err)
+		logrus.Fatalf("parsing image: %v", err)
 	}
 	response, err := http.Get(url)
 	if err != nil {
 		fmt.Println(xerrors.ServerUnavailable)
-		log.Fatalf("analysing image on %v: %v", url, err)
+		logrus.Fatalf("analysing image on %v: %v", url, err)
 	}
 
 	defer response.Body.Close()
@@ -62,7 +63,7 @@ func Analyse(imageName string) clair.ImageAnalysis {
 
 	if err != nil {
 		fmt.Println(xerrors.InternalError)
-		log.Fatalf("reading analysis body of %v: %v", url, err)
+		logrus.Fatalf("reading analysis body of %v: %v", url, err)
 	}
 
 	if response.StatusCode != http.StatusOK {
@@ -73,7 +74,7 @@ func Analyse(imageName string) clair.ImageAnalysis {
 			fmt.Println(xerrors.InternalError)
 		}
 
-		log.Fatalf("response from server: \n %v: %v", http.StatusText(response.StatusCode), string(body))
+		logrus.Fatalf("response from server: \n %v: %v", http.StatusText(response.StatusCode), string(body))
 	}
 
 	ia := clair.ImageAnalysis{}
@@ -81,7 +82,7 @@ func Analyse(imageName string) clair.ImageAnalysis {
 
 	if err != nil {
 		fmt.Println(xerrors.InternalError)
-		log.Fatalf("unmarshalling analysis JSON: body: %v: %v", string(body), err)
+		logrus.Fatalf("unmarshalling analysis JSON: body: %v: %v", string(body), err)
 	}
 
 	return ia

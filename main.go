@@ -14,15 +14,8 @@
 
 package main
 
-import (
-	"flag"
-	"log"
-
-	"github.com/wemanity-belgium/hyperclair/cmd"
-)
+import "github.com/wemanity-belgium/hyperclair/cmd"
 
 func main() {
-	log.SetFlags(log.Llongfile)
-	flag.Parse()
 	cmd.Execute()
 }
