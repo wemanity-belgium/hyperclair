@@ -18,11 +18,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"text/template"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/wemanity-belgium/hyperclair/cmd/xerrors"
 	"github.com/wemanity-belgium/hyperclair/docker"
@@ -50,14 +50,14 @@ var pullCmd = &cobra.Command{
 		im := args[0]
 		url, err := getHyperclairURI(im)
 		if err != nil {
-			log.Fatalf("parsing image: %v", err)
+			logrus.Fatalf("parsing image: %v", err)
 		}
 
 		response, err := http.Get(url)
 
 		if err != nil {
 			fmt.Println(xerrors.ServerUnavailable)
-			log.Fatalf("pulling image on %v: %v", url, err)
+			logrus.Fatalf("pulling image on %v: %v", url, err)
 		}
 
 		defer response.Body.Close()
@@ -65,7 +65,7 @@ var pullCmd = &cobra.Command{
 
 		if err != nil {
 			fmt.Println(xerrors.InternalError)
-			log.Fatalf("reading manifest body of %v: %v", url, err)
+			logrus.Fatalf("reading manifest body of %v: %v", url, err)
 		}
 
 		if response.StatusCode != http.StatusOK {
@@ -74,7 +74,7 @@ var pullCmd = &cobra.Command{
 				fmt.Println(xerrors.Unauthorized)
 			}
 			fmt.Println(xerrors.InternalError)
-			log.Fatalf("response from server: \n %v: %v", http.StatusText(response.StatusCode), string(body))
+			logrus.Fatalf("response from server: \n %v: %v", http.StatusText(response.StatusCode), string(body))
 
 		}
 		var image docker.Image
@@ -82,13 +82,13 @@ var pullCmd = &cobra.Command{
 
 		if err != nil {
 			fmt.Println(xerrors.InternalError)
-			log.Fatalf("unmarshalling manifest JSON: body: %v: %v", string(body), err)
+			logrus.Fatalf("unmarshalling manifest JSON: body: %v: %v", string(body), err)
 		}
 
 		err = template.Must(template.New("pull").Parse(pullTplt)).Execute(os.Stdout, image)
 		if err != nil {
 			fmt.Println(xerrors.InternalError)
-			log.Fatalf("rendering image: %v", err)
+			logrus.Fatalf("rendering image: %v", err)
 		}
 	},
 }

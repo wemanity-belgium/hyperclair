@@ -2,10 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/wemanity-belgium/hyperclair/clair"
@@ -30,12 +30,12 @@ var reportCmd = &cobra.Command{
 			html, err := clair.ReportAsHTML(analyses)
 			if err != nil {
 				fmt.Println(xerrors.InternalError)
-				log.Fatalf("generating HTML report: %v", err)
+				logrus.Fatalf("generating HTML report: %v", err)
 			}
 			err = saveReport(imageName, string(html))
 			if err != nil {
 				fmt.Println(xerrors.InternalError)
-				log.Fatalf("saving HTML report: %v", err)
+				logrus.Fatalf("saving HTML report: %v", err)
 			}
 
 		case "json":
@@ -43,17 +43,17 @@ var reportCmd = &cobra.Command{
 
 			if err != nil {
 				fmt.Println(xerrors.InternalError)
-				log.Fatalf("indenting JSON: %v", err)
+				logrus.Fatalf("indenting JSON: %v", err)
 			}
 			err = saveReport(imageName, string(json))
 			if err != nil {
 				fmt.Println(xerrors.InternalError)
-				log.Fatalf("saving JSON report: %v", err)
+				logrus.Fatalf("saving JSON report: %v", err)
 			}
 
 		default:
 			fmt.Printf("Unsupported Report format: %v", clair.Report.Format)
-			log.Fatalf("Unsupported Report format: %v", clair.Report.Format)
+			logrus.Fatalf("Unsupported Report format: %v", clair.Report.Format)
 		}
 	},
 }

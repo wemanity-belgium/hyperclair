@@ -17,7 +17,6 @@ func Versions() (interface{}, error) {
 	defer response.Body.Close()
 
 	body, err := ioutil.ReadAll(response.Body)
-	fmt.Println("httpStatus: ", response.StatusCode)
 	if err != nil {
 		return nil, fmt.Errorf("reading Clair version body: %v", err)
 	}

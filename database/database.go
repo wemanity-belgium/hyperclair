@@ -2,8 +2,8 @@ package database
 
 import (
 	"fmt"
-	"log"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/boltdb/bolt"
 )
 
@@ -18,7 +18,7 @@ func InsertRegistryMapping(layerDigest string, registryURI string) error {
 	defer db.Close()
 
 	return db.Update(func(tx *bolt.Tx) error {
-		log.Printf("Saving %s[%s]\n", layerDigest, registryURI)
+		logrus.Info("Saving %s[%s]\n", layerDigest, registryURI)
 		err = tx.Bucket([]byte(RegistryBucket)).Put([]byte(layerDigest), []byte(registryURI))
 		if err != nil {
 			return fmt.Errorf("adding registry mapping: %v", err)
@@ -31,7 +31,7 @@ func List() {
 	db, err := open("hyperclair.db")
 	defer db.Close()
 	if err != nil {
-		log.Fatalf("db list: %v", err)
+		logrus.Fatalf("db list: %v", err)
 	}
 	db.View(func(tx *bolt.Tx) error {
 		// Assume bucket exists and has keys
@@ -40,7 +40,7 @@ func List() {
 		c := b.Cursor()
 
 		for k, v := c.First(); k != nil; k, v = c.Next() {
-			fmt.Printf("key=%s, value=%s\n", k, v)
+			logrus.Debugf("key=%s, value=%s\n", k, v)
 		}
 
 		return nil
