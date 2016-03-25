@@ -2,11 +2,12 @@ package server
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
-	"github.com/spf13/viper"
 	"github.com/wemanity-belgium/hyperclair/api"
 	"github.com/wemanity-belgium/hyperclair/docker"
 	"github.com/wemanity-belgium/hyperclair/xerrors"
@@ -14,20 +15,29 @@ import (
 
 type handler func(rw http.ResponseWriter, req *http.Request) error
 
-//Serve Generate a server in a go routine
-func Serve() error {
+func Serve(sURL string) error {
+	path, err := ioutil.TempDir("", "analyze-local-image-")
+	if err != nil {
+		return fmt.Errorf("temp directory initialization: %v", err)
+	}
 	go func() {
-		ListenAndServe()
+		restrictedFileServer := func(path string) http.Handler {
+			fc := func(w http.ResponseWriter, r *http.Request) {
+				http.FileServer(http.Dir(path)).ServeHTTP(w, r)
+			}
+			return http.HandlerFunc(fc)
+		}
+		ListenAndServe(sURL, restrictedFileServer(path))
 	}()
+	time.Sleep(2000 * time.Millisecond)
 	return nil
 }
 
 //ListenAndServe Generate a server
-func ListenAndServe() error {
-	sURL := fmt.Sprintf(":%d", viper.GetInt("hyperclair.port"))
+func ListenAndServe(sURL string, h http.Handler) error {
 	logrus.Info("Starting Server on ", sURL)
 
-	return http.ListenAndServe(sURL, nil)
+	return http.ListenAndServe(sURL, h)
 }
 
 func init() {

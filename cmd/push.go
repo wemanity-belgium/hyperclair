@@ -8,9 +8,12 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/wemanity-belgium/hyperclair/api/server"
 	"github.com/wemanity-belgium/hyperclair/cmd/xerrors"
 	//"strings"
 )
+
+var local bool
 
 var pushCmd = &cobra.Command{
 	Use:   "push IMAGE",
@@ -22,11 +25,23 @@ var pushCmd = &cobra.Command{
 			fmt.Printf("hyperclair: \"push\" requires a minimum of 1 argument\n")
 			os.Exit(1)
 		}
+
+		if local {
+			HyperclairURI = "http://localhost:60000" + "/v1"
+			sURL := fmt.Sprintf("localhost:%d", 60000)
+			server.Serve(sURL)
+		}
+
 		im := args[0]
 		url, err := getHyperclairURI(im)
 		if err != nil {
 			logrus.Fatalf("parsing image: %v", err)
 		}
+
+		if local {
+			url += "&local=true"
+		}
+		logrus.Debugln("url: ", url)
 		response, err := http.Post(url, "text/plain", nil)
 		if err != nil {
 			fmt.Println(xerrors.ServerUnavailable)
@@ -50,4 +65,5 @@ var pushCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(pushCmd)
+	pushCmd.Flags().BoolVarP(&local, "local", "l", false, "Use local images")
 }

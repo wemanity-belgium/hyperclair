@@ -24,6 +24,8 @@ const dockerImageRegex = "^(?:([^/]+)/)?(?:([^/]+)/)?([^@:/]+)(?:[@:](.+))?"
 const DockerHub = "registry-1.docker.io"
 const hubURI = "https://" + DockerHub + "/v2"
 
+var IsLocal = false
+
 // Parse is used to parse a docker image command
 //
 //Example:
@@ -78,7 +80,11 @@ func Parse(image string) (Image, error) {
 // BlobsURI run Blobs URI as <registry>/<imageName>/blobs/<digest>
 // eg: "http://registry:5000/v2/jgsqware/ubuntu-git/blobs/sha256:13be4a52fdee2f6c44948b99b5b65ec703b1ca76c1ab5d2d90ae9bf18347082e"
 func (image Image) BlobsURI(digest string) string {
-	return strings.Join([]string{image.Registry, image.Name, "blobs", digest}, "/")
+	bURI := strings.Join([]string{image.Registry, image.Name, "blobs", digest}, "/")
+	if IsLocal {
+		bURI += "/layer.tar"
+	}
+	return bURI
 }
 
 func (image Image) String() string {

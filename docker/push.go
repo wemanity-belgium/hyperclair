@@ -20,6 +20,7 @@ func Push(image Image) error {
 	for index, layer := range image.FsLayers {
 		lUID := xstrings.Substr(layer.BlobSum, 0, 12)
 		logrus.Infof("Pushing Layer %d/%d [%v]\n", index+1, layerCount, lUID)
+		logrus.Debugf("Registry: %v", image.Registry)
 
 		err := database.InsertRegistryMapping(layer.BlobSum, image.Registry)
 		if err != nil {
@@ -31,6 +32,8 @@ func Push(image Image) error {
 			ParentName: parentID,
 			Format:     "Docker",
 		}}
+
+		logrus.Debugf("Path:%v && Blobsum: %v", payload.Layer.Path, payload.Layer.Name)
 		//FIXME Update to TLS
 		hURL := fmt.Sprintf("http://hyperclair:%d/v2", viper.GetInt("hyperclair.port"))
 		payload.Layer.Path = strings.Replace(payload.Layer.Path, image.Registry, hURL, 1)

@@ -9,9 +9,16 @@ import (
 
 //PushHandler push image to Clair
 func PushHandler(rw http.ResponseWriter, request *http.Request) error {
-	image, err := docker.Pull(parseImageURL(request))
-	if err != nil {
-		return err
+	local := request.URL.Query()["local"]
+
+	docker.IsLocal = len(local) > 0
+
+	image, err := docker.Parse(parseImageURL(request))
+	if !docker.IsLocal {
+		image, err = docker.Pull(parseImageURL(request))
+		if err != nil {
+			return err
+		}
 	}
 
 	logrus.Info("Pushing Image")

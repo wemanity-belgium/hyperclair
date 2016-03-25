@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"github.com/wemanity-belgium/hyperclair/api/server"
 	"github.com/wemanity-belgium/hyperclair/docker"
 	"github.com/wemanity-belgium/hyperclair/xstrings"
@@ -15,7 +16,8 @@ var serveCmd = &cobra.Command{
 	Long:  ``,
 	RunE: func(cmd *cobra.Command, args []string) error {
 
-		err := server.ListenAndServe()
+		sURL := fmt.Sprintf(":%d", viper.GetInt("hyperclair.port"))
+		err := server.ListenAndServe(sURL, nil)
 
 		return err
 	},
@@ -31,6 +33,10 @@ func getHyperclairURI(imageName string, path ...string) (string, error) {
 	url := fmt.Sprintf("%v/%v", HyperclairURI, image.Name)
 	for _, p := range path {
 		url = fmt.Sprintf("%v/%v", url, p)
+	}
+
+	if local {
+		registry = "localhost:60000"
 	}
 
 	url = fmt.Sprintf("%v?realm=%v&reference=%v", url, registry, image.Tag)
