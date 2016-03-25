@@ -8,8 +8,11 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
 	"github.com/wemanity-belgium/hyperclair/api"
+	"github.com/wemanity-belgium/hyperclair/docker"
 	"github.com/wemanity-belgium/hyperclair/xerrors"
 )
+
+type handler func(rw http.ResponseWriter, req *http.Request) error
 
 //Serve Generate a server in a go routine
 func Serve() error {
@@ -32,6 +35,7 @@ func init() {
 	router := mux.NewRouter()
 	router.PathPrefix("/v1").Path("/health").HandlerFunc(errorHandler(api.HealthHandler)).Methods("GET")
 	router.PathPrefix("/v1").Path("/versions").HandlerFunc(errorHandler(api.VersionsHandler)).Methods("GET")
+	router.PathPrefix("/v1").Path("/login").HandlerFunc(errorHandler(BasicAuth(api.LoginHandler))).Methods("GET")
 
 	router.PathPrefix("/v2").Path("/{repository}/{name}/blobs/{digest}").HandlerFunc(api.ReverseRegistryHandler())
 	router.PathPrefix("/v1").Path("/{repository}/{name}").HandlerFunc(errorHandler(api.PullHandler)).Methods("GET")
@@ -43,6 +47,19 @@ func init() {
 	router.PathPrefix("/v1").Path("/{repository}/{name}/analysis/report").HandlerFunc(errorHandler(api.ReportHandler)).Methods("GET")
 	router.PathPrefix("/v1").Path("/{name}/analysis/report").HandlerFunc(errorHandler(api.ReportHandler)).Methods("GET")
 	http.Handle("/", router)
+}
+
+func BasicAuth(pass handler) handler {
+
+	return func(w http.ResponseWriter, r *http.Request) error {
+
+		username, password, ok := r.BasicAuth()
+
+		if ok {
+			docker.User = docker.Authentication{Username: username, Password: password}
+		}
+		return pass(w, r)
+	}
 }
 
 func errorHandler(f func(rw http.ResponseWriter, req *http.Request) error) http.HandlerFunc {
