@@ -7,10 +7,15 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/spf13/viper"
 	"github.com/wemanity-belgium/hyperclair/docker/httpclient"
 	"github.com/wemanity-belgium/hyperclair/xerrors"
 )
+
+type Authentication struct {
+	Username, Password string
+}
+
+var User Authentication
 
 type token struct {
 	Value string `json:"token"`
@@ -38,25 +43,18 @@ func BearerAuthParams(r *http.Response) map[string]string {
 	return result
 }
 
-func Authenticate(dockerResponse *http.Response, request *http.Request) error {
+func AuthenticateResponse(dockerResponse *http.Response, request *http.Request) error {
 	bearerToken := BearerAuthParams(dockerResponse)
-	url := bearerToken["realm"] + "?service=" + bearerToken["service"] + "&scope=" + bearerToken["scope"]
+	url := bearerToken["realm"] + "?service=" + bearerToken["service"]
+	if bearerToken["scope"] != "" {
+		url += "&scope=" + bearerToken["scope"]
+	}
 	req, err := http.NewRequest("GET", url, nil)
 
 	if err != nil {
 		return err
 	}
-
-	serviceAuthorization := strings.Replace(bearerToken["service"], ".", "_", -1)
-	a := viper.Get("auth." + serviceAuthorization)
-	if a == nil {
-		return fmt.Errorf("no login information for %v", serviceAuthorization)
-	}
-	authorizations := viper.Sub("auth." + serviceAuthorization)
-
-	user := authorizations.GetString("user")
-	password := authorizations.GetString("password")
-	req.SetBasicAuth(user, password)
+	req.SetBasicAuth(User.Username, User.Password)
 
 	response, err := httpclient.Get().Do(req)
 
@@ -66,6 +64,10 @@ func Authenticate(dockerResponse *http.Response, request *http.Request) error {
 
 	if response.StatusCode == http.StatusUnauthorized {
 		return xerrors.Unauthorized
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf("authentication server response: %v - %v", response.StatusCode, response.Status)
 	}
 
 	defer response.Body.Close()

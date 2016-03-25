@@ -30,7 +30,7 @@ func Pull(imageName string) (Image, error) {
 
 	if response.StatusCode == http.StatusUnauthorized {
 		logrus.Info("Pull is Unauthorized")
-		err := Authenticate(response, request)
+		err := AuthenticateResponse(response, request)
 
 		if err != nil {
 			return Image{}, fmt.Errorf("authenticating: %v", err)

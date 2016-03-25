@@ -228,7 +228,7 @@ func NewReverseProxy(filters []FilterFunc) *ReverseProxy {
 
 		if resp.StatusCode == http.StatusUnauthorized {
 			logrus.Info("pull from clair is unauthorized")
-			docker.Authenticate(resp, request)
+			docker.AuthenticateResponse(resp, request)
 		}
 
 		r, _ := http.NewRequest("GET", request.URL.String(), nil)
