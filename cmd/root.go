@@ -19,13 +19,14 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/golang/glog"
+	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/wemanity-belgium/hyperclair/clair"
 )
 
 var cfgFile string
+var logLevel string
 
 //HyperclairURI is the hyperclair server URI. As <hyperclair.uri>:<hypeclair.port>/v1
 var HyperclairURI string
@@ -53,6 +54,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./.hyperclair.yml)")
+	RootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "", "log level [Panic,Fatal,Error,Warn,Info,Debug]")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -83,7 +85,18 @@ func initConfig() {
 		fmt.Println("hyperclair: config file not found")
 		os.Exit(1)
 	}
-	glog.Info("Using config file:", viper.ConfigFileUsed())
+
+	lvl := logrus.WarnLevel
+	if logLevel != "" {
+		var err error
+		lvl, err = logrus.ParseLevel(logLevel)
+		if err != nil {
+			logrus.Warningf("Wrong Log level %v, defaults to [Warning]", logLevel)
+			lvl = logrus.WarnLevel
+		}
+	}
+	logrus.SetLevel(lvl)
+	logrus.Infof("Using config file: %v", viper.ConfigFileUsed())
 	clair.Config()
 
 	HyperclairURI = viper.GetString("hyperclair.uri") + ":" + strconv.Itoa(viper.GetInt("hyperclair.port")) + "/v1"
