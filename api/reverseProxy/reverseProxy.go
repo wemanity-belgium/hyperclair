@@ -18,6 +18,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/wemanity-belgium/hyperclair/database"
@@ -131,7 +132,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	res, err := transport.RoundTrip(outreq)
 	if err != nil {
-		log.Printf("http: proxy error: %v", err)
+		logrus.Errorf("http: proxy error: %v", err)
 		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -221,13 +222,13 @@ func NewReverseProxy(filters []FilterFunc) *ReverseProxy {
 		req, _ := http.NewRequest("HEAD", request.URL.String(), nil)
 		resp, err := client.Do(req)
 		if err != nil {
-			log.Printf("response error: %v", err)
+			logrus.Errorf("response error: %v", err)
 			return
 		}
 
 		if resp.StatusCode == http.StatusUnauthorized {
-			log.Println("pull from clair is unauthorized")
-			docker.Authenticate(resp, request)
+			logrus.Info("pull from clair is unauthorized")
+			docker.AuthenticateResponse(resp, request)
 		}
 
 		r, _ := http.NewRequest("GET", request.URL.String(), nil)

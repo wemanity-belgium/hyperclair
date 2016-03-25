@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/wemanity-belgium/hyperclair/docker/httpclient"
 	"github.com/wemanity-belgium/hyperclair/xerrors"
 )
@@ -18,9 +18,8 @@ func Pull(imageName string) (Image, error) {
 		return Image{}, err
 	}
 
-	log.Println("pulling image: ", image)
+	logrus.Info("pulling image: ", image)
 
-	fmt.Println("image:", image.Registry)
 	mURI := fmt.Sprintf("%v/%v/manifests/%v", image.Registry, image.Name, image.Tag)
 	client := httpclient.Get()
 	request, err := http.NewRequest("GET", mURI, nil)
@@ -30,8 +29,8 @@ func Pull(imageName string) (Image, error) {
 	}
 
 	if response.StatusCode == http.StatusUnauthorized {
-		log.Println("Pull is Unauthorized")
-		err := Authenticate(response, request)
+		logrus.Info("Pull is Unauthorized")
+		err := AuthenticateResponse(response, request)
 
 		if err != nil {
 			return Image{}, fmt.Errorf("authenticating: %v", err)
