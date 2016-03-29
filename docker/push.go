@@ -17,6 +17,11 @@ func Push(image Image) error {
 	layerCount := len(image.FsLayers)
 
 	parentID := ""
+
+	if layerCount == 0 {
+		logrus.Warningln("there is no layer to push")
+	}
+
 	for index, layer := range image.FsLayers {
 		lUID := xstrings.Substr(layer.BlobSum, 0, 12)
 		logrus.Infof("Pushing Layer %d/%d [%v]\n", index+1, layerCount, lUID)

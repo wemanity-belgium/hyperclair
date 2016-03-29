@@ -17,7 +17,7 @@ var serveCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 
 		sURL := fmt.Sprintf(":%d", viper.GetInt("hyperclair.port"))
-		err := server.ListenAndServe(sURL, nil)
+		err := server.ListenAndServe(sURL)
 
 		return err
 	},

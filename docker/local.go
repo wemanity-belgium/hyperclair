@@ -6,19 +6,22 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/wemanity-belgium/hyperclair/docker"
 )
 
-func prepare(imageName string) (Image, error) {
+func Prepare(im Image) error {
+	imageName := im.Name + ":" + im.Tag
+	logrus.Debugf("preparing %v", imageName)
+
 	path, err := save(imageName)
 	defer os.RemoveAll(path)
 	if err != nil {
-		return Image{}, fmt.Errorf("could not save image: %s", err)
+		return fmt.Errorf("could not save image: %s", err)
 	}
 
 	// Retrieve history.
@@ -28,19 +31,15 @@ func prepare(imageName string) (Image, error) {
 		layerIDs, err = historyFromCommand(imageName)
 	}
 	if err != nil || len(layerIDs) == 0 {
-		return Image{}, fmt.Errorf("Could not get image's history: %s", err)
-	}
-
-	image, err := Parse(imageName)
-	if err != nil {
-		return Image{}, err
+		return fmt.Errorf("Could not get image's history: %s", err)
 	}
 
 	for _, l := range layerIDs {
-		image.FsLayers = append(image.FsLayers, Layer{BlobSum: l})
+		im.FsLayers = append(im.FsLayers, Layer{BlobSum: l})
 	}
 
-	return image, nil
+	logrus.Debugf("prepared image layers: %d", len(im.FsLayers))
+	return nil
 	// // Analyze layers.
 	// fmt.Printf("Analyzing %d layers\n", len(layerIDs))
 	// for i := 0; i < len(layerIDs); i++ {
@@ -60,15 +59,13 @@ func prepare(imageName string) (Image, error) {
 }
 
 func save(imageName string) (string, error) {
-	path, err := ioutil.TempDir("", "analyze-local-image-")
-	if err != nil {
-		return "", err
-	}
 
 	var stderr bytes.Buffer
+	logrus.Debugln("docker image to save: ", imageName)
+	logrus.Debugln("saving in: ", docker.TmpLocal)
 	save := exec.Command("docker", "save", imageName)
 	save.Stderr = &stderr
-	extract := exec.Command("tar", "xf", "-", "-C"+path)
+	extract := exec.Command("tar", "xf", "-", "-C"+docker.TmpLocal)
 	extract.Stderr = &stderr
 	pipe, err := extract.StdinPipe()
 	if err != nil {
@@ -92,8 +89,7 @@ func save(imageName string) (string, error) {
 	if err != nil {
 		return "", errors.New(stderr.String())
 	}
-
-	return path, nil
+	return docker.TmpLocal, nil
 }
 
 func historyFromManifest(path string) ([]string, error) {

@@ -12,10 +12,22 @@ func PushHandler(rw http.ResponseWriter, request *http.Request) error {
 	local := request.URL.Query()["local"]
 
 	docker.IsLocal = len(local) > 0
+	logrus.Debugf("Hyperclair is local: %v", docker.IsLocal)
 
-	image, err := docker.Parse(parseImageURL(request))
+	var image docker.Image
 	if !docker.IsLocal {
+		var err error
 		image, err = docker.Pull(parseImageURL(request))
+		if err != nil {
+			return err
+		}
+	} else {
+		var err error
+		image, err = docker.Parse(parseImageURL(request))
+		if err != nil {
+			return err
+		}
+		err = docker.Prepare(image)
 		if err != nil {
 			return err
 		}

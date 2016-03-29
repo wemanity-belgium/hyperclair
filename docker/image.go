@@ -25,6 +25,7 @@ const DockerHub = "registry-1.docker.io"
 const hubURI = "https://" + DockerHub + "/v2"
 
 var IsLocal = false
+var TmpLocal = "/tmp/hyperclair"
 
 // Parse is used to parse a docker image command
 //

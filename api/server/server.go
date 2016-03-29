@@ -2,9 +2,7 @@ package server
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
-	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
@@ -15,11 +13,10 @@ import (
 
 type handler func(rw http.ResponseWriter, req *http.Request) error
 
+var router *mux.Router
+
 func Serve(sURL string) error {
-	path, err := ioutil.TempDir("", "analyze-local-image-")
-	if err != nil {
-		return fmt.Errorf("temp directory initialization: %v", err)
-	}
+
 	go func() {
 		restrictedFileServer := func(path string) http.Handler {
 			fc := func(w http.ResponseWriter, r *http.Request) {
@@ -27,22 +24,22 @@ func Serve(sURL string) error {
 			}
 			return http.HandlerFunc(fc)
 		}
-		ListenAndServe(sURL, restrictedFileServer(path))
+		router.Handle(sURL, restrictedFileServer(docker.TmpLocal))
+		ListenAndServe(sURL)
 	}()
-	time.Sleep(2000 * time.Millisecond)
 	return nil
 }
 
 //ListenAndServe Generate a server
-func ListenAndServe(sURL string, h http.Handler) error {
+func ListenAndServe(sURL string) error {
 	logrus.Info("Starting Server on ", sURL)
 
-	return http.ListenAndServe(sURL, h)
+	return http.ListenAndServe(sURL, nil)
 }
 
 func init() {
 
-	router := mux.NewRouter()
+	router = mux.NewRouter()
 	router.PathPrefix("/v1").Path("/health").HandlerFunc(errorHandler(api.HealthHandler)).Methods("GET")
 	router.PathPrefix("/v1").Path("/versions").HandlerFunc(errorHandler(api.VersionsHandler)).Methods("GET")
 	router.PathPrefix("/v1").Path("/login").HandlerFunc(errorHandler(BasicAuth(api.LoginHandler))).Methods("GET")
