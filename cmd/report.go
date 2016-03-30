@@ -8,6 +8,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/wemanity-belgium/hyperclair/api/server"
 	"github.com/wemanity-belgium/hyperclair/clair"
 	"github.com/wemanity-belgium/hyperclair/cmd/xerrors"
 	"github.com/wemanity-belgium/hyperclair/xstrings"
@@ -21,6 +22,12 @@ var reportCmd = &cobra.Command{
 		if len(args) != 1 {
 			fmt.Printf("hyperclair: \"report\" requires a minimum of 1 argument")
 			os.Exit(1)
+		}
+
+		if local {
+			HyperclairURI = "http://localhost:60000" + "/v1"
+			sURL := fmt.Sprintf(":%d", 60000)
+			server.Serve(sURL)
 		}
 
 		analyses := Analyse(args[0])
@@ -81,6 +88,7 @@ func saveReport(name string, content string) error {
 
 func init() {
 	RootCmd.AddCommand(reportCmd)
+	reportCmd.Flags().BoolVarP(&local, "local", "l", false, "Use local images")
 	reportCmd.Flags().StringP("format", "f", "html", "Format for Report [html,json]")
 	viper.BindPFlag("clair.report.format", reportCmd.Flags().Lookup("format"))
 }
