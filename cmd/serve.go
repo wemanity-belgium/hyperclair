@@ -17,6 +17,9 @@ var serveCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 
 		sURL := fmt.Sprintf(":%d", viper.GetInt("hyperclair.port"))
+		if local {
+			sURL = fmt.Sprintf(":%d", 60000)
+		}
 		err := server.ListenAndServe(sURL)
 
 		return err
@@ -46,4 +49,6 @@ func getHyperclairURI(imageName string, path ...string) (string, error) {
 
 func init() {
 	RootCmd.AddCommand(serveCmd)
+	serveCmd.Flags().BoolVarP(&local, "local", "l", false, "Use local images")
+
 }

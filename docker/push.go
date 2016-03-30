@@ -31,6 +31,7 @@ func Push(image Image) error {
 		if err != nil {
 			return err
 		}
+
 		payload := v1.LayerEnvelope{Layer: &v1.Layer{
 			Name:       layer.BlobSum,
 			Path:       image.BlobsURI(layer.BlobSum),
@@ -38,12 +39,21 @@ func Push(image Image) error {
 			Format:     "Docker",
 		}}
 
+		if IsLocal {
+
+		}
+
 		//FIXME Update to TLS
 		hURL := fmt.Sprintf("http://hyperclair:%d/v2", viper.GetInt("hyperclair.port"))
 		if IsLocal {
-			hURL = "http://172.17.0.1:60000/v1"
+			hURL = "http://172.17.0.1:60000/v1/local"
+			payload.Layer.Name = layer.History
+			payload.Layer.Path += "/layer.tar"
 		}
 		payload.Layer.Path = strings.Replace(payload.Layer.Path, image.Registry, hURL, 1)
+
+		logrus.Debugf("Name: %v", payload.Layer.Name)
+		logrus.Debugf("Path: %v", payload.Layer.Path)
 		if err := clair.Push(payload); err != nil {
 			logrus.Infof("adding layer %d/%d [%v]: %v\n", index+1, layerCount, lUID, err)
 			if err != clair.OSNotSupported {
@@ -51,7 +61,7 @@ func Push(image Image) error {
 			}
 			parentID = ""
 		} else {
-			parentID = layer.BlobSum
+			parentID = payload.Layer.Name
 		}
 	}
 

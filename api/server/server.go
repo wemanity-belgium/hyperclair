@@ -29,7 +29,7 @@ func Serve(sURL string) error {
 			}
 			return http.HandlerFunc(fc)
 		}
-		router.Handle(sURL, restrictedFileServer(docker.TmpLocal))
+		router.PathPrefix("/v1/local").Handler(http.StripPrefix("/v1/local", restrictedFileServer(docker.TmpLocal))).Methods("GET")
 		ListenAndServe(sURL)
 	}()
 	return nil

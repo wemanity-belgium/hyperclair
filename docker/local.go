@@ -25,16 +25,16 @@ func Prepare(im *Image) error {
 
 	// Retrieve history.
 	logrus.Infoln("Getting image's history")
-	layerIDs, err := historyFromManifest(path)
-	if err != nil {
-		layerIDs, err = historyFromCommand(imageName)
-	}
-	if err != nil || len(layerIDs) == 0 {
+	manifestLayerIDs, err := historyFromManifest(path)
+
+	historyLayerIDs, err := historyFromCommand(imageName)
+
+	if err != nil || (len(manifestLayerIDs) == 0 && len(historyLayerIDs) == 0) {
 		return fmt.Errorf("Could not get image's history: %s", err)
 	}
 
-	for _, l := range layerIDs {
-		im.FsLayers = append(im.FsLayers, Layer{BlobSum: l})
+	for i, l := range manifestLayerIDs {
+		im.FsLayers = append(im.FsLayers, Layer{BlobSum: l, History: historyLayerIDs[i]})
 	}
 
 	return nil
@@ -57,13 +57,26 @@ func FromHistory(im *Image) error {
 }
 
 func save(imageName string) (string, error) {
+	path := TmpLocal + "/" + strings.Split(imageName, ":")[0] + "/blobs"
+
+	if _, err := os.Stat(path); os.IsExist(err) {
+		err := os.RemoveAll(path)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	err := os.MkdirAll(path, 0755)
+	if err != nil {
+		return "", err
+	}
 
 	var stderr bytes.Buffer
 	logrus.Debugln("docker image to save: ", imageName)
-	logrus.Debugln("saving in: ", TmpLocal)
+	logrus.Debugln("saving in: ", path)
 	save := exec.Command("docker", "save", imageName)
 	save.Stderr = &stderr
-	extract := exec.Command("tar", "xf", "-", "-C"+TmpLocal)
+	extract := exec.Command("tar", "xf", "-", "-C"+path)
 	extract.Stderr = &stderr
 	pipe, err := extract.StdinPipe()
 	if err != nil {
@@ -87,7 +100,7 @@ func save(imageName string) (string, error) {
 	if err != nil {
 		return "", errors.New(stderr.String())
 	}
-	return TmpLocal, nil
+	return path, nil
 }
 
 func historyFromManifest(path string) ([]string, error) {

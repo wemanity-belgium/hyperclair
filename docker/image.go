@@ -18,6 +18,7 @@ type Image struct {
 //Layer represent the digest of a image layer
 type Layer struct {
 	BlobSum string
+	History string
 }
 
 const dockerImageRegex = "^(?:([^/]+)/)?(?:([^/]+)/)?([^@:/]+)(?:[@:](.+))?"
