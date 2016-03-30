@@ -5,13 +5,13 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/boltdb/bolt"
+	"github.com/wemanity-belgium/hyperclair/config"
 )
 
-const HyperclairDB = "/data/hyperclair.db"
 const RegistryBucket = "Registries"
 
 func InsertRegistryMapping(layerDigest string, registryURI string) error {
-	db, err := open(HyperclairDB)
+	db, err := open(config.HyperclairDB())
 	if err != nil {
 		return err
 	}
@@ -27,28 +27,9 @@ func InsertRegistryMapping(layerDigest string, registryURI string) error {
 	})
 
 }
-func List() {
-	db, err := open("hyperclair.db")
-	defer db.Close()
-	if err != nil {
-		logrus.Fatalf("db list: %v", err)
-	}
-	db.View(func(tx *bolt.Tx) error {
-		// Assume bucket exists and has keys
-		b := tx.Bucket([]byte(RegistryBucket))
-
-		c := b.Cursor()
-
-		for k, v := c.First(); k != nil; k, v = c.Next() {
-			logrus.Debugf("key=%s, value=%s\n", k, v)
-		}
-
-		return nil
-	})
-}
 
 func GetRegistryMapping(layerDigest string) (string, error) {
-	db, err := open(HyperclairDB)
+	db, err := open(config.HyperclairDB())
 	defer db.Close()
 
 	if err != nil {
@@ -100,7 +81,7 @@ func IsHealthy() (interface{}, bool) {
 		IsHealthy bool
 	}
 
-	db, err := open(HyperclairDB)
+	db, err := open(config.HyperclairDB())
 	if err != nil {
 		return Health{false}, false
 	}

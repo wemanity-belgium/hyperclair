@@ -38,9 +38,11 @@ func Push(image Image) error {
 			Format:     "Docker",
 		}}
 
-		logrus.Debugf("Path:%v && Blobsum: %v", payload.Layer.Path, payload.Layer.Name)
 		//FIXME Update to TLS
 		hURL := fmt.Sprintf("http://hyperclair:%d/v2", viper.GetInt("hyperclair.port"))
+		if IsLocal {
+			hURL = "http://172.17.0.1:60000/v1"
+		}
 		payload.Layer.Path = strings.Replace(payload.Layer.Path, image.Registry, hURL, 1)
 		if err := clair.Push(payload); err != nil {
 			logrus.Infof("adding layer %d/%d [%v]: %v\n", index+1, layerCount, lUID, err)

@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -28,9 +29,11 @@ var pushCmd = &cobra.Command{
 
 		if local {
 			HyperclairURI = "http://localhost:60000" + "/v1"
-			sURL := fmt.Sprintf("localhost:%d", 60000)
+			sURL := fmt.Sprintf(":%d", 60000)
 			server.Serve(sURL)
 		}
+
+		time.Sleep(50000)
 
 		im := args[0]
 		url, err := getHyperclairURI(im)

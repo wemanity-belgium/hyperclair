@@ -11,15 +11,14 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/wemanity-belgium/hyperclair/docker"
 )
 
-func Prepare(im Image) error {
+func Prepare(im *Image) error {
 	imageName := im.Name + ":" + im.Tag
 	logrus.Debugf("preparing %v", imageName)
 
 	path, err := save(imageName)
-	defer os.RemoveAll(path)
+	// defer os.RemoveAll(path)
 	if err != nil {
 		return fmt.Errorf("could not save image: %s", err)
 	}
@@ -38,7 +37,6 @@ func Prepare(im Image) error {
 		im.FsLayers = append(im.FsLayers, Layer{BlobSum: l})
 	}
 
-	logrus.Debugf("prepared image layers: %d", len(im.FsLayers))
 	return nil
 	// // Analyze layers.
 	// fmt.Printf("Analyzing %d layers\n", len(layerIDs))
@@ -62,10 +60,10 @@ func save(imageName string) (string, error) {
 
 	var stderr bytes.Buffer
 	logrus.Debugln("docker image to save: ", imageName)
-	logrus.Debugln("saving in: ", docker.TmpLocal)
+	logrus.Debugln("saving in: ", TmpLocal)
 	save := exec.Command("docker", "save", imageName)
 	save.Stderr = &stderr
-	extract := exec.Command("tar", "xf", "-", "-C"+docker.TmpLocal)
+	extract := exec.Command("tar", "xf", "-", "-C"+TmpLocal)
 	extract.Stderr = &stderr
 	pipe, err := extract.StdinPipe()
 	if err != nil {
@@ -89,7 +87,7 @@ func save(imageName string) (string, error) {
 	if err != nil {
 		return "", errors.New(stderr.String())
 	}
-	return docker.TmpLocal, nil
+	return TmpLocal, nil
 }
 
 func historyFromManifest(path string) ([]string, error) {

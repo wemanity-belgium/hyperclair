@@ -9,6 +9,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/wemanity-belgium/hyperclair/cmd/xerrors"
+	"github.com/wemanity-belgium/hyperclair/config"
 	"github.com/wemanity-belgium/hyperclair/docker"
 	"github.com/wemanity-belgium/hyperclair/xstrings"
 )
@@ -29,8 +30,8 @@ var logoutCmd = &cobra.Command{
 			reg = args[0]
 		}
 
-		if _, err := os.Stat(hyperclairHome()); err == nil {
-			f, err := ioutil.ReadFile(hyperclairHome())
+		if _, err := os.Stat(config.HyperclairConfig()); err == nil {
+			f, err := ioutil.ReadFile(config.HyperclairConfig())
 			if err != nil {
 				fmt.Println(xerrors.InternalError)
 				logrus.Fatalf("reading hyperclair file: %v", err)
@@ -45,7 +46,7 @@ var logoutCmd = &cobra.Command{
 				fmt.Println(xerrors.InternalError)
 				logrus.Fatalf("indenting logout: %v", err)
 			}
-			ioutil.WriteFile(hyperclairHome(), s, os.ModePerm)
+			ioutil.WriteFile(config.HyperclairConfig(), s, os.ModePerm)
 			fmt.Println("Log out successful")
 		} else {
 			fmt.Println("You are not logged in")
