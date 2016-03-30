@@ -38,22 +38,22 @@ func Prepare(im *Image) error {
 	}
 
 	return nil
-	// // Analyze layers.
-	// fmt.Printf("Analyzing %d layers\n", len(layerIDs))
-	// for i := 0; i < len(layerIDs); i++ {
-	// 	fmt.Printf("- Analyzing %s\n", layerIDs[i])
-	//
-	// 	var err error
-	// 	if i > 0 {
-	// 		err = analyzeLayer(*endpoint, path+"/"+layerIDs[i]+"/layer.tar", layerIDs[i], layerIDs[i-1])
-	// 	} else {
-	// 		err = analyzeLayer(*endpoint, path+"/"+layerIDs[i]+"/layer.tar", layerIDs[i], "")
-	// 	}
-	// 	if err != nil {
-	// 		fmt.Printf("- Could not analyze layer: %s\n", err)
-	// 		os.Exit(1)
-	// 	}
-	// }
+}
+
+func FromHistory(im *Image) error {
+	imageName := im.Name + ":" + im.Tag
+	layerIDs, err := historyFromCommand(imageName)
+
+	if err != nil || len(layerIDs) == 0 {
+		return fmt.Errorf("Could not get image's history: %s", err)
+	}
+
+	for _, l := range layerIDs {
+		logrus.Debugf("From History Layer: %s", l)
+		im.FsLayers = append(im.FsLayers, Layer{BlobSum: l})
+	}
+
+	return nil
 }
 
 func save(imageName string) (string, error) {

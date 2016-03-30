@@ -44,7 +44,6 @@ var pushCmd = &cobra.Command{
 		if local {
 			url += "&local=true"
 		}
-		logrus.Debugln("url: ", url)
 		response, err := http.Post(url, "text/plain", nil)
 		if err != nil {
 			fmt.Println(xerrors.ServerUnavailable)

@@ -4,17 +4,37 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/wemanity-belgium/hyperclair/docker"
 	"github.com/wemanity-belgium/hyperclair/xstrings"
 )
 
 func AnalyseHandler(rw http.ResponseWriter, request *http.Request) error {
-	rw.Header().Set("Content-Type", "application/json")
+	local := request.URL.Query()["local"]
 
-	image, err := docker.Pull(parseImageURL(request))
+	docker.IsLocal = len(local) > 0
+	logrus.Debugf("Hyperclair is local: %v", docker.IsLocal)
 
-	if err != nil {
-		return err
+	var err error
+	var image docker.Image
+
+	if !docker.IsLocal {
+		image, err = docker.Pull(parseImageURL(request))
+
+		if err != nil {
+			return err
+		}
+
+	} else {
+		image, err = docker.Parse(parseImageURL(request))
+		if err != nil {
+			return err
+		}
+		docker.Prepare(&image)
+		logrus.Debugf("prepared image layers: %d", len(image.FsLayers))
+		if err != nil {
+			return err
+		}
 	}
 
 	analyses := docker.Analyse(image)
@@ -23,6 +43,7 @@ func AnalyseHandler(rw http.ResponseWriter, request *http.Request) error {
 		return err
 	}
 
+	rw.Header().Set("Content-Type", "application/json")
 	fmt.Fprint(rw, string(analysesJSON))
 	return nil
 }

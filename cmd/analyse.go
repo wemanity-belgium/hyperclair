@@ -11,6 +11,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/wemanity-belgium/hyperclair/api/server"
 	"github.com/wemanity-belgium/hyperclair/clair"
 	"github.com/wemanity-belgium/hyperclair/cmd/xerrors"
 )
@@ -34,6 +35,12 @@ var analyseCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
+		if local {
+			HyperclairURI = "http://localhost:60000" + "/v1"
+			sURL := fmt.Sprintf(":%d", 60000)
+			server.Serve(sURL)
+		}
+
 		im := args[0]
 		ia := Analyse(im)
 
@@ -51,6 +58,9 @@ func Analyse(imageName string) clair.ImageAnalysis {
 
 	if err != nil {
 		logrus.Fatalf("parsing image: %v", err)
+	}
+	if local {
+		url += "&local=true"
 	}
 	response, err := http.Get(url)
 	if err != nil {
@@ -90,6 +100,7 @@ func Analyse(imageName string) clair.ImageAnalysis {
 
 func init() {
 	RootCmd.AddCommand(analyseCmd)
+	analyseCmd.Flags().BoolVarP(&local, "local", "l", false, "Use local images")
 	analyseCmd.Flags().StringP("priority", "p", "Low", "Vulnerabilities priority [Low, Medium, High, Critical]")
 	viper.BindPFlag("clair.priority", analyseCmd.Flags().Lookup("priority"))
 }
