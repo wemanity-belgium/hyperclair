@@ -59,7 +59,6 @@ func init() {
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-
 	viper.SetEnvPrefix("hyperclair")
 	viper.SetConfigName(".hyperclair") // name of config file (without extension)
 	viper.AddConfigPath(".")           // adding home directory as first search path
@@ -68,22 +67,45 @@ func initConfig() {
 		cfgFile = viper.GetString("config")
 	}
 	viper.SetConfigFile(cfgFile)
-	viper.SetDefault("clair.uri", "http://localhost")
-	viper.SetDefault("clair.port", "6060")
-	viper.SetDefault("clair.healthPort", "6061")
-	viper.SetDefault("clair.priority", "Low")
-	viper.SetDefault("clair.report.path", "reports")
-	viper.SetDefault("clair.report.format", "html")
-
-	viper.SetDefault("auth.insecureSkipVerify", "false")
-
-	viper.SetDefault("hyperclair.uri", "http://localhost")
-	viper.SetDefault("hyperclair.port", "9999")
-
 	err := viper.ReadInConfig()
 	if err != nil {
 		fmt.Println("hyperclair: config file not found")
 		os.Exit(1)
+	}
+	logrus.Infof("Using config file: %v", viper.ConfigFileUsed())
+
+	if viper.Get("clair.uri") == nil {
+		viper.Set("clair.uri", "http://localhost")
+	}
+	if viper.Get("clair.port") == nil {
+		viper.Set("clair.port", "6060")
+	}
+	if viper.Get("clair.healthPort") == nil {
+		viper.Set("clair.healthPort", "6061")
+	}
+	if viper.Get("clair.priority") == nil {
+		viper.Set("clair.priority", "Low")
+	}
+	if viper.Get("clair.report.path") == nil {
+		viper.Set("clair.report.path", "reports")
+	}
+	if viper.Get("clair.report.format") == nil {
+		viper.Set("clair.report.format", "html")
+	}
+	if viper.Get("auth.insecureSkipVerify") == nil {
+		viper.Set("auth.insecureSkipVerify", "false")
+	}
+	if viper.Get("hyperclair.uri") == nil {
+		viper.Set("hyperclair.uri", "http://localhost")
+	}
+	if viper.Get("hyperclair.port") == nil {
+		viper.Set("hyperclair.port", "9999")
+	}
+	if viper.Get("hyperclair.local.ip") == nil {
+		viper.Set("hyperclair.local.ip", "")
+	}
+	if viper.Get("hyperclair.local.port") == nil {
+		viper.Set("hyperclair.local.port", 60000)
 	}
 
 	lvl := logrus.WarnLevel
@@ -96,7 +118,6 @@ func initConfig() {
 		}
 	}
 	logrus.SetLevel(lvl)
-	logrus.Infof("Using config file: %v", viper.ConfigFileUsed())
 	clair.Config()
 
 	HyperclairURI = viper.GetString("hyperclair.uri") + ":" + strconv.Itoa(viper.GetInt("hyperclair.port")) + "/v1"

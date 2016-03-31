@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"strings"
@@ -13,6 +14,7 @@ import (
 	"github.com/Sirupsen/logrus"
 )
 
+//FromHistory populate image.FSLayers with the layer from manifest coming from `docker save` command. Layer.History will be populated with `docker history` command
 func Prepare(im *Image) error {
 	imageName := im.Name + ":" + im.Tag
 	logrus.Debugf("preparing %v", imageName)
@@ -40,6 +42,7 @@ func Prepare(im *Image) error {
 	return nil
 }
 
+//FromHistory populate image.FSLayers with the layer from `docker history` command
 func FromHistory(im *Image) error {
 	imageName := im.Name + ":" + im.Tag
 	layerIDs, err := historyFromCommand(imageName)
@@ -54,6 +57,55 @@ func FromHistory(im *Image) error {
 	}
 
 	return nil
+}
+
+//Docker0InterfaceIP return the docker0 interface ip by running `ip route show | grep docker0 | awk {print $9}`
+func Docker0InterfaceIP() (string, error) {
+	var localIP bytes.Buffer
+
+	ip := exec.Command("ip", "route", "show")
+	rGrep, wIP := io.Pipe()
+	grep := exec.Command("grep", "docker0")
+	ip.Stdout = wIP
+	grep.Stdin = rGrep
+	awk := exec.Command("awk", "{print $9}")
+	rAwk, wGrep := io.Pipe()
+	grep.Stdout = wGrep
+	awk.Stdin = rAwk
+	awk.Stdout = &localIP
+	err := ip.Start()
+	if err != nil {
+		return "", err
+	}
+	err = grep.Start()
+	if err != nil {
+		return "", err
+	}
+	err = awk.Start()
+	if err != nil {
+		return "", err
+	}
+	err = ip.Wait()
+	if err != nil {
+		return "", err
+	}
+	err = wIP.Close()
+	if err != nil {
+		return "", err
+	}
+	err = grep.Wait()
+	if err != nil {
+		return "", err
+	}
+	err = wGrep.Close()
+	if err != nil {
+		return "", err
+	}
+	err = awk.Wait()
+	if err != nil {
+		return "", err
+	}
+	return localIP.String(), nil
 }
 
 func save(imageName string) (string, error) {

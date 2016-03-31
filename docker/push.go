@@ -22,6 +22,22 @@ func Push(image Image) error {
 		logrus.Warningln("there is no layer to push")
 	}
 
+	hURL := fmt.Sprintf("http://hyperclair:%d/v2", viper.GetInt("hyperclair.port"))
+	if IsLocal {
+		localPort := viper.GetString("hyperclair.local.port")
+		localIP := viper.GetString("hyperclair.local.ip")
+		if localIP == "" {
+			logrus.Infoln("retrieving docker0 interface as local IP")
+			var err error
+			localIP, err = Docker0InterfaceIP()
+			if err != nil {
+				return fmt.Errorf("retrieving docker0 interface ip: %v", err)
+			}
+		}
+		hURL = "http://" + strings.TrimSpace(localIP) + ":" + localPort + "/v1/local"
+		logrus.Infof("using %v as local url", hURL)
+	}
+
 	for index, layer := range image.FsLayers {
 		lUID := xstrings.Substr(layer.BlobSum, 0, 12)
 		logrus.Infof("Pushing Layer %d/%d [%v]\n", index+1, layerCount, lUID)
@@ -39,14 +55,8 @@ func Push(image Image) error {
 			Format:     "Docker",
 		}}
 
-		if IsLocal {
-
-		}
-
 		//FIXME Update to TLS
-		hURL := fmt.Sprintf("http://hyperclair:%d/v2", viper.GetInt("hyperclair.port"))
 		if IsLocal {
-			hURL = "http://172.17.0.1:60000/v1/local"
 			payload.Layer.Name = layer.History
 			payload.Layer.Path += "/layer.tar"
 		}
