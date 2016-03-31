@@ -12,9 +12,10 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
-//FromHistory populate image.FSLayers with the layer from manifest coming from `docker save` command. Layer.History will be populated with `docker history` command
+//Prepare populate image.FSLayers with the layer from manifest coming from `docker save` command. Layer.History will be populated with `docker history` command
 func Prepare(im *Image) error {
 	imageName := im.Name + ":" + im.Tag
 	logrus.Debugf("preparing %v", imageName)
@@ -52,7 +53,6 @@ func FromHistory(im *Image) error {
 	}
 
 	for _, l := range layerIDs {
-		logrus.Debugf("From History Layer: %s", l)
 		im.FsLayers = append(im.FsLayers, Layer{BlobSum: l})
 	}
 
@@ -106,6 +106,32 @@ func Docker0InterfaceIP() (string, error) {
 		return "", err
 	}
 	return localIP.String(), nil
+}
+
+//LocalIP return the local hyperclair server ip
+func localIP() (string, error) {
+	localPort := viper.GetString("hyperclair.local.port")
+	localIP := viper.GetString("hyperclair.local.ip")
+	if localIP == "" {
+		logrus.Infoln("retrieving docker0 interface as local IP")
+		var err error
+		localIP, err = Docker0InterfaceIP()
+		if err != nil {
+			return "", fmt.Errorf("retrieving docker0 interface ip: %v", err)
+		}
+	}
+	return "http://" + strings.TrimSpace(localIP) + ":" + localPort + "/v1/local", nil
+}
+
+func cleanLocal() error {
+	logrus.Debugln("cleaning temporary local repository")
+	err := os.RemoveAll(TmpLocal)
+
+	if err != nil {
+		return fmt.Errorf("cleaning temporary local repository: %v", err)
+	}
+
+	return nil
 }
 
 func save(imageName string) (string, error) {

@@ -31,7 +31,6 @@ func AnalyseHandler(rw http.ResponseWriter, request *http.Request) error {
 			return err
 		}
 		docker.FromHistory(&image)
-		logrus.Debugf("from history image layers: %d", len(image.FsLayers))
 		if err != nil {
 			return err
 		}

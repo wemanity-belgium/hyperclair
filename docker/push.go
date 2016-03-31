@@ -24,24 +24,17 @@ func Push(image Image) error {
 
 	hURL := fmt.Sprintf("http://hyperclair:%d/v2", viper.GetInt("hyperclair.port"))
 	if IsLocal {
-		localPort := viper.GetString("hyperclair.local.port")
-		localIP := viper.GetString("hyperclair.local.ip")
-		if localIP == "" {
-			logrus.Infoln("retrieving docker0 interface as local IP")
-			var err error
-			localIP, err = Docker0InterfaceIP()
-			if err != nil {
-				return fmt.Errorf("retrieving docker0 interface ip: %v", err)
-			}
+		var err error
+		hURL, err = localIP()
+		if err != nil {
+			return err
 		}
-		hURL = "http://" + strings.TrimSpace(localIP) + ":" + localPort + "/v1/local"
 		logrus.Infof("using %v as local url", hURL)
 	}
 
 	for index, layer := range image.FsLayers {
 		lUID := xstrings.Substr(layer.BlobSum, 0, 12)
-		logrus.Infof("Pushing Layer %d/%d [%v]\n", index+1, layerCount, lUID)
-		logrus.Debugf("Registry: %v", image.Registry)
+		logrus.Infof("Pushing Layer %d/%d [%v]", index+1, layerCount, lUID)
 
 		err := database.InsertRegistryMapping(layer.BlobSum, image.Registry)
 		if err != nil {
@@ -61,11 +54,8 @@ func Push(image Image) error {
 			payload.Layer.Path += "/layer.tar"
 		}
 		payload.Layer.Path = strings.Replace(payload.Layer.Path, image.Registry, hURL, 1)
-
-		logrus.Debugf("Name: %v", payload.Layer.Name)
-		logrus.Debugf("Path: %v", payload.Layer.Path)
 		if err := clair.Push(payload); err != nil {
-			logrus.Infof("adding layer %d/%d [%v]: %v\n", index+1, layerCount, lUID, err)
+			logrus.Infof("adding layer %d/%d [%v]: %v", index+1, layerCount, lUID, err)
 			if err != clair.OSNotSupported {
 				return err
 			}
@@ -74,6 +64,6 @@ func Push(image Image) error {
 			parentID = payload.Layer.Name
 		}
 	}
-
+	cleanLocal()
 	return nil
 }

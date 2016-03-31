@@ -18,7 +18,7 @@ func InsertRegistryMapping(layerDigest string, registryURI string) error {
 	defer db.Close()
 
 	return db.Update(func(tx *bolt.Tx) error {
-		logrus.Infof("Saving %s[%s]\n", layerDigest, registryURI)
+		logrus.Debugf("Saving %s[%s]", layerDigest, registryURI)
 		err = tx.Bucket([]byte(RegistryBucket)).Put([]byte(layerDigest), []byte(registryURI))
 		if err != nil {
 			return fmt.Errorf("adding registry mapping: %v", err)
