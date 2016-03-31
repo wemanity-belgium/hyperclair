@@ -125,7 +125,7 @@ func localIP() (string, error) {
 
 func cleanLocal() error {
 	logrus.Debugln("cleaning temporary local repository")
-	err := os.RemoveAll(TmpLocal)
+	err := os.RemoveAll(TmpLocal())
 
 	if err != nil {
 		return fmt.Errorf("cleaning temporary local repository: %v", err)
@@ -135,7 +135,7 @@ func cleanLocal() error {
 }
 
 func save(imageName string) (string, error) {
-	path := TmpLocal + "/" + strings.Split(imageName, ":")[0] + "/blobs"
+	path := TmpLocal() + "/" + strings.Split(imageName, ":")[0] + "/blobs"
 
 	if _, err := os.Stat(path); os.IsExist(err) {
 		err := os.RemoveAll(path)

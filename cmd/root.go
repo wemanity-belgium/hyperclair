@@ -107,6 +107,9 @@ func initConfig() {
 	if viper.Get("hyperclair.local.port") == nil {
 		viper.Set("hyperclair.local.port", 60000)
 	}
+	if viper.Get("hyperclair.local.tempFolder") == nil {
+		viper.Set("hyperclair.local.tempFolder", "/tmp/hyperclair")
+	}
 
 	lvl := logrus.WarnLevel
 	if logLevel != "" {
