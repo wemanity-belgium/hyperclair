@@ -25,7 +25,7 @@ It's easily integrated< in your CI/CD pipeline, mapping Registry events on its a
 
 hyperclair is tool to make the link between the Docker Registry and the CoreOS Clair tool.
 
-![hyperclair](https://cloud.githubusercontent.com/assets/3304363/12849755/9caa0fac-cc21-11e5-8b89-ddfa8535a3dc.png)
+![hyperclair](https://cloud.githubusercontent.com/assets/3304363/14174675/348bc190-f746-11e5-9edd-9e736ec38b0e.png)
 
 # Usage
 
