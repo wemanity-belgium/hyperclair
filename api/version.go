@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-const v = "0.2.0"
+const v = "0.3.0"
 
 func VersionsHandler(rw http.ResponseWriter, request *http.Request) error {
 	rw.Header().Set("Content-Type", "application/json")
