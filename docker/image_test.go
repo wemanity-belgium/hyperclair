@@ -100,7 +100,7 @@ func TestMBlobstURI(t *testing.T) {
 
 func TestUniqueLayer(t *testing.T) {
 	image := Image{
-		FsLayers: []Layer{Layer{"test1"}, Layer{"test1"}, Layer{"test2"}},
+		FsLayers: []Layer{Layer{BlobSum: "test1"}, Layer{BlobSum: "test1"}, Layer{BlobSum: "test2"}},
 	}
 
 	image.uniqueLayers()
