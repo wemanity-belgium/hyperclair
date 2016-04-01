@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
@@ -17,11 +18,10 @@ type handler func(rw http.ResponseWriter, req *http.Request) error
 var router *mux.Router
 
 func Serve(sURL string) error {
-
 	go func() {
 		restrictedFileServer := func(path string) http.Handler {
-			if _, err := os.Stat(docker.TmpLocal()); os.IsNotExist(err) {
-				os.Mkdir(docker.TmpLocal(), 0777)
+			if _, err := os.Stat(path); os.IsNotExist(err) {
+				os.Mkdir(path, 0777)
 			}
 
 			fc := func(w http.ResponseWriter, r *http.Request) {
@@ -29,9 +29,13 @@ func Serve(sURL string) error {
 			}
 			return http.HandlerFunc(fc)
 		}
+
 		router.PathPrefix("/v1/local").Handler(http.StripPrefix("/v1/local", restrictedFileServer(docker.TmpLocal()))).Methods("GET")
+
 		ListenAndServe(sURL)
 	}()
+	//sleep needed to wait the server start. Maybe use a channel for that
+	time.Sleep(5 * time.Millisecond)
 	return nil
 }
 

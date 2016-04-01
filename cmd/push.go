@@ -5,11 +5,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/wemanity-belgium/hyperclair/api/server"
 	"github.com/wemanity-belgium/hyperclair/cmd/xerrors"
 	//"strings"
 )
@@ -28,13 +26,8 @@ var pushCmd = &cobra.Command{
 		}
 
 		if local {
-			HyperclairURI = "http://localhost:60000" + "/v1"
-			sURL := fmt.Sprintf(":%d", 60000)
-			server.Serve(sURL)
+			StartLocalServer()
 		}
-
-		time.Sleep(50000)
-
 		im := args[0]
 		url, err := getHyperclairURI(im)
 		if err != nil {

@@ -25,7 +25,8 @@ func Push(image Image) error {
 	hURL := fmt.Sprintf("http://hyperclair:%d/v2", viper.GetInt("hyperclair.port"))
 	if IsLocal {
 		var err error
-		hURL, err = localIP()
+		hURL, err = LocalServerIP()
+		hURL = "http://" + hURL + "/v1/local"
 		if err != nil {
 			return err
 		}

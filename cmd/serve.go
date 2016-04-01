@@ -3,9 +3,11 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/wemanity-belgium/hyperclair/api/server"
+	"github.com/wemanity-belgium/hyperclair/cmd/xerrors"
 	"github.com/wemanity-belgium/hyperclair/docker"
 	"github.com/wemanity-belgium/hyperclair/xstrings"
 )
@@ -45,6 +47,30 @@ func getHyperclairURI(imageName string, path ...string) (string, error) {
 	url = fmt.Sprintf("%v?realm=%v&reference=%v", url, registry, image.Tag)
 
 	return url, nil
+}
+
+//StartLocalServer start the hyperclair local server needed for reverse proxy
+func StartLocalServer() {
+	var err error
+	if err != nil {
+		fmt.Println(xerrors.InternalError)
+		logrus.Fatalf("retrieving internal server URI: %v", err)
+	}
+	sURL, err := docker.LocalServerIP()
+	if err != nil {
+		fmt.Println(xerrors.InternalError)
+		logrus.Fatalf("retrieving internal server IP: %v", err)
+	}
+	HyperclairURI = "http://" + sURL + "/v1"
+	if err != nil {
+		fmt.Println(xerrors.InternalError)
+		logrus.Fatalf("starting local server: %v", err)
+	}
+	err = server.Serve(sURL)
+	if err != nil {
+		fmt.Println(xerrors.InternalError)
+		logrus.Fatalf("starting local server: %v", err)
+	}
 }
 
 func init() {

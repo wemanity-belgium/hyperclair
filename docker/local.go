@@ -108,8 +108,8 @@ func Docker0InterfaceIP() (string, error) {
 	return localIP.String(), nil
 }
 
-//LocalIP return the local hyperclair server ip
-func localIP() (string, error) {
+//LocalServerIP return the local hyperclair server IP
+func LocalServerIP() (string, error) {
 	localPort := viper.GetString("hyperclair.local.port")
 	localIP := viper.GetString("hyperclair.local.ip")
 	if localIP == "" {
@@ -120,7 +120,7 @@ func localIP() (string, error) {
 			return "", fmt.Errorf("retrieving docker0 interface ip: %v", err)
 		}
 	}
-	return "http://" + strings.TrimSpace(localIP) + ":" + localPort + "/v1/local", nil
+	return strings.TrimSpace(localIP) + ":" + localPort, nil
 }
 
 func cleanLocal() error {

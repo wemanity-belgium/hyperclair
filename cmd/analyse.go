@@ -11,7 +11,6 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/wemanity-belgium/hyperclair/api/server"
 	"github.com/wemanity-belgium/hyperclair/clair"
 	"github.com/wemanity-belgium/hyperclair/cmd/xerrors"
 )
@@ -36,9 +35,7 @@ var analyseCmd = &cobra.Command{
 		}
 
 		if local {
-			HyperclairURI = "http://localhost:60000" + "/v1"
-			sURL := fmt.Sprintf(":%d", 60000)
-			server.Serve(sURL)
+			StartLocalServer()
 		}
 
 		im := args[0]
