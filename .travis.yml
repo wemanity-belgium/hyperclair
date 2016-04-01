@@ -3,7 +3,7 @@ go:
 - 1.5
 install:
 - go get -d -v ./...
-- go install -v ./...
+- go build -v
 deploy:
   provider: releases
   api_key:
