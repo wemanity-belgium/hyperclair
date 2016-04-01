@@ -1,4 +1,16 @@
 language: go
-
 go:
-  - 1.5
+- 1.5
+install:
+  - "go get -d -v ./..."
+  - "go build -v ./..."
+deploy:
+  provider: releases
+  api_key:
+    secure: R/pbs3U6rH3eEVDFhwYjROLRrqUnDQDCcYSJSXsbKJk/rwxeQkSAhgxamn5tfgVfqvJjGTOlr4Voro9fp2DDNRa96J6qwAEurzg8Ra5ZTjthNTNaA5s7wCQwEacpndBJaoENyfmTobUAmkgXz+urUOyL6UEnSI7+MC94HHlRMVAYHxmFVPulvBlY3z98ajyTJas6jNceF+dTqa5+2U+kEmz/psCGFwUyZg3HqY4ZO4LgK4ziNPuKqaN1KoMgOhwqOxwLnod8LiR7X93kRc7EHvbd6EdDTFuKpb+nhN+BeHLA7k0WFT+2H3rswcvPmHrIKP6vNy6Ea4NixbdmjwN8zrPOl8v1QgxLD4y5CK0GSkzHF93Cxru2VpvlszyTk6J3OYQwuC6LimYTLuCXTyUerqpmVC3R9+AX0bY9Q9ozg5AIJlMErrFWbhj+fxNFOM4Ltfr/4XXik6AeXMnVzIszruQ3EmAn+aYLdKSZ9jujE0TG7ETNkM6yWK9vKnxiAUAHT7vFJdWTTQ0uCM8NoOqDIB867PWlhuKrsSKcddco5Ybj7pvnmkS8RCfdHjpuF5lDWjTpfI5Y+KJLhG/jAa5gAW7qGTeGAjxt1ekhdk+p5NDWwekzs7fLF5kGeobvrG5az8yYGINL3qmW4yQBKsLHnuUh9VUQXi88O+3l35yixUE=
+  file: hyperclair
+  skip_cleanup: true
+  on:
+    repo: wemanity-belgium/hyperclair
+    tags: true
+    branch: master
