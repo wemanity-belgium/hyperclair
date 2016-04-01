@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	u "os/user"
 
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/crypto/ssh/terminal"
@@ -14,6 +13,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/wemanity-belgium/hyperclair/cmd/xerrors"
+	"github.com/wemanity-belgium/hyperclair/config"
 	"github.com/wemanity-belgium/hyperclair/docker"
 	"github.com/wemanity-belgium/hyperclair/docker/httpclient"
 	"github.com/wemanity-belgium/hyperclair/xstrings"
@@ -38,8 +38,8 @@ var loginCmd = &cobra.Command{
 		}
 		var users userMapping
 
-		if _, err := os.Stat(hyperclairHome()); err == nil {
-			f, err := ioutil.ReadFile(hyperclairHome())
+		if _, err := os.Stat(config.HyperclairConfig()); err == nil {
+			f, err := ioutil.ReadFile(config.HyperclairConfig())
 			if err != nil {
 				fmt.Println(xerrors.InternalError)
 				logrus.Fatalf("reading hyperclair file: %v", err)
@@ -76,7 +76,7 @@ var loginCmd = &cobra.Command{
 			fmt.Println(xerrors.InternalError)
 			logrus.Fatalf("indenting login: %v", err)
 		}
-		ioutil.WriteFile(hyperclairHome(), s, os.ModePerm)
+		ioutil.WriteFile(config.HyperclairConfig(), s, os.ModePerm)
 		client := httpclient.Get()
 		req, err := http.NewRequest("GET", HyperclairURI+"/login?realm="+reg, nil)
 		if err != nil {
@@ -98,15 +98,6 @@ var loginCmd = &cobra.Command{
 
 		fmt.Println("Login Successful")
 	},
-}
-
-func hyperclairHome() string {
-	usr, err := u.Current()
-	if err != nil {
-		fmt.Println(xerrors.InternalError)
-		logrus.Fatalf("retrieving user: %v", err)
-	}
-	return usr.HomeDir + "/.hyperclair"
 }
 
 func init() {
