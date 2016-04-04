@@ -1,87 +1,54 @@
 package docker
 
-import "testing"
+import (
+	"testing"
 
-func TestNamespacePortRepositoryNameImage(t *testing.T) {
-	imageName := "register.com:5080/wemanity-belgium/alpine"
-	if _, err := Parse(imageName); err != nil {
-		t.Error(imageName + " should be valid")
-	}
-}
-func TestNamespacePortRepositoryNameTagImage(t *testing.T) {
-	imageName := "register.com:5080/wemanity-belgium/alpine:latest"
-	if _, err := Parse(imageName); err != nil {
-		t.Error(imageName + " should be valid")
-	}
-}
-func TestNamespacePortNameImage(t *testing.T) {
-	imageName := "register.com:5080/alpine"
-	if _, err := Parse(imageName); err != nil {
-		t.Error(imageName + " should be valid")
-	}
-}
-func TestNamespaceRepositoryNameImage(t *testing.T) {
-	imageName := "register.com/wemanity-belgium/alpine"
-	if _, err := Parse(imageName); err != nil {
-		t.Error(imageName + " should be valid")
-	}
-}
-func TestNamespaceNameImage(t *testing.T) {
-	imageName := "register.com/alpine"
-	if _, err := Parse(imageName); err != nil {
-		t.Error(imageName + " should be valid")
-	}
-}
-func TestNamespaceRepositoryNameImageTag(t *testing.T) {
-	imageName := "register.com/wemanity-belgium/alpine:latest"
-	if _, err := Parse(imageName); err != nil {
-		t.Error(imageName + " should be valid")
-	}
+	"github.com/wemanity-belgium/hyperclair/xerrors"
+)
+
+var imageNameTests = []struct {
+	in  string
+	out string
+}{
+	{"jgsqware/ubuntu-git", hubURI + "/jgsqware/ubuntu-git:latest"},
+	{"wemanity-belgium/registry-backup", hubURI + "/wemanity-belgium/registry-backup:latest"},
+	{"wemanity-belgium/alpine:latest", hubURI + "/wemanity-belgium/alpine:latest"},
+	{"register.com/alpine", "http://register.com/v2/alpine:latest"},
+	{"register.com/wemanity-belgium/alpine", "http://register.com/v2/wemanity-belgium/alpine:latest"},
+	{"register.com/wemanity-belgium/alpine:latest", "http://register.com/v2/wemanity-belgium/alpine:latest"},
+	{"register.com:5080/alpine", "http://register.com:5080/v2/alpine:latest"},
+	{"register.com:5080/wemanity-belgium/alpine", "http://register.com:5080/v2/wemanity-belgium/alpine:latest"},
+	{"register.com:5080/wemanity-belgium/alpine:latest", "http://register.com:5080/v2/wemanity-belgium/alpine:latest"},
+	{"registry:5000/google/cadvisor", "http://registry:5000/v2/google/cadvisor:latest"},
 }
 
-func TestNameImage(t *testing.T) {
-	imageName := "alpine"
-	if _, err := Parse(imageName); err != nil {
-		t.Error(imageName + " should be valid")
+var invalidImageNameTests = []struct {
+	in  string
+	out string
+}{
+	{"alpine", hubURI + "/alpine:latest"},
+	{"docker.io/golang", hubURI + "/golang:latest"},
+}
+
+func TestParse(t *testing.T) {
+	for _, imageName := range imageNameTests {
+		image, err := Parse(imageName.in)
+		if err != nil {
+			t.Errorf("Parse(\"%s\") should be valid: %v", imageName.in, err)
+		}
+		if image.String() != imageName.out {
+			t.Errorf("Parse(\"%s\") => %v, want %v", imageName.in, image, imageName.out)
+
+		}
 	}
 }
 
-func TestNameImageWithRepo(t *testing.T) {
-	imageName := "jgsqware/ubuntu-git"
-	i, err := Parse(imageName)
-	if err != nil {
-		t.Error(imageName + " should be valid")
-	}
-
-	e := hubURI + "/" + imageName + ":latest"
-	if i.String() != e {
-		t.Errorf("Should be %v, is %v", e, i)
-	}
-}
-
-func TestRepositoryNameImage(t *testing.T) {
-	imageName := "wemanity-belgium/registry-backup"
-	image, err := Parse(imageName)
-	if err != nil {
-		t.Error(imageName + " should be valid")
-	}
-
-	if image.Registry != hubURI {
-		t.Errorf("Registry: %v vs %v", hubURI, image.Registry)
-	}
-
-	if image.Name != "wemanity-belgium/registry-backup" {
-		t.Errorf("ImageName: %v vs %v", "", image.Name)
-	}
-
-	if image.Tag != "latest" {
-		t.Errorf("Tag: %v vs %v", "", image.Tag)
-	}
-}
-func TestRepositoryNameTagImage(t *testing.T) {
-	imageName := "wemanity-belgium/alpine:latest"
-	if _, err := Parse(imageName); err != nil {
-		t.Error(imageName + " should be valid")
+func TestParseDisallowed(t *testing.T) {
+	for _, imageName := range invalidImageNameTests {
+		_, err := Parse(imageName.in)
+		if err != xerrors.ErrDisallowed {
+			t.Errorf("Parse(\"%s\") should failed with err \"%v\": %v", imageName.in, xerrors.ErrDisallowed, err)
+		}
 	}
 }
 
@@ -109,42 +76,3 @@ func TestUniqueLayer(t *testing.T) {
 		t.Errorf("Layers must be unique: %v", image.FsLayers)
 	}
 }
-
-// func TestGetName(t *testing.T) {
-//
-// 	image := Image{
-// 		Name: "alpine",
-// 		Tag:  "latest",
-// 	}
-//
-// 	if image.GetName() != "alpine:latest" {
-// 		t.Errorf("Image name should be alpine:latest but is %v", image.GetName())
-// 	}
-//
-// }
-//
-// func TestGetNameWithRepository(t *testing.T) {
-//
-// 	image := DockerImage{
-// 		Repository: "wemanity-belgium",
-// 		ImageName:  "alpine",
-// 		Tag:        "latest",
-// 	}
-//
-// 	if image.GetName() != "wemanity-belgium/alpine:latest" {
-// 		t.Errorf("Image name should be wemanity-belgium/alpine:latest but is %v", image.GetName())
-// 	}
-//
-// }
-
-// func TestAuthURI(t *testing.T) {
-// 	image := DockerImage{
-// 		Repository: "wemanity-belgium",
-// 		ImageName:  "alpine",
-// 		Tag:        "latest",
-// 	}
-//
-// 	if authURI := image.AuthURI(); authURI != "https://auth.docker.io/token?service=registry.docker.io&scope=repository:"+image.GetOnlyName()+":pull" {
-// 		t.Errorf("Image name should be https://auth.docker.io/token?service=registry.docker.io&scope=repository:wemanity-belgium/alpine:pull but is %v", authURI)
-// 	}
-// }

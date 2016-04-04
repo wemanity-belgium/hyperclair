@@ -85,6 +85,10 @@ hyperclair:
   port: 9999
 ```
 
+# Remarks
+
+1. Analyzing Official Docker image is disallowed. You cannot pull layers from image you don't own.
+
 # Contribution and Test
 
 Go to /contrib folder
