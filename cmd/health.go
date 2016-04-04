@@ -14,7 +14,6 @@ import (
 )
 
 const healthTplt = `
-Database: {{if .database.IsHealthy}}✔{{else}}✘{{end}}
 Clair: {{if .clair}}✔{{else}}✘{{end}}
 `
 
