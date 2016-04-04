@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/spf13/viper"
+	"github.com/wemanity-belgium/hyperclair/xerrors"
 )
 
 //Image represent Image Manifest from Docker image, including the registry URL
@@ -75,6 +76,10 @@ func Parse(image string) (Image, error) {
 
 	if repository != "" {
 		name = repository + "/" + name
+	}
+
+	if strings.Contains(registry, "docker.io") && repository == "" {
+		return Image{}, xerrors.ErrDisallowed
 	}
 
 	return Image{
