@@ -6,12 +6,10 @@ import (
 	"net/http"
 
 	"github.com/wemanity-belgium/hyperclair/clair"
-	"github.com/wemanity-belgium/hyperclair/database"
 )
 
 type health struct {
-	Clair    interface{} `json:"clair"`
-	Database interface{} `json:"database"`
+	Clair interface{} `json:"clair"`
 }
 
 func (health health) asJSON() (string, error) {
@@ -30,15 +28,8 @@ func HealthHandler(rw http.ResponseWriter, request *http.Request) error {
 		rw.WriteHeader(http.StatusServiceUnavailable)
 	}
 
-	databaseHealth, ok := database.IsHealthy()
-
-	if !ok {
-		rw.WriteHeader(http.StatusServiceUnavailable)
-	}
-
 	healthBody := health{
-		Clair:    ok,
-		Database: databaseHealth,
+		Clair: ok,
 	}
 
 	j, err := healthBody.asJSON()
