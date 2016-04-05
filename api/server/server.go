@@ -51,8 +51,6 @@ func init() {
 	router = mux.NewRouter()
 	router.PathPrefix("/v2").Path("/{repository}/{name}/blobs/{digest}").HandlerFunc(api.ReverseRegistryHandler())
 
-	router.PathPrefix("/v1").Path("/{repository}/{name}").HandlerFunc(errorHandler(api.PullHandler)).Methods("GET")
-	router.PathPrefix("/v1").Path("/{name}").HandlerFunc(errorHandler(api.PullHandler)).Methods("GET")
 	router.PathPrefix("/v1").Path("/{repository}/{name}").HandlerFunc(errorHandler(api.PushHandler)).Methods("POST")
 	router.PathPrefix("/v1").Path("/{name}").HandlerFunc(errorHandler(api.PushHandler)).Methods("POST")
 	router.PathPrefix("/v1").Path("/{repository}/{name}/analysis").HandlerFunc(errorHandler(api.AnalyseHandler)).Methods("GET")
