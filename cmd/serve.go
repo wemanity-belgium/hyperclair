@@ -19,7 +19,7 @@ var serveCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 
 		sURL := fmt.Sprintf(":%d", viper.GetInt("hyperclair.port"))
-		if local {
+		if docker.IsLocal {
 			sURL = fmt.Sprintf(":%d", 60000)
 		}
 		err := server.ListenAndServe(sURL)
@@ -40,7 +40,7 @@ func getHyperclairURI(imageName string, path ...string) (string, error) {
 		url = fmt.Sprintf("%v/%v", url, p)
 	}
 
-	if local {
+	if docker.IsLocal {
 		registry = "localhost:60000"
 	}
 
@@ -75,6 +75,6 @@ func StartLocalServer() {
 
 func init() {
 	RootCmd.AddCommand(serveCmd)
-	serveCmd.Flags().BoolVarP(&local, "local", "l", false, "Use local images")
+	serveCmd.Flags().BoolVarP(&docker.IsLocal, "local", "l", false, "Use local images")
 
 }

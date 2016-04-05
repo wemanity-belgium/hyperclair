@@ -8,10 +8,9 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/wemanity-belgium/hyperclair/docker"
 	"github.com/wemanity-belgium/hyperclair/xerrors"
 )
-
-var local bool
 
 var pushCmd = &cobra.Command{
 	Use:   "push IMAGE",
@@ -24,7 +23,7 @@ var pushCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		if local {
+		if docker.IsLocal {
 			StartLocalServer()
 		}
 		im := args[0]
@@ -33,7 +32,7 @@ var pushCmd = &cobra.Command{
 			logrus.Fatalf("parsing image: %v", err)
 		}
 
-		if local {
+		if docker.IsLocal {
 			url += "&local=true"
 		}
 		response, err := http.Post(url, "text/plain", nil)
@@ -59,5 +58,5 @@ var pushCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(pushCmd)
-	pushCmd.Flags().BoolVarP(&local, "local", "l", false, "Use local images")
+	pushCmd.Flags().BoolVarP(&docker.IsLocal, "local", "l", false, "Use local images")
 }

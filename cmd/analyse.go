@@ -32,7 +32,6 @@ var analyseCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		docker.IsLocal = local
 		ia := analyse(args[0])
 
 		err := template.Must(template.New("analysis").Parse(analyseTplt)).Execute(os.Stdout, ia)
@@ -78,7 +77,7 @@ func analyse(imageName string) clair.ImageAnalysis {
 
 func init() {
 	RootCmd.AddCommand(analyseCmd)
-	analyseCmd.Flags().BoolVarP(&local, "local", "l", false, "Use local images")
+	analyseCmd.Flags().BoolVarP(&docker.IsLocal, "local", "l", false, "Use local images")
 	analyseCmd.Flags().StringP("priority", "p", "Low", "Vulnerabilities priority [Low, Medium, High, Critical]")
 	viper.BindPFlag("clair.priority", analyseCmd.Flags().Lookup("priority"))
 }
