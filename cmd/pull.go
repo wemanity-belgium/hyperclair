@@ -21,8 +21,8 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/wemanity-belgium/hyperclair/cmd/xerrors"
 	"github.com/wemanity-belgium/hyperclair/docker"
+	"github.com/wemanity-belgium/hyperclair/xerrors"
 )
 
 const pullTplt = `
@@ -46,7 +46,7 @@ var pullCmd = &cobra.Command{
 		im := args[0]
 		image, err := docker.Pull(im)
 		if err != nil {
-			fmt.Println(xerrors.ServerUnavailable)
+			fmt.Println(xerrors.ServiceUnavailable)
 			logrus.Fatalf("pulling image %v: %v", args[0], err)
 		}
 

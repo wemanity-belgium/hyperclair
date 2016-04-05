@@ -6,7 +6,7 @@ import (
 	"os/user"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/wemanity-belgium/hyperclair/cmd/xerrors"
+	"github.com/wemanity-belgium/hyperclair/xerrors"
 )
 
 func HyperclairHome() string {

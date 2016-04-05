@@ -8,8 +8,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/wemanity-belgium/hyperclair/cmd/xerrors"
-	//"strings"
+	"github.com/wemanity-belgium/hyperclair/xerrors"
 )
 
 var local bool
@@ -39,7 +38,7 @@ var pushCmd = &cobra.Command{
 		}
 		response, err := http.Post(url, "text/plain", nil)
 		if err != nil {
-			fmt.Println(xerrors.ServerUnavailable)
+			fmt.Println(xerrors.ServiceUnavailable)
 			logrus.Fatalf("pushing image on %v: %v", url, err)
 		}
 

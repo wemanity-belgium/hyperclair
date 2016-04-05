@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/wemanity-belgium/hyperclair/clair"
-	"github.com/wemanity-belgium/hyperclair/cmd/xerrors"
+	"github.com/wemanity-belgium/hyperclair/xerrors"
 	"github.com/wemanity-belgium/hyperclair/xstrings"
 )
 
@@ -27,7 +27,7 @@ var reportCmd = &cobra.Command{
 			StartLocalServer()
 		}
 
-		analyses := Analyse(args[0])
+		analyses := analyse(args[0])
 		imageName := strings.Replace(analyses.ImageName, "/", "-", -1) + "-" + analyses.Tag
 		switch clair.Report.Format {
 		case "html":
