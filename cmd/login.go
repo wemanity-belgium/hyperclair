@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"os"
 
 	"golang.org/x/crypto/bcrypt"
@@ -15,7 +14,6 @@ import (
 	"github.com/wemanity-belgium/hyperclair/cmd/xerrors"
 	"github.com/wemanity-belgium/hyperclair/config"
 	"github.com/wemanity-belgium/hyperclair/docker"
-	"github.com/wemanity-belgium/hyperclair/docker/httpclient"
 	"github.com/wemanity-belgium/hyperclair/xstrings"
 )
 
@@ -36,18 +34,12 @@ var loginCmd = &cobra.Command{
 			fmt.Println("Only one argument is allowed")
 			os.Exit(1)
 		}
+
 		var users userMapping
 
-		if _, err := os.Stat(config.HyperclairConfig()); err == nil {
-			f, err := ioutil.ReadFile(config.HyperclairConfig())
-			if err != nil {
-				fmt.Println(xerrors.InternalError)
-				logrus.Fatalf("reading hyperclair file: %v", err)
-			}
-
-			json.Unmarshal(f, &users)
-		} else {
-			users = userMapping{}
+		if err := readConfigFile(&users, config.HyperclairConfig()); err != nil {
+			fmt.Println(xerrors.InternalError)
+			logrus.Fatalf("reading hyperclair file: %v", err)
 		}
 
 		var reg string = docker.DockerHub
@@ -57,47 +49,74 @@ var loginCmd = &cobra.Command{
 		}
 
 		var usr user
-		fmt.Print("Username: ")
-		fmt.Scan(&usr.Username)
-		fmt.Print("Password: ")
-		pwd, err := terminal.ReadPassword(1)
-		fmt.Println("\n")
-		encryptedPwd, err := bcrypt.GenerateFromPassword(pwd, 5)
-		if err != nil {
+		if err := askForUser(&usr); err != nil {
 			fmt.Println(xerrors.InternalError)
 			logrus.Fatalf("encrypting password: %v", err)
 		}
-		usr.Password = string(encryptedPwd)
 
 		users[reg] = usr
 
-		s, err := xstrings.ToIndentJSON(users)
-		if err != nil {
+		if err := writeConfigFile(users, config.HyperclairConfig()); err != nil {
 			fmt.Println(xerrors.InternalError)
 			logrus.Fatalf("indenting login: %v", err)
 		}
-		ioutil.WriteFile(config.HyperclairConfig(), s, os.ModePerm)
-		client := httpclient.Get()
-		req, err := http.NewRequest("GET", HyperclairURI+"/login?realm="+reg, nil)
-		if err != nil {
-			fmt.Println(xerrors.InternalError)
-			logrus.Fatalf("creating login request: %v", err)
-		}
-		req.SetBasicAuth(usr.Username, string(pwd))
 
-		resp, err := client.Do(req)
-		if err != nil || (resp.StatusCode != http.StatusUnauthorized && resp.StatusCode != http.StatusOK) {
+		logged, err := docker.Login(reg)
+
+		if err != nil {
 			fmt.Println(xerrors.InternalError)
 			logrus.Fatalf("log in: %v", err)
 		}
 
-		if resp.StatusCode == http.StatusUnauthorized {
+		if !logged {
 			fmt.Println("Unauthorized: Wrong login/password, please try again")
 			os.Exit(1)
 		}
 
 		fmt.Println("Login Successful")
 	},
+}
+
+func readConfigFile(users *userMapping, configFile string) error {
+	if _, err := os.Stat(configFile); err == nil {
+		f, err := ioutil.ReadFile(configFile)
+		if err != nil {
+			return err
+		}
+
+		if err := json.Unmarshal(f, &users); err != nil {
+			return err
+		}
+	} else {
+		*users = userMapping{}
+	}
+	return nil
+}
+
+func askForUser(usr *user) error {
+	fmt.Print("Username: ")
+	fmt.Scan(&usr.Username)
+	fmt.Print("Password: ")
+	pwd, err := terminal.ReadPassword(1)
+	fmt.Println(" ")
+	encryptedPwd, err := bcrypt.GenerateFromPassword(pwd, 5)
+	if err != nil {
+		return err
+	}
+	usr.Password = string(encryptedPwd)
+	return nil
+}
+
+func writeConfigFile(users userMapping, configFile string) error {
+	s, err := xstrings.ToIndentJSON(users)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(configFile, s, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func init() {
