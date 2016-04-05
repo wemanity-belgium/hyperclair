@@ -24,6 +24,11 @@ var versionCmd = &cobra.Command{
 	Short: "Get Versions of Hyperclair and underlying services",
 	Long:  `Get Versions of Hyperclair and underlying services`,
 	Run: func(cmd *cobra.Command, args []string) {
+
+		if local {
+			StartLocalServer()
+		}
+
 		url := HyperclairURI + "/versions"
 		response, err := http.Get(url)
 		if err != nil {
@@ -59,4 +64,5 @@ var versionCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(versionCmd)
+	versionCmd.Flags().BoolVarP(&local, "local", "l", false, "Use local images")
 }

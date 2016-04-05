@@ -3,7 +3,7 @@ go:
 - 1.5
 install:
 - go get -d -v ./...
-- go build -v
+- go build -ldflags "-X github.com/wemanity-belgium/hyperclair/api.version=$(cat VERSION)" -v
 deploy:
   provider: releases
   api_key:
