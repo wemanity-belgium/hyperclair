@@ -6,16 +6,15 @@ import (
 	"net/http"
 )
 
-const v = "0.3.1"
+var version string
 
 func VersionsHandler(rw http.ResponseWriter, request *http.Request) error {
 	rw.Header().Set("Content-Type", "application/json")
 
-	version := struct {
+	v := struct {
 		APIVersion string
-	}{v}
-
-	b, err := json.Marshal(version)
+	}{version}
+	b, err := json.Marshal(v)
 	if err != nil {
 		return fmt.Errorf("cannot marshal version:%v", err)
 	}
