@@ -68,7 +68,7 @@ func initConfig() {
 		fmt.Println("hyperclair: config file not found")
 		os.Exit(1)
 	}
-	logrus.Infof("Using config file: %v", viper.ConfigFileUsed())
+	logrus.Debugf("Using config file: %v", viper.ConfigFileUsed())
 
 	if viper.Get("clair.uri") == nil {
 		viper.Set("clair.uri", "http://localhost")
