@@ -2,8 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"os"
 
 	"github.com/Sirupsen/logrus"
@@ -23,36 +21,47 @@ var pushCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		if docker.IsLocal {
-			StartLocalServer()
-		}
-		im := args[0]
-		url, err := getHyperclairURI(im)
-		if err != nil {
-			logrus.Fatalf("parsing image: %v", err)
-		}
+		StartLocalServer()
 
-		if docker.IsLocal {
-			url += "&local=true"
-		}
-		response, err := http.Post(url, "text/plain", nil)
-		if err != nil {
-			fmt.Println(xerrors.ServiceUnavailable)
-			logrus.Fatalf("pushing image on %v: %v", url, err)
-		}
+		imageName := args[0]
 
-		defer response.Body.Close()
-		if response.StatusCode != http.StatusCreated {
-			body, err := ioutil.ReadAll(response.Body)
+		var image docker.Image
+		if !docker.IsLocal {
+			var err error
+			image, err = docker.Pull(imageName)
+			if err != nil {
+				if err == xerrors.NotFound {
+					fmt.Println(err)
+				} else {
+					fmt.Println(xerrors.InternalError)
+				}
+				logrus.Fatalf("pulling image %q: %v", imageName, err)
+			}
+		} else {
+			var err error
+			image, err = docker.Parse(imageName)
 			if err != nil {
 				fmt.Println(xerrors.InternalError)
-				logrus.Fatalf("reading manifest body of %v: %v", url, err)
+				logrus.Fatalf("parsing local image %q: %v", imageName, err)
 			}
-			fmt.Println(xerrors.InternalError)
-			logrus.Fatalf("response from server: \n %v: %v", http.StatusText(response.StatusCode), string(body))
+			err = docker.Prepare(&image)
+			logrus.Debugf("prepared image layers: %d", len(image.FsLayers))
+			if err != nil {
+				fmt.Println(xerrors.InternalError)
+				logrus.Fatalf("preparing local image %q from history: %v", imageName, err)
+			}
 		}
 
-		fmt.Printf("%v has been pushed to Clair\n", im)
+		logrus.Info("Pushing Image")
+		if err := docker.Push(image); err != nil {
+			if err != nil {
+				fmt.Println(xerrors.InternalError)
+				logrus.Fatalf("pushing image %q: %v", imageName, err)
+			}
+		}
+
+		fmt.Printf("%v has been pushed to Clair\n", imageName)
+
 	},
 }
 

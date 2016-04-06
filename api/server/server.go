@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -10,7 +9,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/wemanity-belgium/hyperclair/api"
 	"github.com/wemanity-belgium/hyperclair/docker"
-	"github.com/wemanity-belgium/hyperclair/xerrors"
 )
 
 type handler func(rw http.ResponseWriter, req *http.Request) error
@@ -30,7 +28,7 @@ func Serve(sURL string) error {
 			return http.HandlerFunc(fc)
 		}
 
-		router.PathPrefix("/v1/local").Handler(http.StripPrefix("/v1/local", restrictedFileServer(docker.TmpLocal()))).Methods("GET")
+		router.PathPrefix("/v2/local").Handler(http.StripPrefix("/v2/local", restrictedFileServer(docker.TmpLocal()))).Methods("GET")
 
 		ListenAndServe(sURL)
 	}()
@@ -50,40 +48,5 @@ func init() {
 
 	router = mux.NewRouter()
 	router.PathPrefix("/v2").Path("/{repository}/{name}/blobs/{digest}").HandlerFunc(api.ReverseRegistryHandler())
-
-	router.PathPrefix("/v1").Path("/{repository}/{name}").HandlerFunc(errorHandler(api.PushHandler)).Methods("POST")
-	router.PathPrefix("/v1").Path("/{name}").HandlerFunc(errorHandler(api.PushHandler)).Methods("POST")
 	http.Handle("/", router)
-}
-
-func BasicAuth(pass handler) handler {
-
-	return func(w http.ResponseWriter, r *http.Request) error {
-
-		username, password, ok := r.BasicAuth()
-
-		if ok {
-			docker.User = docker.Authentication{Username: username, Password: password}
-		}
-		return pass(w, r)
-	}
-}
-
-func errorHandler(f func(rw http.ResponseWriter, req *http.Request) error) http.HandlerFunc {
-	return func(rw http.ResponseWriter, req *http.Request) {
-		err := f(rw, req)
-		if err != nil {
-			errorMsg := fmt.Sprintf("handling %q: %v", req.RequestURI, err)
-			logrus.Error(errorMsg)
-			switch err {
-			case xerrors.Unauthorized:
-				http.Error(rw, errorMsg, http.StatusUnauthorized)
-			case xerrors.NotFound:
-				http.Error(rw, errorMsg, http.StatusNotFound)
-			default:
-				http.Error(rw, errorMsg, http.StatusInternalServerError)
-
-			}
-		}
-	}
 }

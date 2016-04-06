@@ -37,7 +37,6 @@ var analyseCmd = &cobra.Command{
 		err := template.Must(template.New("analysis").Parse(analyseTplt)).Execute(os.Stdout, ia)
 		if err != nil {
 			fmt.Println(xerrors.InternalError)
-
 			logrus.Fatalf("rendering analysis: %v", err)
 		}
 	},
