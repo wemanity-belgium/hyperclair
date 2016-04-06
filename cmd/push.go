@@ -7,6 +7,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/wemanity-belgium/hyperclair/api/server"
+	"github.com/wemanity-belgium/hyperclair/config"
 	"github.com/wemanity-belgium/hyperclair/docker"
 	"github.com/wemanity-belgium/hyperclair/xerrors"
 )
@@ -71,22 +72,12 @@ func init() {
 	pushCmd.Flags().BoolVarP(&docker.IsLocal, "local", "l", false, "Use local images")
 }
 
-//StartLocalServer start the hyperclair local server needed for reverse proxy
+//StartLocalServer start the hyperclair local server needed for reverse proxy and file server
 func startLocalServer() {
-	var err error
-	if err != nil {
-		fmt.Println(xerrors.InternalError)
-		logrus.Fatalf("retrieving internal server URI: %v", err)
-	}
-	sURL, err := docker.LocalServerIP()
+	sURL, err := config.LocalServerIP()
 	if err != nil {
 		fmt.Println(xerrors.InternalError)
 		logrus.Fatalf("retrieving internal server IP: %v", err)
-	}
-	HyperclairURI = "http://" + sURL + "/v1"
-	if err != nil {
-		fmt.Println(xerrors.InternalError)
-		logrus.Fatalf("starting local server: %v", err)
 	}
 	err = server.Serve(sURL)
 	if err != nil {

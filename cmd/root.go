@@ -17,7 +17,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -27,9 +26,6 @@ import (
 
 var cfgFile string
 var logLevel string
-
-//HyperclairURI is the hyperclair server URI. As <hyperclair.uri>:<hypeclair.port>/v1
-var HyperclairURI string
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
@@ -93,22 +89,16 @@ func initConfig() {
 		viper.Set("clair.report.format", "html")
 	}
 	if viper.Get("auth.insecureSkipVerify") == nil {
-		viper.Set("auth.insecureSkipVerify", "false")
+		viper.Set("auth.insecureSkipVerify", "true")
 	}
-	if viper.Get("hyperclair.uri") == nil {
-		viper.Set("hyperclair.uri", "http://localhost")
+	if viper.Get("hyperclair.ip") == nil {
+		viper.Set("hyperclair.ip", "")
 	}
 	if viper.Get("hyperclair.port") == nil {
-		viper.Set("hyperclair.port", "9999")
+		viper.Set("hyperclair.port", 60000)
 	}
-	if viper.Get("hyperclair.local.ip") == nil {
-		viper.Set("hyperclair.local.ip", "")
-	}
-	if viper.Get("hyperclair.local.port") == nil {
-		viper.Set("hyperclair.local.port", 60000)
-	}
-	if viper.Get("hyperclair.local.tempFolder") == nil {
-		viper.Set("hyperclair.local.tempFolder", "/tmp/hyperclair")
+	if viper.Get("hyperclair.tempFolder") == nil {
+		viper.Set("hyperclair.tempFolder", "/tmp/hyperclair")
 	}
 
 	lvl := logrus.WarnLevel
@@ -122,6 +112,4 @@ func initConfig() {
 	}
 	logrus.SetLevel(lvl)
 	clair.Config()
-
-	HyperclairURI = viper.GetString("hyperclair.uri") + ":" + strconv.Itoa(viper.GetInt("hyperclair.port")) + "/v1"
 }

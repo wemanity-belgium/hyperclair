@@ -6,8 +6,3 @@ clair:
   report:
     path: ./reports
     format: html
-auth:
-  insecureSkipVerify: true
-hyperclair:
-  uri: http://hyperclair
-  port: 9999

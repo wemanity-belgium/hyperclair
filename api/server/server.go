@@ -15,6 +15,7 @@ type handler func(rw http.ResponseWriter, req *http.Request) error
 
 var router *mux.Router
 
+//Serve run a local server with the fileserver and the reverse proxy
 func Serve(sURL string) error {
 	go func() {
 		restrictedFileServer := func(path string) http.Handler {
@@ -30,18 +31,15 @@ func Serve(sURL string) error {
 
 		router.PathPrefix("/v2/local").Handler(http.StripPrefix("/v2/local", restrictedFileServer(docker.TmpLocal()))).Methods("GET")
 
-		ListenAndServe(sURL)
+		logrus.Info("Starting Server on ", sURL)
+
+		if err := http.ListenAndServe(sURL, nil); err != nil {
+			logrus.Fatalf("local server error: %v", err)
+		}
 	}()
 	//sleep needed to wait the server start. Maybe use a channel for that
 	time.Sleep(5 * time.Millisecond)
 	return nil
-}
-
-//ListenAndServe Generate a server
-func ListenAndServe(sURL string) error {
-	logrus.Info("Starting Server on ", sURL)
-
-	return http.ListenAndServe(sURL, nil)
 }
 
 func init() {

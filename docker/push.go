@@ -7,6 +7,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/coreos/clair/api/v1"
 	"github.com/wemanity-belgium/hyperclair/clair"
+	"github.com/wemanity-belgium/hyperclair/config"
 	"github.com/wemanity-belgium/hyperclair/database"
 	"github.com/wemanity-belgium/hyperclair/xstrings"
 )
@@ -20,7 +21,7 @@ func Push(image Image) error {
 	if layerCount == 0 {
 		logrus.Warningln("there is no layer to push")
 	}
-	localIP, err := LocalServerIP()
+	localIP, err := config.LocalServerIP()
 	if err != nil {
 		return err
 	}
