@@ -1,10 +1,7 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"os"
 	"text/template"
 
@@ -12,7 +9,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/wemanity-belgium/hyperclair/clair"
-	"github.com/wemanity-belgium/hyperclair/cmd/xerrors"
+	"github.com/wemanity-belgium/hyperclair/docker"
+	"github.com/wemanity-belgium/hyperclair/xerrors"
 )
 
 const analyseTplt = `
@@ -34,70 +32,51 @@ var analyseCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		if local {
-			StartLocalServer()
-		}
-
-		im := args[0]
-		ia := Analyse(im)
+		ia := analyse(args[0])
 
 		err := template.Must(template.New("analysis").Parse(analyseTplt)).Execute(os.Stdout, ia)
 		if err != nil {
 			fmt.Println(xerrors.InternalError)
-
 			logrus.Fatalf("rendering analysis: %v", err)
 		}
 	},
 }
 
-func Analyse(imageName string) clair.ImageAnalysis {
-	url, err := getHyperclairURI(imageName, "analysis")
+func analyse(imageName string) clair.ImageAnalysis {
+	var err error
+	var image docker.Image
 
-	if err != nil {
-		logrus.Fatalf("parsing image: %v", err)
-	}
-	if local {
-		url += "&local=true"
-	}
-	response, err := http.Get(url)
-	if err != nil {
-		fmt.Println(xerrors.ServerUnavailable)
-		logrus.Fatalf("analysing image on %v: %v", url, err)
-	}
+	if !docker.IsLocal {
+		image, err = docker.Pull(imageName)
 
-	defer response.Body.Close()
-	body, err := ioutil.ReadAll(response.Body)
-
-	if err != nil {
-		fmt.Println(xerrors.InternalError)
-		logrus.Fatalf("reading analysis body of %v: %v", url, err)
-	}
-
-	if response.StatusCode != http.StatusOK {
-		switch response.StatusCode {
-		case http.StatusNotFound:
-			fmt.Println(xerrors.NotFound)
-		default:
-			fmt.Println(xerrors.InternalError)
+		if err != nil {
+			if err == xerrors.NotFound {
+				fmt.Println(err)
+			} else {
+				fmt.Println(xerrors.InternalError)
+			}
+			logrus.Fatalf("pulling image %q: %v", imageName, err)
 		}
 
-		logrus.Fatalf("response from server: \n %v: %v", http.StatusText(response.StatusCode), string(body))
+	} else {
+		image, err = docker.Parse(imageName)
+		if err != nil {
+			fmt.Println(xerrors.InternalError)
+			logrus.Fatalf("parsing local image %q: %v", imageName, err)
+		}
+		docker.FromHistory(&image)
+		if err != nil {
+			fmt.Println(xerrors.InternalError)
+			logrus.Fatalf("getting local image %q from history: %v", imageName, err)
+		}
 	}
 
-	ia := clair.ImageAnalysis{}
-	err = json.Unmarshal(body, &ia)
-
-	if err != nil {
-		fmt.Println(xerrors.InternalError)
-		logrus.Fatalf("unmarshalling analysis JSON: body: %v: %v", string(body), err)
-	}
-
-	return ia
+	return docker.Analyse(image)
 }
 
 func init() {
 	RootCmd.AddCommand(analyseCmd)
-	analyseCmd.Flags().BoolVarP(&local, "local", "l", false, "Use local images")
+	analyseCmd.Flags().BoolVarP(&docker.IsLocal, "local", "l", false, "Use local images")
 	analyseCmd.Flags().StringP("priority", "p", "Low", "Vulnerabilities priority [Low, Medium, High, Critical]")
 	viper.BindPFlag("clair.priority", analyseCmd.Flags().Lookup("priority"))
 }

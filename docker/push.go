@@ -6,8 +6,8 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/coreos/clair/api/v1"
-	"github.com/spf13/viper"
 	"github.com/wemanity-belgium/hyperclair/clair"
+	"github.com/wemanity-belgium/hyperclair/config"
 	"github.com/wemanity-belgium/hyperclair/database"
 	"github.com/wemanity-belgium/hyperclair/xstrings"
 )
@@ -21,15 +21,13 @@ func Push(image Image) error {
 	if layerCount == 0 {
 		logrus.Warningln("there is no layer to push")
 	}
-
-	hURL := fmt.Sprintf("http://hyperclair:%d/v2", viper.GetInt("hyperclair.port"))
+	localIP, err := config.LocalServerIP()
+	if err != nil {
+		return err
+	}
+	hURL := fmt.Sprintf("http://%v/v2", localIP)
 	if IsLocal {
-		var err error
-		hURL, err = LocalServerIP()
-		hURL = "http://" + hURL + "/v1/local"
-		if err != nil {
-			return err
-		}
+		hURL += "/local"
 		logrus.Infof("using %v as local url", hURL)
 	}
 
@@ -61,6 +59,10 @@ func Push(image Image) error {
 			parentID = payload.Layer.Name
 		}
 	}
-	cleanLocal()
+	if IsLocal {
+		if err := cleanLocal(); err != nil {
+			return err
+		}
+	}
 	return nil
 }

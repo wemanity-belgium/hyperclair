@@ -9,10 +9,8 @@
 Tracking vulnerabilities in your container images, it's easy with CoreOS Clair.
 Integrate it inside your CI/CD pipeline is easier with Hyperclair.
 
-Hyperclair is a lightweight api doing the bridge between Registries as Docker Hub, Docker Registry or Quay.io, and the CoreOS vulnerability tracker, Clair.
-It's easily integrated< in your CI/CD pipeline, mapping Registry events on its api, and Hyperclair will play as reverse proxy for authentication.
-
-
+Hyperclair is a lightweight command-line tool doing the bridge between Registries as Docker Hub, Docker Registry or Quay.io, and the CoreOS vulnerability tracker, Clair.
+It's easily integrated in your CI/CD pipeline and Hyperclair will play as reverse proxy for authentication.
 
 
 > The Registry is a stateless, highly scalable server side application that stores and lets you distribute Docker images. The Registry is open-source, under the permissive Apache license.
@@ -29,10 +27,9 @@ hyperclair is tool to make the link between the Docker Registry and the CoreOS C
 
 # Usage
 
-[![asciicast](https://asciinema.org/a/35912.png)](https://asciinema.org/a/35912)
+[![asciicast](https://asciinema.org/a/41461.png)](https://asciinema.org/a/41461)
 
 # Notification
-1. Api: `hyperclair serve` run a web server to interact with the Registry and Clair. It play as Reverse Proxy for Registry Authentication
 2. On-Demand: the CLI tool is used to pull image from Registry then push it to Clair
 
 # Reporting
@@ -52,18 +49,18 @@ Usage:
 Available Commands:
   analyse     Analyse Docker image
   health      Get Health of Hyperclair and underlying services
+  login       Log in to a Docker registry
+  logout      Log out from a Docker registry
   pull        Pull Docker image information
   push        Push Docker image to Clair
   report      Generate Docker Image vulnerabilities report
-  serve       Create hyperclair Server
   version     Get Versions of Hyperclair and underlying services
 
 Flags:
-      --config string   config file (default is ./.hyperclair.yml)
-  -h, --help            help for hyperclair
+      --config string      config file (default is ./.hyperclair.yml)
+      --log-level string   log level [Panic,Fatal,Error,Warn,Info,Debug]
 
 Use "hyperclair [command] --help" for more information about a command.
-
 ```
 
 # Configuration
@@ -71,18 +68,12 @@ Use "hyperclair [command] --help" for more information about a command.
 ```yaml
 clair:
   port: 6060
+  healthPort: 6061
   uri: http://clair
   priority: Low
   report:
-    path: reports
+    path: ./reports
     format: html
-auth:
-  user: jgsqware
-  password: jgsqware
-  insecureSkipVerify: true
-hyperclair:
-  uri: http://hyperclair
-  port: 9999
 ```
 
 # Remarks

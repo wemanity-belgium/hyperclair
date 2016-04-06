@@ -1,17 +1,14 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/wemanity-belgium/hyperclair/cmd/xerrors"
 	"github.com/wemanity-belgium/hyperclair/config"
 	"github.com/wemanity-belgium/hyperclair/docker"
-	"github.com/wemanity-belgium/hyperclair/xstrings"
+	"github.com/wemanity-belgium/hyperclair/xerrors"
 )
 
 var logoutCmd = &cobra.Command{
@@ -31,26 +28,25 @@ var logoutCmd = &cobra.Command{
 		}
 
 		if _, err := os.Stat(config.HyperclairConfig()); err == nil {
-			f, err := ioutil.ReadFile(config.HyperclairConfig())
-			if err != nil {
+			var users userMapping
+
+			if err := readConfigFile(&users, config.HyperclairConfig()); err != nil {
 				fmt.Println(xerrors.InternalError)
 				logrus.Fatalf("reading hyperclair file: %v", err)
 			}
+			if _, present := users[reg]; present {
+				delete(users, reg)
 
-			var users userMapping
-			json.Unmarshal(f, &users)
+				if err := writeConfigFile(users, config.HyperclairConfig()); err != nil {
+					fmt.Println(xerrors.InternalError)
+					logrus.Fatalf("indenting login: %v", err)
+				}
 
-			delete(users, reg)
-			s, err := xstrings.ToIndentJSON(users)
-			if err != nil {
-				fmt.Println(xerrors.InternalError)
-				logrus.Fatalf("indenting logout: %v", err)
+				fmt.Println("Log out successful")
+				return
 			}
-			ioutil.WriteFile(config.HyperclairConfig(), s, os.ModePerm)
-			fmt.Println("Log out successful")
-		} else {
-			fmt.Println("You are not logged in")
 		}
+		fmt.Println("You are not logged in")
 	},
 }
 

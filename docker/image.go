@@ -31,7 +31,7 @@ const hubURI = "https://" + DockerHub + "/v2"
 var IsLocal = false
 
 func TmpLocal() string {
-	return viper.GetString("hyperclair.local.tempFolder")
+	return viper.GetString("hyperclair.tempFolder")
 }
 
 // Parse is used to parse a docker image command

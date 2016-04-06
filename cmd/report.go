@@ -9,7 +9,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/wemanity-belgium/hyperclair/clair"
-	"github.com/wemanity-belgium/hyperclair/cmd/xerrors"
+	"github.com/wemanity-belgium/hyperclair/docker"
+	"github.com/wemanity-belgium/hyperclair/xerrors"
 	"github.com/wemanity-belgium/hyperclair/xstrings"
 )
 
@@ -23,11 +24,7 @@ var reportCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		if local {
-			StartLocalServer()
-		}
-
-		analyses := Analyse(args[0])
+		analyses := analyse(args[0])
 		imageName := strings.Replace(analyses.ImageName, "/", "-", -1) + "-" + analyses.Tag
 		switch clair.Report.Format {
 		case "html":
@@ -85,7 +82,7 @@ func saveReport(name string, content string) error {
 
 func init() {
 	RootCmd.AddCommand(reportCmd)
-	reportCmd.Flags().BoolVarP(&local, "local", "l", false, "Use local images")
+	reportCmd.Flags().BoolVarP(&docker.IsLocal, "local", "l", false, "Use local images")
 	reportCmd.Flags().StringP("format", "f", "html", "Format for Report [html,json]")
 	viper.BindPFlag("clair.report.format", reportCmd.Flags().Lookup("format"))
 }

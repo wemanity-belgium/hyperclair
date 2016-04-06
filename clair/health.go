@@ -9,7 +9,6 @@ import (
 )
 
 func IsHealthy() bool {
-	Config()
 	healthURI := strings.Replace(uri, "6060/v1", strconv.Itoa(healthPort), 1) + "/health"
 	response, err := http.Get(healthURI)
 	if err != nil {

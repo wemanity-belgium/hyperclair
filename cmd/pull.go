@@ -15,17 +15,14 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"os"
 	"text/template"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/wemanity-belgium/hyperclair/cmd/xerrors"
 	"github.com/wemanity-belgium/hyperclair/docker"
+	"github.com/wemanity-belgium/hyperclair/xerrors"
 )
 
 const pullTplt = `
@@ -46,43 +43,11 @@ var pullCmd = &cobra.Command{
 			fmt.Printf("hyperclair: \"pull\" requires a minimum of 1 argument\n")
 			os.Exit(1)
 		}
-
 		im := args[0]
-		url, err := getHyperclairURI(im)
+		image, err := docker.Pull(im)
 		if err != nil {
-			logrus.Fatalf("parsing image: %v", err)
-		}
-
-		response, err := http.Get(url)
-
-		if err != nil {
-			fmt.Println(xerrors.ServerUnavailable)
-			logrus.Fatalf("pulling image on %v: %v", url, err)
-		}
-
-		defer response.Body.Close()
-		body, err := ioutil.ReadAll(response.Body)
-
-		if err != nil {
-			fmt.Println(xerrors.InternalError)
-			logrus.Fatalf("reading manifest body of %v: %v", url, err)
-		}
-
-		if response.StatusCode != http.StatusOK {
-			switch response.StatusCode {
-			case http.StatusUnauthorized:
-				fmt.Println(xerrors.Unauthorized)
-			}
-			fmt.Println(xerrors.InternalError)
-			logrus.Fatalf("response from server: \n %v: %v", http.StatusText(response.StatusCode), string(body))
-
-		}
-		var image docker.Image
-		err = json.Unmarshal(body, &image)
-
-		if err != nil {
-			fmt.Println(xerrors.InternalError)
-			logrus.Fatalf("unmarshalling manifest JSON: body: %v: %v", string(body), err)
+			fmt.Println(xerrors.ServiceUnavailable)
+			logrus.Fatalf("pulling image %v: %v", args[0], err)
 		}
 
 		err = template.Must(template.New("pull").Parse(pullTplt)).Execute(os.Stdout, image)
