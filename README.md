@@ -27,7 +27,7 @@ hyperclair is tool to make the link between the Docker Registry and the CoreOS C
 
 # Usage
 
-[![asciicast](https://asciinema.org/a/41460.png)](https://asciinema.org/a/41460)
+[![asciicast](https://asciinema.org/a/41461.png)](https://asciinema.org/a/41461)
 
 # Notification
 2. On-Demand: the CLI tool is used to pull image from Registry then push it to Clair
