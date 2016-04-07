@@ -1,10 +1,10 @@
 package cmd
 
 import (
-	"io/ioutil"
-	"log"
 	"os"
 	"testing"
+
+	"github.com/wemanity-belgium/hyperclair/test"
 )
 
 var loginData = []struct {
@@ -21,32 +21,10 @@ var loginData = []struct {
 `, 1},
 }
 
-func createTmpConfigFile(content string) string {
-
-	c := []byte(content)
-	tmpfile, err := ioutil.TempFile("", "test-hyperclair")
-	if err != nil {
-		log.Fatal(err)
-	}
-	if content != "" {
-		if _, err := tmpfile.Write(c); err != nil {
-			log.Fatal(err)
-		}
-		if err := tmpfile.Close(); err != nil {
-			log.Fatal(err)
-		}
-	} else {
-		if err := os.Remove(tmpfile.Name()); err != nil {
-			log.Fatal(err)
-		}
-	}
-	return tmpfile.Name()
-}
-
 func TestReadConfigFile(t *testing.T) {
 	for _, ld := range loginData {
 
-		tmpfile := createTmpConfigFile(ld.in)
+		tmpfile := test.CreateTmpConfigFile(ld.in)
 		defer os.Remove(tmpfile) // clean up
 
 		var users userMapping
@@ -63,7 +41,7 @@ func TestReadConfigFile(t *testing.T) {
 func TestWriteConfigFile(t *testing.T) {
 	users := userMapping{}
 	users["docker.io"] = user{Username: "johndoe", Password: "$2a$05$Qe4TTO8HMmOht"}
-	tmpfile := createTmpConfigFile("")
+	tmpfile := test.CreateTmpConfigFile("")
 	defer os.Remove(tmpfile) // clean up
 
 	if err := writeConfigFile(users, tmpfile); err != nil {
