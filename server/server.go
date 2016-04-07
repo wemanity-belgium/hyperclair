@@ -7,8 +7,8 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
-	"github.com/wemanity-belgium/hyperclair/api"
 	"github.com/wemanity-belgium/hyperclair/docker"
+	"github.com/wemanity-belgium/hyperclair/server/reverseProxy"
 )
 
 type handler func(rw http.ResponseWriter, req *http.Request) error
@@ -42,9 +42,15 @@ func Serve(sURL string) error {
 	return nil
 }
 
+func reverseRegistryHandler() http.HandlerFunc {
+	filters := []reverseProxy.FilterFunc{}
+	proxy := reverseProxy.NewReverseProxy(filters)
+	return proxy.ServeHTTP
+}
+
 func init() {
 
 	router = mux.NewRouter()
-	router.PathPrefix("/v2").Path("/{repository}/{name}/blobs/{digest}").HandlerFunc(api.ReverseRegistryHandler())
+	router.PathPrefix("/v2").Path("/{repository}/{name}/blobs/{digest}").HandlerFunc(reverseRegistryHandler())
 	http.Handle("/", router)
 }
