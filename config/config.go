@@ -151,10 +151,6 @@ func HyperclairConfig() string {
 	return HyperclairHome() + "/config.json"
 }
 
-func HyperclairDB() string {
-	return HyperclairHome() + "/hyperclair.db"
-}
-
 //LocalServerIP return the local hyperclair server IP
 func LocalServerIP() (string, error) {
 	localPort := viper.GetString("hyperclair.port")

@@ -1,9 +1,11 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
+	"github.com/spf13/viper"
 	"github.com/wemanity-belgium/hyperclair/test"
 
 	"gopkg.in/yaml.v2"
@@ -57,12 +59,53 @@ func TestInitDefault(t *testing.T) {
 	if cfg != expected {
 		t.Error("Default values are not correct")
 	}
+	viper.Reset()
+}
+
+func TestInitCustomLocal(t *testing.T) {
+	tmpfile := test.CreateConfigFile(customValues, "hyperclair.yml", ".")
+	defer os.Remove(tmpfile) // clean up
+	fmt.Println(tmpfile)
+	Init("", "INFO")
+
+	cfg := values()
+
+	var expected config
+	err := yaml.Unmarshal([]byte(customValues), &expected)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if cfg != expected {
+		t.Error("values are not correct")
+	}
+	viper.Reset()
+}
+
+func TestInitCustomHome(t *testing.T) {
+	tmpfile := test.CreateConfigFile(customValues, "hyperclair.yml", HyperclairHome())
+	defer os.Remove(tmpfile) // clean up
+	fmt.Println(tmpfile)
+	Init("", "INFO")
+
+	cfg := values()
+
+	var expected config
+	err := yaml.Unmarshal([]byte(customValues), &expected)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if cfg != expected {
+		t.Error("values are not correct")
+	}
+	viper.Reset()
 }
 
 func TestInitCustom(t *testing.T) {
 	tmpfile := test.CreateConfigFile(customValues, "hyperclair.yml", "/tmp")
 	defer os.Remove(tmpfile) // clean up
-
+	fmt.Println(tmpfile)
 	Init(tmpfile, "INFO")
 
 	cfg := values()
@@ -74,6 +117,7 @@ func TestInitCustom(t *testing.T) {
 	}
 
 	if cfg != expected {
-		t.Error("Default values are not correct")
+		t.Error("values are not correct")
 	}
+	viper.Reset()
 }
