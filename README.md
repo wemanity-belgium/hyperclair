@@ -63,7 +63,7 @@ Flags:
 Use "hyperclair [command] --help" for more information about a command.
 ```
 
-# Configuration
+# Optional Configuration
 
 ```yaml
 clair:

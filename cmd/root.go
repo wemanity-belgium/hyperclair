@@ -18,10 +18,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"github.com/wemanity-belgium/hyperclair/clair"
+	"github.com/wemanity-belgium/hyperclair/config"
 )
 
 var cfgFile string
@@ -49,67 +47,10 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./.hyperclair.yml)")
+	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.hyperclair.yml)")
 	RootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "", "log level [Panic,Fatal,Error,Warn,Info,Debug]")
 }
 
-// initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	viper.SetEnvPrefix("hyperclair")
-	viper.SetConfigName(".hyperclair") // name of config file (without extension)
-	viper.AddConfigPath(".")           // adding home directory as first search path
-	viper.AutomaticEnv()               // read in environment variables that match
-	if cfgFile == "" {                 // enable ability to specify config file via flag
-		cfgFile = viper.GetString("config")
-	}
-	viper.SetConfigFile(cfgFile)
-	err := viper.ReadInConfig()
-	if err != nil {
-		fmt.Println("hyperclair: config file not found")
-		os.Exit(1)
-	}
-	logrus.Debugf("Using config file: %v", viper.ConfigFileUsed())
-
-	if viper.Get("clair.uri") == nil {
-		viper.Set("clair.uri", "http://localhost")
-	}
-	if viper.Get("clair.port") == nil {
-		viper.Set("clair.port", "6060")
-	}
-	if viper.Get("clair.healthPort") == nil {
-		viper.Set("clair.healthPort", "6061")
-	}
-	if viper.Get("clair.priority") == nil {
-		viper.Set("clair.priority", "Low")
-	}
-	if viper.Get("clair.report.path") == nil {
-		viper.Set("clair.report.path", "reports")
-	}
-	if viper.Get("clair.report.format") == nil {
-		viper.Set("clair.report.format", "html")
-	}
-	if viper.Get("auth.insecureSkipVerify") == nil {
-		viper.Set("auth.insecureSkipVerify", "true")
-	}
-	if viper.Get("hyperclair.ip") == nil {
-		viper.Set("hyperclair.ip", "")
-	}
-	if viper.Get("hyperclair.port") == nil {
-		viper.Set("hyperclair.port", 60000)
-	}
-	if viper.Get("hyperclair.tempFolder") == nil {
-		viper.Set("hyperclair.tempFolder", "/tmp/hyperclair")
-	}
-
-	lvl := logrus.WarnLevel
-	if logLevel != "" {
-		var err error
-		lvl, err = logrus.ParseLevel(logLevel)
-		if err != nil {
-			logrus.Warningf("Wrong Log level %v, defaults to [Warning]", logLevel)
-			lvl = logrus.WarnLevel
-		}
-	}
-	logrus.SetLevel(lvl)
-	clair.Config()
+	config.Init(cfgFile, logLevel)
 }
