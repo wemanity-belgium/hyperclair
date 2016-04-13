@@ -26,3 +26,4 @@ _testmain.go
 *.db
 hyperclair
 Issues and PR.md
+.vscode

@@ -25,7 +25,7 @@ auth:
 hyperclair:
   ip: ""
   tempfolder: /tmp/hyperclair
-  port: 60000
+  port: 0
 `
 
 const customValues = `
