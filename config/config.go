@@ -91,7 +91,7 @@ func Init(cfgFile string, logLevel string) {
 		viper.Set("hyperclair.ip", "")
 	}
 	if viper.Get("hyperclair.port") == nil {
-		viper.Set("hyperclair.port", 60000)
+		viper.Set("hyperclair.port", 0)
 	}
 	if viper.Get("hyperclair.tempFolder") == nil {
 		viper.Set("hyperclair.tempFolder", "/tmp/hyperclair")

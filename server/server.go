@@ -1,12 +1,15 @@
 package server
 
 import (
+	"net"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
+	"github.com/spf13/viper"
 	"github.com/wemanity-belgium/hyperclair/docker"
 	"github.com/wemanity-belgium/hyperclair/server/reverseProxy"
 )
@@ -17,6 +20,7 @@ var router *mux.Router
 
 //Serve run a local server with the fileserver and the reverse proxy
 func Serve(sURL string) error {
+
 	go func() {
 		restrictedFileServer := func(path string) http.Handler {
 			if _, err := os.Stat(path); os.IsNotExist(err) {
@@ -30,10 +34,19 @@ func Serve(sURL string) error {
 		}
 
 		router.PathPrefix("/v2/local").Handler(http.StripPrefix("/v2/local", restrictedFileServer(docker.TmpLocal()))).Methods("GET")
+		listener, err := net.Listen("tcp", sURL)
+		if err != nil {
+			logrus.Fatalf("cannot instanciate listener: %v", err)
+		}
 
-		logrus.Info("Starting Server on ", sURL)
+		if viper.GetInt("hyperclair.port") == 0 {
+			port := strings.Split(listener.Addr().String(), ":")[1]
+			logrus.Debugf("Update local server port from %q to %q", "0", port)
+			viper.Set("hyperclair.port", port)
+		}
+		logrus.Info("Starting Server on ", listener.Addr())
 
-		if err := http.ListenAndServe(sURL, nil); err != nil {
+		if err := http.Serve(listener, nil); err != nil {
 			logrus.Fatalf("local server error: %v", err)
 		}
 	}()
