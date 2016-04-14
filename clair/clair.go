@@ -3,6 +3,7 @@ package clair
 import (
 	"strconv"
 	"strings"
+  "math"
 
 	"github.com/coreos/clair/api/v1"
 	"github.com/spf13/viper"
@@ -15,6 +16,30 @@ var healthPort int
 
 //Report Reporting Config value
 var Report ReportConfig
+
+//VulnerabiliesCounts Total count of vulnerabilities
+type VulnerabiliesCounts struct {
+  Total  int
+  High   int
+  Medium int
+  Low    int
+}
+
+//RelativeCount get the percentage of vulnerabilities of a severity
+func (vulnerabilityCount VulnerabiliesCounts) RelativeCount(severity string) float64  {
+  var count int
+  
+  switch severity {
+  case "High":
+    count = vulnerabilityCount.High
+  case "Medium":
+    count = vulnerabilityCount.Medium
+  case "Low":
+    count = vulnerabilityCount.Low
+  }
+  
+  return math.Ceil(float64(count) / float64(vulnerabilityCount.Total) * 100 * 100) / 100
+}
 
 //ImageAnalysis Full image analysis
 type ImageAnalysis struct {
@@ -38,6 +63,33 @@ func (imageAnalysis ImageAnalysis) CountVulnerabilities(l v1.Layer) int {
 		count += len(f.Vulnerabilities)
 	}
 	return count
+}
+
+//CountAllVulnerabilities Total count of vulnerabilities
+func (imageAnalysis ImageAnalysis) CountAllVulnerabilities() VulnerabiliesCounts {
+  var result VulnerabiliesCounts;
+  result.Total = 0;
+  result.High = 0;
+  result.Medium = 0;
+  result.Low = 0;
+  
+  for _, l := range imageAnalysis.Layers {
+    for _, f := range l.Layer.Features {
+      result.Total += len(f.Vulnerabilities)
+      for _, v := range f.Vulnerabilities {
+        switch v.Severity {
+        case "High":
+          result.High++
+        case "Medium":
+          result.Medium++
+        case "Low":
+          result.Low++
+        }
+      }
+    }
+  }
+  
+  return result;
 }
 
 type Vulnerability struct {
