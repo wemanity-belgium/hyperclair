@@ -196,6 +196,10 @@ func translateInterface(localInterface string) (string, error) {
 func InterfaceIP(localInterface string) (string, error) {
 	var localIP bytes.Buffer
 
+	if _, err := exec.LookPath("ip"); err != nil {
+		return useIfconfig(localInterface)
+	}
+
 	ip := exec.Command("ip", "route", "show")
 	rGrep, wIP := io.Pipe()
 	grep := exec.Command("grep", localInterface)
@@ -237,6 +241,70 @@ func InterfaceIP(localInterface string) (string, error) {
 	err = awk.Wait()
 	if err != nil {
 		return "", err
+	}
+	return localIP.String(), nil
+}
+
+func useIfconfig(localInterface string) (ipStr string, err error) {
+	var localIP bytes.Buffer
+
+	ip := exec.Command("ifconfig", localInterface)
+	rGrep, wIP := io.Pipe()
+	grep := exec.Command("grep", "inet addr:")
+	ip.Stdout = wIP
+	grep.Stdin = rGrep
+	rCut, wGrep := io.Pipe()
+	cut := exec.Command("cut", "-d:", "-f2")
+	grep.Stdout = wGrep
+	cut.Stdin = rCut
+	awk := exec.Command("awk", "{print $1}")
+	rAwk, wCut := io.Pipe()
+	cut.Stdout = wCut
+	awk.Stdin = rAwk
+	awk.Stdout = &localIP
+	err = ip.Start()
+	if err != nil {
+		return
+	}
+	err = grep.Start()
+	if err != nil {
+		return
+	}
+	err = cut.Start()
+	if err != nil {
+		return
+	}
+	err = awk.Start()
+	if err != nil {
+		return
+	}
+	err = ip.Wait()
+	if err != nil {
+		return
+	}
+	err = wIP.Close()
+	if err != nil {
+		return
+	}
+	err = grep.Wait()
+	if err != nil {
+		return
+	}
+	err = wGrep.Close()
+	if err != nil {
+		return
+	}
+	err = cut.Wait()
+	if err != nil {
+		return
+	}
+	err = wCut.Close()
+	if err != nil {
+		return
+	}
+	err = awk.Wait()
+	if err != nil {
+		return
 	}
 	return localIP.String(), nil
 }
