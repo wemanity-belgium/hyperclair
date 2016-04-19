@@ -26,6 +26,7 @@ hyperclair:
   ip: ""
   tempfolder: /tmp/hyperclair
   port: 0
+  interface: native
 `
 
 const customValues = `
@@ -43,6 +44,7 @@ hyperclair:
   ip: "localhost"
   tempfolder: /tmp/hyperclair/test
   port: 64157
+  interface: virtualbox
 `
 
 func TestInitDefault(t *testing.T) {

@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -17,6 +18,8 @@ import (
 	"github.com/wemanity-belgium/hyperclair/xerrors"
 )
 
+var errNoInterfaceProvided = errors.New("could not load configuration: no interface provided")
+
 type r struct {
 	Path, Format string
 }
@@ -29,8 +32,8 @@ type a struct {
 	InsecureSkipVerify bool
 }
 type h struct {
-	IP, TempFolder string
-	Port           int
+	IP, TempFolder, Interface string
+	Port                      int
 }
 type config struct {
 	Clair      c
@@ -96,6 +99,9 @@ func Init(cfgFile string, logLevel string) {
 	if viper.Get("hyperclair.tempFolder") == nil {
 		viper.Set("hyperclair.tempFolder", "/tmp/hyperclair")
 	}
+	if viper.Get("hyperclair.interface") == nil {
+		viper.Set("hyperclair.interface", "native")
+	}
 	clair.Config()
 }
 
@@ -118,6 +124,7 @@ func values() config {
 			IP:         viper.GetString("hyperclair.ip"),
 			Port:       viper.GetInt("hyperclair.port"),
 			TempFolder: viper.GetString("hyperclair.tempFolder"),
+			Interface:  viper.GetString("hyperclair.interface"),
 		},
 	}
 }
@@ -155,24 +162,43 @@ func HyperclairConfig() string {
 func LocalServerIP() (string, error) {
 	localPort := viper.GetString("hyperclair.port")
 	localIP := viper.GetString("hyperclair.ip")
+	localInterface := viper.GetString("hyperclair.interface")
 	if localIP == "" {
-		logrus.Infoln("retrieving docker0 interface as local IP")
-		var err error
-		localIP, err = Docker0InterfaceIP()
+		localInterface, err := translateInterface(localInterface)
 		if err != nil {
-			return "", fmt.Errorf("retrieving docker0 interface ip: %v", err)
+			return "", err
+		}
+		logrus.Infof("retrieving %v interface as local IP", localInterface)
+		localIP, err = InterfaceIP(localInterface)
+		if err != nil {
+			return "", fmt.Errorf("retrieving %v interface ip: %v", localInterface, err)
 		}
 	}
-	return strings.TrimSpace(localIP) + ":" + localPort, nil
+	localIP = strings.TrimSpace(localIP) + ":" + localPort
+	logrus.Debugf("using %v as local ip", localIP)
+	return localIP, nil
 }
 
-//Docker0InterfaceIP return the docker0 interface ip by running `ip route show | grep docker0 | awk {print $9}`
-func Docker0InterfaceIP() (string, error) {
+func translateInterface(localInterface string) (string, error) {
+	logrus.Debugf("selected interface: %v", localInterface)
+
+	switch localInterface {
+	case "native":
+		return "docker0", nil
+	case "virtualbox":
+		return "vboxnet", nil
+	}
+
+	return "", errNoInterfaceProvided
+}
+
+//InterfaceIP return the interface ip by running `ip route show | grep inerface | awk {print $9}`
+func InterfaceIP(localInterface string) (string, error) {
 	var localIP bytes.Buffer
 
 	ip := exec.Command("ip", "route", "show")
 	rGrep, wIP := io.Pipe()
-	grep := exec.Command("grep", "docker0")
+	grep := exec.Command("grep", localInterface)
 	ip.Stdout = wIP
 	grep.Stdin = rGrep
 	awk := exec.Command("awk", "{print $9}")
