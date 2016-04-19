@@ -55,15 +55,9 @@ func Serve(sURL string) error {
 	return nil
 }
 
-func reverseRegistryHandler() http.HandlerFunc {
-	filters := []reverseProxy.FilterFunc{}
-	proxy := reverseProxy.NewReverseProxy(filters)
-	return proxy.ServeHTTP
-}
-
 func init() {
 
 	router = mux.NewRouter()
-	router.PathPrefix("/v2").Path("/{repository}/{name}/blobs/{digest}").HandlerFunc(reverseRegistryHandler())
+	router.PathPrefix("/v2").Path("/{repository}/{name}/blobs/{digest}").HandlerFunc(reverseProxy.NewSingleHostReverseProxy().ServeHTTP)
 	http.Handle("/", router)
 }
