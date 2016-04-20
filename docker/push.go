@@ -27,7 +27,7 @@ func Push(image Image) error {
 	}
 	hURL := fmt.Sprintf("http://%v/v2", localIP)
 	if IsLocal {
-		hURL += "/local"
+		hURL = strings.Replace(hURL, "/v2", "/local", -1)
 		logrus.Infof("using %v as local url", hURL)
 	}
 
