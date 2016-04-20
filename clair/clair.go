@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"strings"
   "math"
+	"sort"
 
 	"github.com/coreos/clair/api/v1"
 	"github.com/spf13/viper"
@@ -93,7 +94,136 @@ func (imageAnalysis ImageAnalysis) CountAllVulnerabilities() VulnerabiliesCounts
 }
 
 type Vulnerability struct {
-	Name, Severity, IntroduceBy, Description, Layer string
+	Name, Severity, IntroduceBy, Description, Link, Layer string
+}
+
+func (v Vulnerability) Weight() int  {
+	weight := 0
+	
+	switch v.Severity {
+		case "High":
+			weight = 3
+		case "Medium":
+			weight = 2
+		case "Low":
+			weight = 1
+		}
+	
+	return weight
+}
+
+type Layer struct {
+	Name string
+	Path string
+	Features []Feature
+}
+
+type Feature struct {
+	Name string
+	Version string
+	Vulnerabilities []Vulnerability
+}
+
+func (feature Feature) Status() bool  {
+	return len(feature.Vulnerabilities) == 0;
+}
+
+func (feature Feature) Weight() int {
+	weight := 0
+	
+	for _, v := range feature.Vulnerabilities {
+		weight += v.Weight()
+	}
+	
+	return weight
+}
+
+// VulnerabilitiesBySeverity sorting vulnerabilities by severity
+type VulnerabilitiesBySeverity []Vulnerability
+
+func (a VulnerabilitiesBySeverity) Len() int { return len(a) }
+func (a VulnerabilitiesBySeverity) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a VulnerabilitiesBySeverity) Less(i, j int) bool  {
+	return a[i].Weight() > a[j].Weight()
+}
+
+// LayerByVulnerabilities sorting of layers by global vulnerability
+type LayerByVulnerabilities []Layer
+
+func (a LayerByVulnerabilities) Len() int { return len(a) }
+func (a LayerByVulnerabilities) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a LayerByVulnerabilities) Less(i, j int) bool {
+	firstVulnerabilities := 0
+	secondVulnerabilities := 0
+	
+	for _, l := range a[i].Features {
+		firstVulnerabilities = firstVulnerabilities + l.Weight()
+	}
+	
+	for _ , l := range a[j].Features {
+		secondVulnerabilities = secondVulnerabilities + l.Weight()
+	}
+	
+	return firstVulnerabilities > secondVulnerabilities
+}
+
+//FeatureByVulnerabilities sorting off features by vulnerabilities
+type FeatureByVulnerabilities []Feature
+
+func (a FeatureByVulnerabilities) Len() int { return len(a) }
+func (a FeatureByVulnerabilities) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+
+func (a FeatureByVulnerabilities) Less(i, j int) bool {
+	return a[i].Weight() > a[j].Weight()
+}
+
+
+func (imageAnalysis ImageAnalysis) SortLayers() []Layer {
+	layers := []Layer{}
+	
+	for _, l := range imageAnalysis.Layers {
+		features := []Feature{}
+		
+		for _, f := range l.Layer.Features {
+			vulnerabilities := []Vulnerability{}
+			
+			for _, v := range f.Vulnerabilities {
+				nv := Vulnerability{
+					Name:        v.Name,
+					Severity:    v.Severity,
+					IntroduceBy: f.Name + ":" + f.Version,
+					Description: v.Description,
+					Layer:       l.Layer.Name,
+					Link:        v.Link,
+				}
+				
+				vulnerabilities = append(vulnerabilities, nv);
+			}
+			
+			sort.Sort(VulnerabilitiesBySeverity(vulnerabilities))
+			
+			nf := Feature{
+				Name: f.Name,
+				Version: f.Version,
+				Vulnerabilities: vulnerabilities,
+			}
+			
+			features = append(features, nf);
+		}
+		
+		sort.Sort(FeatureByVulnerabilities(features))
+		
+		nl := Layer{
+			Name: l.Layer.Name,
+			Path: l.Layer.Path,
+			Features: features,
+		}
+		layers = append(layers, nl);
+	}
+	
+	sort.Sort(LayerByVulnerabilities(layers));
+	
+	return layers;
 }
 
 func (imageAnalysis ImageAnalysis) SortVulnerabilities() []Vulnerability {

@@ -11,6 +11,7 @@
         margin: 0;
         padding: 0;
         background: ghostwhite;
+        padding-bottom: 2em;
       }
       
       /* Typography */
@@ -62,6 +63,10 @@
         border-bottom: solid 1px gainsboro;
       }
       
+      .panel :last-child {
+        margin-bottom: 0;
+      }
+      
       /* Header */
       
       .app-header {
@@ -84,10 +89,16 @@
       /* Style of the graph */
       .graph .node {
         position: relative;
-        
+        float: left;
         height: 24px;
         width: 24px;
         margin: 2px;
+      }
+      .graph .node .dot {
+        position: relative;
+        
+        height: 24px;
+        width: 24px;
         border-radius: 24px;
         
         float: left;
@@ -95,15 +106,15 @@
         background: gray;
       }
       
-      .graph .node.High {
+      .graph .node.High .dot {
         background: red;
       }
       
-      .graph .node.Medium {
+      .graph .node.Medium .dot {
         background: darkorange;
       }
       
-      .graph .node.Low {
+      .graph .node.Low .dot {
         background: mediumseagreen;
       }
       
@@ -112,6 +123,7 @@
         
         position: absolute;
         bottom: 100%;
+        margin-bottom: 20px;
         left: 0;
         
         background: white;
@@ -122,18 +134,19 @@
         border: solid 1px #e2e2e2;
       }
       
-      .graph .node:hover {
+      .graph .node:hover .dot {
         opacity: .8;
       }
       
       .graph .node:hover .popup {
         display: block;
+        max-height: 180px;
       }
       
       /* bars */
       .bar-bg {
         display: inline-block;
-        width: 180px;
+        width: 240px;
         height: 6px;
         position: relative;
       }
@@ -160,6 +173,29 @@
         background: mediumseagreen;
       }
       
+      /* vulnerabilities */
+      .vulnerabilities .High .name {
+        color: red;
+      }
+      
+      .vulnerabilities .Medium .name {
+        color: darkorange;
+      }
+      
+      .vulnerabilities .Low .name {
+        color: mediumseagreen;
+      }
+      
+      /* layers */
+      
+      .layer h3 {
+        cursor: pointer;
+      }
+      
+      .layer.closed .vulnerabilities {
+        display: none;
+      }
+      
     </style>
   </head>
   <body>
@@ -176,7 +212,7 @@
         <section class="summary">
           <div>
             {{with $vulnerabilitiesCount := .CountAllVulnerabilities}}
-              <p><span class="lead"><strong>Total: {{$vulnerabilitiesCount.Total}}</strong></span></p>
+              <p><span class="lead"><strong>Total : {{$vulnerabilitiesCount.Total}}</strong></span></p>
               <p>
                 <span style="display: inline-block; width: 120px;">Critical : <strong>{{$vulnerabilitiesCount.High}}</strong></span>
                 <span class="bar-bg">
@@ -206,7 +242,8 @@
             <div class="panel clearfix">
               <div class="graph">
                 {{range .SortVulnerabilities}}
-                  <div class="node {{.Severity}}">
+                  <a class="node {{.Severity}}" href="#{{ .Name }}">
+                    <div class="dot"></div>
                     <div class="popup">
                       <div><strong>{{.Name}}</strong></div>
                       <div>{{.Severity}}</div>
@@ -214,7 +251,7 @@
                       <!--<div>{{.Description}}</div>-->
                       <div>{{.Layer}}</div>
                     </div>
-                  </div>
+                  </a>
                 {{end}}
               </div>
             </div>
@@ -222,17 +259,50 @@
           <div class="col-6">
             <div class="panel">
               <div class="layers">
-                {{range .Layers}}
-                  <div>
-                    <h3>{{.Layer.Name}}</h3>
-                    <div>{{.Layer.Path}}</div>
+                {{range .SortLayers}}
+                  <div id="{{.Name}}" class="layer">
+                    <h3 data-toggle-layer="{{.Name}}">{{.Name}}</h3>
+                    <div>{{.Path}}</div>
+                    <div class="vulnerabilities">
+                      <ul>
+                        {{range .Features}}
+                          <li>
+                            <strong>{{ .Name }}</strong> <span>{{ .Version }}</span> <span>{{if .Status}}Ok{{else}}Fail{{end}}</span>
+                            <ul>
+                              {{range .Vulnerabilities}}
+                                <li class="{{ .Severity }}">
+                                  <a name="{{ .Name }}"></a>
+                                  <strong class="name">{{ .Name }}</strong>
+                                  <div>{{ .Description }}</div>
+                                  <a href="{{ .Link }}">Link</a>
+                                </li>
+                              {{end}}
+                            </ul>
+                          </li>
+                        {{end}}
+                      </ul>
+                    </div>
                   </div>
                 {{end}}
               </div>
             </div>
+            <br />
           </div>
         </div>
       </section>
     </div>
+    
+    <script>
+      (function () {
+        const togglers = document.querySelectorAll('[data-toggle-layer]');
+        console.log(togglers);
+        
+        for (var i = togglers.length - 1; i >= 0; i--) {
+          togglers[i].onclick = function (e) {
+            e.target.parentNode.classList.toggle('closed');
+          };
+        }
+      })();
+    </script>
   </body>
 </html>

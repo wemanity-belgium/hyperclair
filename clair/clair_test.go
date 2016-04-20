@@ -93,3 +93,29 @@ func TestRelativeCount(t *testing.T)  {
     t.Errorf("analysis.CountAllVulnerabilities().RelativeCount(\"Low\") => %v, want 74.03", vulnerabilitiesCount.RelativeCount("Low"))
   }
 }
+
+func TestFeatureWeight(t *testing.T) {
+  feature := Feature{
+    Vulnerabilities: []Vulnerability{},
+  }
+  
+  v1 := Vulnerability{
+    Severity: "High",
+  }
+  
+  v2 := Vulnerability{
+    Severity: "Medium",
+  }
+  
+  v3 := Vulnerability{
+    Severity: "Low",
+  }
+  
+  feature.Vulnerabilities = append(feature.Vulnerabilities, v1)
+  feature.Vulnerabilities = append(feature.Vulnerabilities, v2)
+  feature.Vulnerabilities = append(feature.Vulnerabilities, v3)
+  
+  if (feature.Weight() != 6) {
+    t.Errorf("feature.Weigh => %v, want 6", feature.Weight())
+  }
+}
