@@ -3,6 +3,7 @@ package config
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -19,6 +20,8 @@ import (
 	"github.com/wemanity-belgium/hyperclair/xerrors"
 	"github.com/wemanity-belgium/hyperclair/xstrings"
 )
+
+var ErrLoginNotFound = errors.New("user is not log in")
 
 type r struct {
 	Path, Format string
@@ -161,7 +164,7 @@ func HyperclairConfig() string {
 	return HyperclairHome() + "/config.json"
 }
 
-func addLogin(registry string, login Login) error {
+func AddLogin(registry string, login Login) error {
 	var logins loginMapping
 
 	if err := readConfigFile(&logins); err != nil {
@@ -175,6 +178,42 @@ func addLogin(registry string, login Login) error {
 	}
 
 	return nil
+}
+func GetLogin(registry string) (Login, error) {
+	if _, err := os.Stat(HyperclairConfig()); err == nil {
+		var logins loginMapping
+
+		if err := readConfigFile(&logins); err != nil {
+			return Login{}, fmt.Errorf("reading hyperclair file: %v", err)
+		}
+
+		if login, present := logins[registry]; present {
+
+			return login, nil
+		}
+	}
+	return Login{}, ErrLoginNotFound
+}
+
+func RemoveLogin(registry string) (bool, error) {
+	if _, err := os.Stat(HyperclairConfig()); err == nil {
+		var logins loginMapping
+
+		if err := readConfigFile(&logins); err != nil {
+			return false, fmt.Errorf("reading hyperclair file: %v", err)
+		}
+
+		if _, present := logins[registry]; present {
+			delete(logins, registry)
+
+			if err := writeConfigFile(logins); err != nil {
+				return false, fmt.Errorf("indenting login: %v", err)
+			}
+
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func readConfigFile(logins *loginMapping) error {

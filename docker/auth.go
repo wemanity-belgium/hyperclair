@@ -7,15 +7,11 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/Sirupsen/logrus"
+	"github.com/wemanity-belgium/hyperclair/config"
 	"github.com/wemanity-belgium/hyperclair/docker/httpclient"
 	"github.com/wemanity-belgium/hyperclair/xerrors"
 )
-
-type Authentication struct {
-	Username, Password string
-}
-
-var User Authentication
 
 type token struct {
 	Value string `json:"token"`
@@ -54,7 +50,12 @@ func AuthenticateResponse(dockerResponse *http.Response, request *http.Request) 
 	if err != nil {
 		return err
 	}
-	req.SetBasicAuth(User.Username, User.Password)
+	l, err := config.GetLogin(request.URL.Host)
+	if err != nil {
+		return err
+	}
+	logrus.Debugf("login with %v:%v", l.Username, l.Password)
+	req.SetBasicAuth(l.Username, l.Password)
 
 	response, err := httpclient.Get().Do(req)
 
