@@ -17,12 +17,7 @@ import (
 	"github.com/wemanity-belgium/hyperclair/xstrings"
 )
 
-type user struct {
-	Username string
-	Password string
-}
 
-type userMapping map[string]user
 
 var loginCmd = &cobra.Command{
 	Use:   "login",
@@ -77,21 +72,7 @@ var loginCmd = &cobra.Command{
 	},
 }
 
-func readConfigFile(users *userMapping, configFile string) error {
-	if _, err := os.Stat(configFile); err == nil {
-		f, err := ioutil.ReadFile(configFile)
-		if err != nil {
-			return err
-		}
 
-		if err := json.Unmarshal(f, &users); err != nil {
-			return err
-		}
-	} else {
-		*users = userMapping{}
-	}
-	return nil
-}
 
 func askForUser(usr *user) error {
 	fmt.Print("Username: ")
@@ -107,17 +88,6 @@ func askForUser(usr *user) error {
 	return nil
 }
 
-func writeConfigFile(users userMapping, configFile string) error {
-	s, err := xstrings.ToIndentJSON(users)
-	if err != nil {
-		return err
-	}
-	err = ioutil.WriteFile(configFile, s, os.ModePerm)
-	if err != nil {
-		return err
-	}
-	return nil
-}
 
 func init() {
 	RootCmd.AddCommand(loginCmd)

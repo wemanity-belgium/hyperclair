@@ -2,8 +2,10 @@ package config
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"os/user"
@@ -15,6 +17,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/wemanity-belgium/hyperclair/clair"
 	"github.com/wemanity-belgium/hyperclair/xerrors"
+	"github.com/wemanity-belgium/hyperclair/xstrings"
 )
 
 type r struct {
@@ -147,8 +150,59 @@ func HyperclairHome() string {
 	return p
 }
 
+type Login struct {
+	Username string
+	Password string
+}
+
+type loginMapping map[string]Login
+
 func HyperclairConfig() string {
 	return HyperclairHome() + "/config.json"
+}
+
+func addLogin(registry string, login Login) error {
+	var logins loginMapping
+
+	if err := readConfigFile(&logins); err != nil {
+		return fmt.Errorf("reading hyperclair file: %v", err)
+	}
+
+	logins[registry] = login
+
+	if err := writeConfigFile(logins); err != nil {
+		return fmt.Errorf("indenting login: %v", err)
+	}
+
+	return nil
+}
+
+func readConfigFile(logins *loginMapping) error {
+	if _, err := os.Stat(HyperclairConfig()); err == nil {
+		f, err := ioutil.ReadFile(HyperclairConfig())
+		if err != nil {
+			return err
+		}
+
+		if err := json.Unmarshal(f, &logins); err != nil {
+			return err
+		}
+	} else {
+		*logins = loginMapping{}
+	}
+	return nil
+}
+
+func writeConfigFile(logins loginMapping) error {
+	s, err := xstrings.ToIndentJSON(logins)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(HyperclairConfig(), s, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //LocalServerIP return the local hyperclair server IP
