@@ -111,11 +111,16 @@ func TestFeatureWeight(t *testing.T) {
     Severity: "Low",
   }
   
+  v4 := Vulnerability{
+    Severity: "Negligible",
+  }
+  
   feature.Vulnerabilities = append(feature.Vulnerabilities, v1)
   feature.Vulnerabilities = append(feature.Vulnerabilities, v2)
   feature.Vulnerabilities = append(feature.Vulnerabilities, v3)
+  feature.Vulnerabilities = append(feature.Vulnerabilities, v4)
   
-  if (feature.Weight() != 6) {
+  if (feature.Weight() != 10) {
     t.Errorf("feature.Weigh => %v, want 6", feature.Weight())
   }
 }

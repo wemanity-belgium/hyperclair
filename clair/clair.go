@@ -102,10 +102,12 @@ func (v Vulnerability) Weight() int  {
 	
 	switch v.Severity {
 		case "High":
-			weight = 3
+			weight = 4
 		case "Medium":
-			weight = 2
+			weight = 3
 		case "Low":
+			weight = 2
+		case "Negligible":
 			weight = 1
 		}
 	
