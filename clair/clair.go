@@ -58,6 +58,7 @@ func (imageAnalysis ImageAnalysis) ShortName(l v1.Layer) string {
 	return xstrings.Substr(l.Name, 0, 12)
 }
 
+// CountVulnerabilities counts all image vulnerability
 func (imageAnalysis ImageAnalysis) CountVulnerabilities(l v1.Layer) int {
 	count := 0
 	for _, f := range l.Features {
@@ -66,7 +67,7 @@ func (imageAnalysis ImageAnalysis) CountVulnerabilities(l v1.Layer) int {
 	return count
 }
 
-//CountAllVulnerabilities Total count of vulnerabilities
+// CountAllVulnerabilities Total count of vulnerabilities
 func (imageAnalysis ImageAnalysis) CountAllVulnerabilities() VulnerabiliesCounts {
   var result VulnerabiliesCounts;
   result.Total = 0;
@@ -93,10 +94,12 @@ func (imageAnalysis ImageAnalysis) CountAllVulnerabilities() VulnerabiliesCounts
   return result;
 }
 
+// Vulnerability : A vulnerability inteface
 type Vulnerability struct {
 	Name, Severity, IntroduceBy, Description, Link, Layer string
 }
 
+// Weight get the weight of the vulnerability according to its Severity
 func (v Vulnerability) Weight() int  {
 	weight := 0
 	
@@ -114,22 +117,26 @@ func (v Vulnerability) Weight() int  {
 	return weight
 }
 
+// Layer : A layer inteface
 type Layer struct {
 	Name string
 	Path string
 	Features []Feature
 }
 
+// Feature : A feature inteface
 type Feature struct {
 	Name string
 	Version string
 	Vulnerabilities []Vulnerability
 }
 
+// Status give the healthy / unhealthy statut of a feature
 func (feature Feature) Status() bool  {
 	return len(feature.Vulnerabilities) == 0;
 }
 
+// Weight git the weight of a featrure according to its vulnerabilities
 func (feature Feature) Weight() int {
 	weight := 0
 	
@@ -179,7 +186,7 @@ func (a FeatureByVulnerabilities) Less(i, j int) bool {
 	return a[i].Weight() > a[j].Weight()
 }
 
-
+//SortLayers give layers ordered by vulnerability algorithm
 func (imageAnalysis ImageAnalysis) SortLayers() []Layer {
 	layers := []Layer{}
 	
@@ -228,6 +235,7 @@ func (imageAnalysis ImageAnalysis) SortLayers() []Layer {
 	return layers;
 }
 
+//SortVulnerabilities get all vulnerabilities sorted by Severity
 func (imageAnalysis ImageAnalysis) SortVulnerabilities() []Vulnerability {
 	low := []Vulnerability{}
 	medium := []Vulnerability{}
