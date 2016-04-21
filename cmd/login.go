@@ -1,10 +1,10 @@
 package cmd
 
 import (
+	"encoding/base64"
 	"fmt"
 	"os"
 
-	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/Sirupsen/logrus"
@@ -41,7 +41,7 @@ var loginCmd = &cobra.Command{
 
 		logged, err := docker.Login(reg)
 
-		if err != nil {
+		if err != nil && err != xerrors.Unauthorized {
 			config.RemoveLogin(reg)
 			fmt.Println(xerrors.InternalError)
 			logrus.Fatalf("log in: %v", err)
@@ -62,11 +62,12 @@ func askForLogin(login *config.Login) error {
 	fmt.Scan(&login.Username)
 	fmt.Print("Password: ")
 	pwd, err := terminal.ReadPassword(1)
-	fmt.Println(" ")
-	encryptedPwd, err := bcrypt.GenerateFromPassword(pwd, 5)
 	if err != nil {
 		return err
 	}
+	fmt.Println(" ")
+
+	encryptedPwd := base64.StdEncoding.EncodeToString(pwd)
 	login.Password = string(encryptedPwd)
 	return nil
 }

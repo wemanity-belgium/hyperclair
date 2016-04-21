@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -188,7 +189,11 @@ func GetLogin(registry string) (Login, error) {
 		}
 
 		if login, present := logins[registry]; present {
-
+			d, err := base64.StdEncoding.DecodeString(login.Password)
+			if err != nil {
+				return Login{}, fmt.Errorf("decoding password: %v", err)
+			}
+			login.Password = string(d)
 			return login, nil
 		}
 	}

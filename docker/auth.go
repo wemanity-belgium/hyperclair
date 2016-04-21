@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/wemanity-belgium/hyperclair/config"
 	"github.com/wemanity-belgium/hyperclair/docker/httpclient"
 	"github.com/wemanity-belgium/hyperclair/xerrors"
@@ -54,7 +53,6 @@ func AuthenticateResponse(dockerResponse *http.Response, request *http.Request) 
 	if err != nil {
 		return err
 	}
-	logrus.Debugf("login with %v:%v", l.Username, l.Password)
 	req.SetBasicAuth(l.Username, l.Password)
 
 	response, err := httpclient.Get().Do(req)
