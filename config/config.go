@@ -168,13 +168,13 @@ func HyperclairConfig() string {
 func AddLogin(registry string, login Login) error {
 	var logins loginMapping
 
-	if err := readConfigFile(&logins); err != nil {
+	if err := readConfigFile(&logins, HyperclairConfig()); err != nil {
 		return fmt.Errorf("reading hyperclair file: %v", err)
 	}
 
 	logins[registry] = login
 
-	if err := writeConfigFile(logins); err != nil {
+	if err := writeConfigFile(logins, HyperclairConfig()); err != nil {
 		return fmt.Errorf("indenting login: %v", err)
 	}
 
@@ -184,7 +184,7 @@ func GetLogin(registry string) (Login, error) {
 	if _, err := os.Stat(HyperclairConfig()); err == nil {
 		var logins loginMapping
 
-		if err := readConfigFile(&logins); err != nil {
+		if err := readConfigFile(&logins, HyperclairConfig()); err != nil {
 			return Login{}, fmt.Errorf("reading hyperclair file: %v", err)
 		}
 
@@ -204,14 +204,14 @@ func RemoveLogin(registry string) (bool, error) {
 	if _, err := os.Stat(HyperclairConfig()); err == nil {
 		var logins loginMapping
 
-		if err := readConfigFile(&logins); err != nil {
+		if err := readConfigFile(&logins, HyperclairConfig()); err != nil {
 			return false, fmt.Errorf("reading hyperclair file: %v", err)
 		}
 
 		if _, present := logins[registry]; present {
 			delete(logins, registry)
 
-			if err := writeConfigFile(logins); err != nil {
+			if err := writeConfigFile(logins, HyperclairConfig()); err != nil {
 				return false, fmt.Errorf("indenting login: %v", err)
 			}
 
@@ -221,9 +221,9 @@ func RemoveLogin(registry string) (bool, error) {
 	return false, nil
 }
 
-func readConfigFile(logins *loginMapping) error {
-	if _, err := os.Stat(HyperclairConfig()); err == nil {
-		f, err := ioutil.ReadFile(HyperclairConfig())
+func readConfigFile(logins *loginMapping, file string) error {
+	if _, err := os.Stat(file); err == nil {
+		f, err := ioutil.ReadFile(file)
 		if err != nil {
 			return err
 		}
@@ -237,12 +237,12 @@ func readConfigFile(logins *loginMapping) error {
 	return nil
 }
 
-func writeConfigFile(logins loginMapping) error {
+func writeConfigFile(logins loginMapping, file string) error {
 	s, err := xstrings.ToIndentJSON(logins)
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(HyperclairConfig(), s, os.ModePerm)
+	err = ioutil.WriteFile(file, s, os.ModePerm)
 	if err != nil {
 		return err
 	}
