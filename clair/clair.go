@@ -121,6 +121,7 @@ func (v Vulnerability) Weight() int  {
 type Layer struct {
 	Name string
 	Path string
+	Namespace string
 	Features []Feature
 }
 
