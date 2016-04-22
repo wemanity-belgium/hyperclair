@@ -238,12 +238,8 @@ func (imageAnalysis ImageAnalysis) SortLayers() []Layer {
 
 //SortVulnerabilities get all vulnerabilities sorted by Severity
 func (imageAnalysis ImageAnalysis) SortVulnerabilities() []Vulnerability {
-	low := []Vulnerability{}
-	medium := []Vulnerability{}
-	high := []Vulnerability{}
-	critical := []Vulnerability{}
-	defcon1 := []Vulnerability{}
-
+	vulnerabilities := []Vulnerability{}
+	
 	for _, l := range imageAnalysis.Layers {
 		for _, f := range l.Layer.Features {
 			for _, v := range f.Vulnerabilities {
@@ -254,23 +250,15 @@ func (imageAnalysis ImageAnalysis) SortVulnerabilities() []Vulnerability {
 					Description: v.Description,
 					Layer:       l.Layer.Name,
 				}
-				switch strings.ToLower(v.Severity) {
-				case "low":
-					low = append(low, nv)
-				case "medium":
-					medium = append(medium, nv)
-				case "high":
-					high = append(high, nv)
-				case "critical":
-					critical = append(critical, nv)
-				case "defcon1":
-					defcon1 = append(defcon1, nv)
-				}
+				
+				vulnerabilities = append(vulnerabilities, nv)
 			}
 		}
 	}
+	
+	sort.Sort(VulnerabilitiesBySeverity(vulnerabilities));
 
-	return append(defcon1, append(critical, append(high, append(medium, low...)...)...)...)
+	return vulnerabilities
 }
 
 func fmtURI(u string, port int) {
