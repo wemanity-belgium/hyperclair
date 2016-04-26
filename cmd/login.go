@@ -1,12 +1,10 @@
 package cmd
 
 import (
-	"encoding/json"
+	"encoding/base64"
 	"fmt"
-	"io/ioutil"
 	"os"
 
-	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/Sirupsen/logrus"
@@ -14,15 +12,7 @@ import (
 	"github.com/wemanity-belgium/hyperclair/config"
 	"github.com/wemanity-belgium/hyperclair/docker"
 	"github.com/wemanity-belgium/hyperclair/xerrors"
-	"github.com/wemanity-belgium/hyperclair/xstrings"
 )
-
-type user struct {
-	Username string
-	Password string
-}
-
-type userMapping map[string]user
 
 var loginCmd = &cobra.Command{
 	Use:   "login",
@@ -35,40 +25,30 @@ var loginCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		var users userMapping
-
-		if err := readConfigFile(&users, config.HyperclairConfig()); err != nil {
-			fmt.Println(xerrors.InternalError)
-			logrus.Fatalf("reading hyperclair file: %v", err)
-		}
-
 		var reg string = docker.DockerHub
 
 		if len(args) == 1 {
 			reg = args[0]
 		}
 
-		var usr user
-		if err := askForUser(&usr); err != nil {
+		var login config.Login
+		if err := askForLogin(&login); err != nil {
 			fmt.Println(xerrors.InternalError)
 			logrus.Fatalf("encrypting password: %v", err)
 		}
 
-		users[reg] = usr
-
-		if err := writeConfigFile(users, config.HyperclairConfig()); err != nil {
-			fmt.Println(xerrors.InternalError)
-			logrus.Fatalf("indenting login: %v", err)
-		}
+		config.AddLogin(reg, login)
 
 		logged, err := docker.Login(reg)
 
-		if err != nil {
+		if err != nil && err != xerrors.Unauthorized {
+			config.RemoveLogin(reg)
 			fmt.Println(xerrors.InternalError)
 			logrus.Fatalf("log in: %v", err)
 		}
 
 		if !logged {
+			config.RemoveLogin(reg)
 			fmt.Println("Unauthorized: Wrong login/password, please try again")
 			os.Exit(1)
 		}
@@ -77,45 +57,18 @@ var loginCmd = &cobra.Command{
 	},
 }
 
-func readConfigFile(users *userMapping, configFile string) error {
-	if _, err := os.Stat(configFile); err == nil {
-		f, err := ioutil.ReadFile(configFile)
-		if err != nil {
-			return err
-		}
-
-		if err := json.Unmarshal(f, &users); err != nil {
-			return err
-		}
-	} else {
-		*users = userMapping{}
-	}
-	return nil
-}
-
-func askForUser(usr *user) error {
+func askForLogin(login *config.Login) error {
 	fmt.Print("Username: ")
-	fmt.Scan(&usr.Username)
+	fmt.Scan(&login.Username)
 	fmt.Print("Password: ")
 	pwd, err := terminal.ReadPassword(1)
+	if err != nil {
+		return err
+	}
 	fmt.Println(" ")
-	encryptedPwd, err := bcrypt.GenerateFromPassword(pwd, 5)
-	if err != nil {
-		return err
-	}
-	usr.Password = string(encryptedPwd)
-	return nil
-}
 
-func writeConfigFile(users userMapping, configFile string) error {
-	s, err := xstrings.ToIndentJSON(users)
-	if err != nil {
-		return err
-	}
-	err = ioutil.WriteFile(configFile, s, os.ModePerm)
-	if err != nil {
-		return err
-	}
+	encryptedPwd := base64.StdEncoding.EncodeToString(pwd)
+	login.Password = string(encryptedPwd)
 	return nil
 }
 

@@ -11,6 +11,20 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+var loginData = []struct {
+	in  string
+	out int
+}{
+	{"", 0},
+	{`{
+        "docker.io": {
+                "Username": "johndoe",
+                "Password": "$2a$05$Qe4TTO8HMmOht"
+        }
+}
+`, 1},
+}
+
 const defaultValues = `
 clair:
   uri: http://localhost
@@ -120,4 +134,41 @@ func TestInitCustom(t *testing.T) {
 		t.Error("values are not correct")
 	}
 	viper.Reset()
+}
+
+func TestReadConfigFile(t *testing.T) {
+	for _, ld := range loginData {
+
+		tmpfile := test.CreateTmpConfigFile(ld.in)
+		defer os.Remove(tmpfile) // clean up
+
+		var logins loginMapping
+		if err := readConfigFile(&logins, tmpfile); err != nil {
+			t.Errorf("readConfigFile(&logins,%q) failed => %v", tmpfile, err)
+		}
+
+		if l := len(logins); l != ld.out {
+			t.Errorf("readConfigFile(&logins,%q) => %v logins, want %v", tmpfile, l, ld.out)
+		}
+	}
+}
+
+func TestWriteConfigFile(t *testing.T) {
+	logins := loginMapping{}
+	logins["docker.io"] = Login{Username: "johndoe", Password: "$2a$05$Qe4TTO8HMmOht"}
+	tmpfile := test.CreateTmpConfigFile("")
+	defer os.Remove(tmpfile) // clean up
+
+	if err := writeConfigFile(logins, tmpfile); err != nil {
+		t.Errorf("writeConfigFile(logins,%q) failed => %v", tmpfile, err)
+	}
+
+	logins = loginMapping{}
+	if err := readConfigFile(&logins, tmpfile); err != nil {
+		t.Errorf("after writing: readConfigFile(&logins,%q) failed => %v", tmpfile, err)
+	}
+
+	if l := len(logins); l != 1 {
+		t.Errorf("after writing: readConfigFile(&logins,%q) => %v logins, want %v", tmpfile, l, 1)
+	}
 }
