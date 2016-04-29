@@ -87,17 +87,9 @@
       
       .app-intro {
         padding: 20px;
-        background: #0D47A1;
         text-align: center;
-        color: white;
-        /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#01579b+0,1565c0+100 */
-        background: #01579b; /* Old browsers */
-        background: -moz-linear-gradient(top, #01579b 0%, #1565c0 100%); /* FF3.6-15 */
-        background: -webkit-linear-gradient(top, #01579b 0%,#1565c0 100%); /* Chrome10-25,Safari5.1-6 */
-        background: linear-gradient(to bottom, #01579b 0%,#1565c0 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#01579b', endColorstr='#1565c0',GradientType=0 ); /* IE6-9 */
-        
-        text-shadow: 0 1px 2px rgba(0, 0, 0, .2);
+        color: #263238;
+        background: rgba(255, 255, 255, .8);
       }
       
       .app-intro h2 {
@@ -140,8 +132,8 @@
         
         background: gray;
         
-        box-shadow: 0 1px 2px rgba(0, 0, 0, .2);
-        border: solid 1px rgba(255, 255, 255, .2);
+        /* box-shadow: 0 1px 2px rgba(0, 0, 0, .2);
+        border: solid 1px rgba(255, 255, 255, .2); */
       }
       
       .graph .node.High .dot {
@@ -188,6 +180,25 @@
         border-width: 10px 10px 0 10px;
         border-color: white transparent transparent transparent;
         border-style: solid;
+      }
+      
+      .graph .node .popup:before {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -10px;
+        display: block;
+        width: 0;
+        height: 0;
+        border-width: 11px 11px 0 10px;
+        border-color: rgba(0, 0, 0, .2) transparent transparent transparent;
+        border-style: solid;
+      }
+      
+      .graph .node .popup > div {
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       
       .graph .node:hover .dot {

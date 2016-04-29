@@ -177,7 +177,7 @@ func (a LayerByVulnerabilities) Less(i, j int) bool {
 	return firstVulnerabilities > secondVulnerabilities
 }
 
-//FeatureByVulnerabilities sorting off features by vulnerabilities
+// FeatureByVulnerabilities sorting off features by vulnerabilities
 type FeatureByVulnerabilities []Feature
 
 func (a FeatureByVulnerabilities) Len() int { return len(a) }
@@ -187,7 +187,7 @@ func (a FeatureByVulnerabilities) Less(i, j int) bool {
 	return a[i].Weight() > a[j].Weight()
 }
 
-//SortLayers give layers ordered by vulnerability algorithm
+// SortLayers give layers ordered by vulnerability algorithm
 func (imageAnalysis ImageAnalysis) SortLayers() []Layer {
 	layers := []Layer{}
 	
@@ -236,10 +236,11 @@ func (imageAnalysis ImageAnalysis) SortLayers() []Layer {
 	return layers;
 }
 
-//SortVulnerabilities get all vulnerabilities sorted by Severity
+// SortVulnerabilities get all vulnerabilities sorted by Severity
 func (imageAnalysis ImageAnalysis) SortVulnerabilities() []Vulnerability {
 	vulnerabilities := []Vulnerability{}
 	
+	// there should be a better method, but I don't know how to easlily concert []v1.Vulnerability to [Vulnerability]
 	for _, l := range imageAnalysis.Layers {
 		for _, f := range l.Layer.Features {
 			for _, v := range f.Vulnerabilities {
