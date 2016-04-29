@@ -69,6 +69,9 @@ func TestCountAllVulnerabilities(t *testing.T)  {
   if vulnerabilitiesCount.Low != 57 {
     t.Errorf("analysis.CountAllVulnerabilities().Low => %v, want 57", vulnerabilitiesCount.Low)
   }
+  if vulnerabilitiesCount.Negligible != 1 {
+    t.Errorf("analysis.CountAllVulnerabilities().Negligible => %v, want 1", vulnerabilitiesCount.Negligible)
+  }
 }
 
 func TestRelativeCount(t *testing.T)  {

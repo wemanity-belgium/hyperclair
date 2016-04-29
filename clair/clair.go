@@ -24,6 +24,7 @@ type VulnerabiliesCounts struct {
   High   int
   Medium int
   Low    int
+	Negligible int
 }
 
 //RelativeCount get the percentage of vulnerabilities of a severity
@@ -70,10 +71,11 @@ func (imageAnalysis ImageAnalysis) CountVulnerabilities(l v1.Layer) int {
 // CountAllVulnerabilities Total count of vulnerabilities
 func (imageAnalysis ImageAnalysis) CountAllVulnerabilities() VulnerabiliesCounts {
   var result VulnerabiliesCounts;
-  result.Total = 0;
-  result.High = 0;
-  result.Medium = 0;
-  result.Low = 0;
+  result.Total = 0
+  result.High = 0
+  result.Medium = 0
+  result.Low = 0
+	result.Negligible = 0
   
   for _, l := range imageAnalysis.Layers {
     for _, f := range l.Layer.Features {
@@ -86,6 +88,8 @@ func (imageAnalysis ImageAnalysis) CountAllVulnerabilities() VulnerabiliesCounts
           result.Medium++
         case "Low":
           result.Low++
+				case "Negligible":
+					result.Negligible++
         }
       }
     }
