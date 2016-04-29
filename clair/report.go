@@ -22,7 +22,7 @@ func ReportAsHTML(analyses ImageAnalysis) (string, error) {
 	}
 
 	templte := template.Must(template.New("analysis-template").Parse(string(asset)))
-
+    
 	var doc bytes.Buffer
 	err = templte.Execute(&doc, analyses)
 	if err != nil {
