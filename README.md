@@ -36,6 +36,8 @@ hyperclair is tool to make the link between the Docker Registry and the CoreOS C
 
 **hyperclair** get vulnerabilities report from Clair and generate HTML report
 
+See [Sample](http://htmlpreview.github.io/?https://github.com/wemanity-belgium/hyperclair/blob/master/report-sample.html)
+
 hyperclair can be used for Docker Hub and self-hosted Registry
 
 # Command

@@ -98,7 +98,7 @@ func (imageAnalysis ImageAnalysis) CountAllVulnerabilities() VulnerabiliesCounts
       }
       
       result.Total += len(f.Vulnerabilities)
-      
+
       for _, v := range f.Vulnerabilities {
         switch v.Severity {
         case "High":
@@ -115,7 +115,7 @@ func (imageAnalysis ImageAnalysis) CountAllVulnerabilities() VulnerabiliesCounts
   }
   
   result.SafeFeatures = result.TotalFeatures - result.UnsafeFeatures
-  
+
   return result;
 }
 
