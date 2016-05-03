@@ -390,9 +390,15 @@
                 </p>
                 <div class="summary-text">
                   <div class="node">Safe features : <strong>{{$vulnerabilitiesCount.SafeFeatures}}</strong> / {{$vulnerabilitiesCount.TotalFeatures}}</div>
-                  <div class="node Low">Low : <strong>{{$vulnerabilitiesCount.Low}}</strong></div>
-                  <div class="node Medium">Medium : <strong>{{$vulnerabilitiesCount.Medium}}</strong></div>
-                  <div class="node High">Critical : <strong>{{$vulnerabilitiesCount.High}}</strong></div>
+                  {{if gt $vulnerabilitiesCount.Low 0}}
+                    <div class="node Low">Low : <strong>{{$vulnerabilitiesCount.Low}}</strong></div>
+                  {{end}}
+                  {{if gt $vulnerabilitiesCount.Medium 0}}
+                    <div class="node Medium">Medium : <strong>{{$vulnerabilitiesCount.Medium}}</strong></div>
+                  {{end}}
+                  {{if gt $vulnerabilitiesCount.High 0}}
+                    <div class="node High">Critical : <strong>{{$vulnerabilitiesCount.High}}</strong></div>
+                  {{end}}
                 </div>
                 <div class="relative-graph">
                   <div class="node High" style="width: {{$vulnerabilitiesCount.RelativeCount "High" true}}%"></div>
