@@ -26,25 +26,15 @@ var logoutCmd = &cobra.Command{
 		if len(args) == 1 {
 			reg = args[0]
 		}
+		ok, err := config.RemoveLogin(reg)
+		if err != nil {
+			fmt.Println(xerrors.InternalError)
+			logrus.Fatalf("log out: %v", err)
+		}
 
-		if _, err := os.Stat(config.HyperclairConfig()); err == nil {
-			var users userMapping
-
-			if err := readConfigFile(&users, config.HyperclairConfig()); err != nil {
-				fmt.Println(xerrors.InternalError)
-				logrus.Fatalf("reading hyperclair file: %v", err)
-			}
-			if _, present := users[reg]; present {
-				delete(users, reg)
-
-				if err := writeConfigFile(users, config.HyperclairConfig()); err != nil {
-					fmt.Println(xerrors.InternalError)
-					logrus.Fatalf("indenting login: %v", err)
-				}
-
-				fmt.Println("Log out successful")
-				return
-			}
+		if ok {
+			fmt.Println("Log out successful")
+			return
 		}
 		fmt.Println("You are not logged in")
 	},
