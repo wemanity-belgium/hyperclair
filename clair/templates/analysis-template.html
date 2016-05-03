@@ -322,17 +322,41 @@
         flex: 1;
       }
       
+      .sumary .node:before {
+        content: '';
+        display: inline-block;
+        height: 10px;
+        width: 10px;
+        border-radius: 50%;
+        background: #2196F3;
+        margin-right: 10px;
+      }
+      
+      .sumary .node.Low:before {
+        background: #8BC34A;
+      }
+      
+      .sumary .node.Medium:before {
+        background: #FFA726;
+      }
+      
+      .sumary .node.High:before {
+        background: #E91E63;
+      }
+      
       .relative-graph {
         display: flex;
         max-width: 940px;
         margin: 0 auto;
         background: #2196F3;
         flex-direction: row-reverse;
+        border-radius: 3px;
+        overflow: hidden;
       }
       
       .relative-graph .node {
         text-align: center;
-        height: 10px;
+        height: 8px;
         background: #2196F3;
         min-width: 10px;
       }
@@ -363,7 +387,7 @@
         <section class="summary">
             <div>
               {{with $vulnerabilitiesCount := .CountAllVulnerabilities}}
-                <p><span class="lead"><strong>Total : {{$vulnerabilitiesCount.Total}}</strong></span></p>
+                <p><span class="lead"><strong>Total : {{$vulnerabilitiesCount.Total}} vulnerabilities</strong></span></p>
                 <!-- <p>
                   <span style="display: inline-block; width: 120px;">Critical : <strong>{{$vulnerabilitiesCount.High}}</strong></span>
                   <span class="bar-bg">
@@ -386,10 +410,10 @@
                 <p>-->
                 </p>
                 <div class="sumary">
-                  <div class="node">Safe features : <strong>{{$vulnerabilitiesCount.SafeFeatures}}</strong></div>
-                  <div class="node">Low <strong>{{$vulnerabilitiesCount.Low}}</strong></div>
-                  <div class="node">Medium : <strong>{{$vulnerabilitiesCount.Medium}}</strong></div>
-                  <div class="node">Critical : <strong>{{$vulnerabilitiesCount.High}}</strong></div>
+                  <div class="node">Safe features : <strong>{{$vulnerabilitiesCount.SafeFeatures}}</strong> / {{$vulnerabilitiesCount.TotalFeatures}}</div>
+                  <div class="node Low">Low : <strong>{{$vulnerabilitiesCount.Low}}</strong></div>
+                  <div class="node Medium">Medium : <strong>{{$vulnerabilitiesCount.Medium}}</strong></div>
+                  <div class="node High">Critical : <strong>{{$vulnerabilitiesCount.High}}</strong></div>
                 </div>
                 <div class="relative-graph">
                   <div class="node High" style="width: {{$vulnerabilitiesCount.RelativeCount "High" true}}%"></div>
