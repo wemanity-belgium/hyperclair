@@ -309,7 +309,7 @@
         display: none;
       }
       
-      .sumary {
+      .summary-text {
         display: flex;
         max-width: 940px;
         margin: 0 auto;
@@ -317,12 +317,12 @@
         margin-top: 3em;
       }
       
-      .sumary .node {
+      .summary-text .node {
         text-align: center;
         flex: 1;
       }
       
-      .sumary .node:before {
+      .summary-text .node:before {
         content: '';
         display: inline-block;
         height: 10px;
@@ -332,15 +332,15 @@
         margin-right: 10px;
       }
       
-      .sumary .node.Low:before {
+      .summary-text .node.Low:before {
         background: #8BC34A;
       }
       
-      .sumary .node.Medium:before {
+      .summary-text .node.Medium:before {
         background: #FFA726;
       }
       
-      .sumary .node.High:before {
+      .summary-text .node.High:before {
         background: #E91E63;
       }
       
@@ -388,28 +388,8 @@
             <div>
               {{with $vulnerabilitiesCount := .CountAllVulnerabilities}}
                 <p><span class="lead"><strong>Total : {{$vulnerabilitiesCount.Total}} vulnerabilities</strong></span></p>
-                <!-- <p>
-                  <span style="display: inline-block; width: 120px;">Critical : <strong>{{$vulnerabilitiesCount.High}}</strong></span>
-                  <span class="bar-bg">
-                    <span class="bar-bar High" style="width: {{$vulnerabilitiesCount.RelativeCount "High" false}}%"></span>
-                  </span>
                 </p>
-                <p>
-                  <span style="display: inline-block; width: 120px;">Medium : <strong>{{$vulnerabilitiesCount.Medium}}</strong></span>
-                  <span class="bar-bg">
-                    <span class="bar-bar Medium" style="width: {{$vulnerabilitiesCount.RelativeCount "Medium" false}}%"></span>
-                  </span>
-                </p>
-                <p>
-                  <span style="display: inline-block; width: 120px;">Low : <strong>{{$vulnerabilitiesCount.Low}}</strong></span>
-                  <span class="bar-bg">
-                    <span class="bar-bar Low" style="width: {{$vulnerabilitiesCount.RelativeCount "Low" false}}%"></span>
-                  </span>
-                </p>
-                  <span style="display: inline-block; width: 120px;">Negligible : <strong>{{$vulnerabilitiesCount.Negligible}}</strong></span>
-                <p>-->
-                </p>
-                <div class="sumary">
+                <div class="summary-text">
                   <div class="node">Safe features : <strong>{{$vulnerabilitiesCount.SafeFeatures}}</strong> / {{$vulnerabilitiesCount.TotalFeatures}}</div>
                   <div class="node Low">Low : <strong>{{$vulnerabilitiesCount.Low}}</strong></div>
                   <div class="node Medium">Medium : <strong>{{$vulnerabilitiesCount.Medium}}</strong></div>
