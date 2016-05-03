@@ -309,6 +309,46 @@
         display: none;
       }
       
+      .sumary {
+        display: flex;
+        max-width: 940px;
+        margin: 0 auto;
+        margin-bottom: 1em;
+        margin-top: 3em;
+      }
+      
+      .sumary .node {
+        text-align: center;
+        flex: 1;
+      }
+      
+      .relative-graph {
+        display: flex;
+        max-width: 940px;
+        margin: 0 auto;
+        background: #2196F3;
+        flex-direction: row-reverse;
+      }
+      
+      .relative-graph .node {
+        text-align: center;
+        height: 10px;
+        background: #2196F3;
+        min-width: 10px;
+      }
+      
+      .relative-graph .node.Low {
+        background: #8BC34A;
+      }
+      
+      .relative-graph .node.Medium {
+        background: #FFA726;
+      }
+      
+      .relative-graph .node.High {
+        background: #E91E63;
+      }
+      
     </style>
   </head>
   <body>
@@ -324,27 +364,38 @@
             <div>
               {{with $vulnerabilitiesCount := .CountAllVulnerabilities}}
                 <p><span class="lead"><strong>Total : {{$vulnerabilitiesCount.Total}}</strong></span></p>
-                <p>
+                <!-- <p>
                   <span style="display: inline-block; width: 120px;">Critical : <strong>{{$vulnerabilitiesCount.High}}</strong></span>
-                  <!--<span class="bar-bg">
-                    <span class="bar-bar High" style="width: {{$vulnerabilitiesCount.RelativeCount "High"}}%"></span>
-                  </span>-->
+                  <span class="bar-bg">
+                    <span class="bar-bar High" style="width: {{$vulnerabilitiesCount.RelativeCount "High" false}}%"></span>
+                  </span>
                 </p>
                 <p>
                   <span style="display: inline-block; width: 120px;">Medium : <strong>{{$vulnerabilitiesCount.Medium}}</strong></span>
-                  <!--<span class="bar-bg">
-                    <span class="bar-bar Medium" style="width: {{$vulnerabilitiesCount.RelativeCount "Medium"}}%"></span>
-                  </span>-->
+                  <span class="bar-bg">
+                    <span class="bar-bar Medium" style="width: {{$vulnerabilitiesCount.RelativeCount "Medium" false}}%"></span>
+                  </span>
                 </p>
                 <p>
                   <span style="display: inline-block; width: 120px;">Low : <strong>{{$vulnerabilitiesCount.Low}}</strong></span>
-                  <!--<span class="bar-bg">
-                    <span class="bar-bar Low" style="width: {{$vulnerabilitiesCount.RelativeCount "Low"}}%"></span>
-                  </span>-->
+                  <span class="bar-bg">
+                    <span class="bar-bar Low" style="width: {{$vulnerabilitiesCount.RelativeCount "Low" false}}%"></span>
+                  </span>
                 </p>
                   <span style="display: inline-block; width: 120px;">Negligible : <strong>{{$vulnerabilitiesCount.Negligible}}</strong></span>
-                <p>
+                <p>-->
                 </p>
+                <div class="sumary">
+                  <div class="node">Safe features : <strong>{{$vulnerabilitiesCount.SafeFeatures}}</strong></div>
+                  <div class="node">Low <strong>{{$vulnerabilitiesCount.Low}}</strong></div>
+                  <div class="node">Medium : <strong>{{$vulnerabilitiesCount.Medium}}</strong></div>
+                  <div class="node">Critical : <strong>{{$vulnerabilitiesCount.High}}</strong></div>
+                </div>
+                <div class="relative-graph">
+                  <div class="node High" style="width: {{$vulnerabilitiesCount.RelativeCount "High" true}}%"></div>
+                  <div class="node Medium" style="width: {{$vulnerabilitiesCount.RelativeCount "Medium" true}}%"></div>
+                  <div class="node Low" style="width: {{$vulnerabilitiesCount.RelativeCount "Low" true}}%"></div>
+                </div>
               {{end}}
             </div>
           </section>

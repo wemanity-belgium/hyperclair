@@ -25,10 +25,13 @@ type VulnerabiliesCounts struct {
   Medium int
   Low    int
 	Negligible int
+  TotalFeatures int
+  SafeFeatures int
+  UnsafeFeatures int
 }
 
 //RelativeCount get the percentage of vulnerabilities of a severity
-func (vulnerabilityCount VulnerabiliesCounts) RelativeCount(severity string) float64  {
+func (vulnerabilityCount VulnerabiliesCounts) RelativeCount(severity string, useFeatureNumber bool) float64  {
   var count int
   
   switch severity {
@@ -40,7 +43,14 @@ func (vulnerabilityCount VulnerabiliesCounts) RelativeCount(severity string) flo
     count = vulnerabilityCount.Low
   }
   
-  return math.Ceil(float64(count) / float64(vulnerabilityCount.Total) * 100 * 100) / 100
+  result := float64(count) / float64(vulnerabilityCount.Total) * 100
+  
+  if (useFeatureNumber) {
+    relativeCorrection := float64(vulnerabilityCount.UnsafeFeatures) / float64(vulnerabilityCount.TotalFeatures)
+    result = result * relativeCorrection
+  }
+  
+  return math.Ceil(result * 100) / 100
 }
 
 //ImageAnalysis Full image analysis
@@ -76,10 +86,19 @@ func (imageAnalysis ImageAnalysis) CountAllVulnerabilities() VulnerabiliesCounts
   result.Medium = 0
   result.Low = 0
 	result.Negligible = 0
+  result.TotalFeatures = 0
+  result.SafeFeatures = 0
   
   for _, l := range imageAnalysis.Layers {
+    result.TotalFeatures += len(l.Layer.Features)
+    
     for _, f := range l.Layer.Features {
+      if len(f.Vulnerabilities) != 0 {
+        result.UnsafeFeatures++
+      }
+      
       result.Total += len(f.Vulnerabilities)
+      
       for _, v := range f.Vulnerabilities {
         switch v.Severity {
         case "High":
@@ -94,6 +113,8 @@ func (imageAnalysis ImageAnalysis) CountAllVulnerabilities() VulnerabiliesCounts
       }
     }
   }
+  
+  result.SafeFeatures = result.TotalFeatures - result.UnsafeFeatures
   
   return result;
 }
