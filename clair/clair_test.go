@@ -54,6 +54,18 @@ func TestCountAllVulnerabilities(t *testing.T)  {
   
   vulnerabilitiesCount := analysis.CountAllVulnerabilities()
   
+  if vulnerabilitiesCount.TotalFeatures != 126 {
+    t.Errorf("analysis.CountAllVulnerabilities().TotalFeatures => %v, want 126", vulnerabilitiesCount.TotalFeatures)
+  }
+  
+  if vulnerabilitiesCount.SafeFeatures != 101 {
+    t.Errorf("analysis.CountAllVulnerabilities().SafeFeatures => %v, want 49", vulnerabilitiesCount.SafeFeatures)
+  }
+  
+  if vulnerabilitiesCount.UnsafeFeatures != 25 {
+    t.Errorf("analysis.CountAllVulnerabilities().UnsafeFeatures => %v, want 25", vulnerabilitiesCount.UnsafeFeatures)
+  }
+  
   if vulnerabilitiesCount.Total != 77 {
     t.Errorf("analysis.CountAllVulnerabilities().Total => %v, want 77", vulnerabilitiesCount.Total)
   }
@@ -84,16 +96,28 @@ func TestRelativeCount(t *testing.T)  {
   
   vulnerabilitiesCount := analysis.CountAllVulnerabilities()
   
-  if (vulnerabilitiesCount.RelativeCount("High") != 1.3) {
-    t.Errorf("analysis.CountAllVulnerabilities().RelativeCount(\"High\") => %v, want 1.3", vulnerabilitiesCount.RelativeCount("High"))
+  if (vulnerabilitiesCount.RelativeCount("High", false) != 1.3) {
+    t.Errorf("analysis.CountAllVulnerabilities().RelativeCount(\"High\") => %v, want 1.3", vulnerabilitiesCount.RelativeCount("High", false))
   }
   
-  if (vulnerabilitiesCount.RelativeCount("Medium") != 23.38) {
-    t.Errorf("analysis.CountAllVulnerabilities().RelativeCount(\"Medium\") => %v, want 23.38", vulnerabilitiesCount.RelativeCount("Medium"))
+  if (vulnerabilitiesCount.RelativeCount("High", true) != 0.26) {
+    t.Errorf("analysis.CountAllVulnerabilities().RelativeCount(\"High\", true) => %v, want 0.26", vulnerabilitiesCount.RelativeCount("High", true))
   }
   
-  if (vulnerabilitiesCount.RelativeCount("Low") != 74.03) {
-    t.Errorf("analysis.CountAllVulnerabilities().RelativeCount(\"Low\") => %v, want 74.03", vulnerabilitiesCount.RelativeCount("Low"))
+  if (vulnerabilitiesCount.RelativeCount("Medium", false) != 23.38) {
+    t.Errorf("analysis.CountAllVulnerabilities().RelativeCount(\"Medium\") => %v, want 23.38", vulnerabilitiesCount.RelativeCount("Medium", false))
+  }
+  
+  if (vulnerabilitiesCount.RelativeCount("Medium", true) != 4.64) {
+    t.Errorf("analysis.CountAllVulnerabilities().RelativeCount(\"Medium\", true) => %v, want 4.64", vulnerabilitiesCount.RelativeCount("Medium", true))
+  }
+  
+  if (vulnerabilitiesCount.RelativeCount("Low", false) != 74.03) {
+    t.Errorf("analysis.CountAllVulnerabilities().RelativeCount(\"Low\") => %v, want 74.03", vulnerabilitiesCount.RelativeCount("Low", false))
+  }
+  
+  if (vulnerabilitiesCount.RelativeCount("Low", true) != 14.69) {
+    t.Errorf("analysis.CountAllVulnerabilities().RelativeCount(\"Low\", true) => %v, want 14.69", vulnerabilitiesCount.RelativeCount("Low", true))
   }
 }
 
