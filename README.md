@@ -30,6 +30,7 @@ hyperclair is tool to make the link between the Docker Registry and the CoreOS C
 ```bash
 # sudo curl -L -o /usr/local/bin/hyperclair  https://github.com/wemanity-belgium/hyperclair/releases/download/0.5.0/hyperclair-{OS}-{ARCH}
 sudo curl -L -o /usr/local/bin/hyperclair  https://github.com/wemanity-belgium/hyperclair/releases/download/0.5.0/hyperclair-linux-amd64
+sudo chmod +x /usr/local/bin/hyperclair
 ```
 
 # Usage
