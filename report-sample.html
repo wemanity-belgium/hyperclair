@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>Clair Control report : {{.ImageName}}</title>
+    <title>Clair Control report : jgsqware/ubuntu-git</title>
 
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,600,600italic,400italic,300italic,300' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css">
@@ -451,56 +451,31 @@
         </header>
 
         <div class="app-intro clearfix">
-            <h2>Image: {{.ImageName}}</h2>
+            <h2>Image: jgsqware/ubuntu-git</h2>
 
             <section class="summary">
                 <div>
-                    {{with $vulnerabilitiesCount := .CountAllVulnerabilities}}
-                    <p><span class="lead"><strong>Total : {{$vulnerabilitiesCount.Total}} vulnerabilities</strong></span></p>
+                    
+                    <p><span class="lead"><strong>Total : 0 vulnerabilities</strong></span></p>
                     </p>
                     <div class="summary-text">
-                        {{if gt $vulnerabilitiesCount.Unknown 0}}
-                        <div class="node Unknown">Unknown : <strong>{{$vulnerabilitiesCount.Unknown}}</strong></div>
-                        {{end}} {{if gt $vulnerabilitiesCount.Negligible 0}}
-                        <div class="node Negligible">Negligible : <strong>{{$vulnerabilitiesCount.Negligible}}</strong></div>
-                        {{end}} {{if gt $vulnerabilitiesCount.Low 0}}
-                        <div class="node Low">Low : <strong>{{$vulnerabilitiesCount.Low}}</strong></div>
-                        {{end}} {{if gt $vulnerabilitiesCount.Medium 0}}
-                        <div class="node Medium">Medium : <strong>{{$vulnerabilitiesCount.Medium}}</strong></div>
-                        {{end}} {{if gt $vulnerabilitiesCount.High 0}}
-                        <div class="node High">High : <strong>{{$vulnerabilitiesCount.High}}</strong></div>
-                        {{end}} {{if gt $vulnerabilitiesCount.Critical 0}}
-                        <div class="node Critical">Critical : <strong>{{$vulnerabilitiesCount.Critical}}</strong></div>
-                        {{end}} {{if gt $vulnerabilitiesCount.Defcon1 0}}
-                        <div class="node Defcon1">Defcon1 : <strong>{{$vulnerabilitiesCount.Defcon1}}</strong></div>
-                        {{end}}
+                              
                     </div>
                     <div class="relative-graph">
-                        <div class="node Defcon1" style="width: {{$vulnerabilitiesCount.RelativeCount " Defcon1 " false}}%"></div>
-                        <div class="node Critical" style="width: {{$vulnerabilitiesCount.RelativeCount " Critical " false}}%"></div>
-                        <div class="node High" style="width: {{$vulnerabilitiesCount.RelativeCount " High " false}}%"></div>
-                        <div class="node Medium" style="width: {{$vulnerabilitiesCount.RelativeCount " Medium " false}}%"></div>
-                        <div class="node Low" style="width: {{$vulnerabilitiesCount.RelativeCount " Low " false}}%"></div>
-                        <div class="node Negligible" style="width: {{$vulnerabilitiesCount.RelativeCount " Negligible " false}}%"></div>
-                        <div class="node Unknown" style="width: {{$vulnerabilitiesCount.RelativeCount " Unknown " false}}%"></div>
+                        <div class="node Defcon1" style="width: NaN%"></div>
+                        <div class="node Critical" style="width: NaN%"></div>
+                        <div class="node High" style="width: NaN%"></div>
+                        <div class="node Medium" style="width: NaN%"></div>
+                        <div class="node Low" style="width: NaN%"></div>
+                        <div class="node Negligible" style="width: NaN%"></div>
+                        <div class="node Unknown" style="width: NaN%"></div>
                     </div>
-                    {{end}}
+                    
                 </div>
             </section>
 
             <div class="graph">
-                {{range .SortVulnerabilities}}
-                <a class="node {{.Severity}}" href="#{{ .Name }}">
-                    <div class="dot"></div>
-                    <div class="popup">
-                        <div><strong>{{.Name}}</strong></div>
-                        <div>{{.Severity}}</div>
-                        <!--<div>{{.IntroduceBy}}</div>-->
-                        <!--<div>{{.Description}}</div>-->
-                        <div>{{.Layer}}</div>
-                    </div>
-                </a>
-                {{end}}
+                
             </div>
         </div>
 
@@ -508,33 +483,17 @@
             <div>
                 <div class="panel">
                     <div class="layers">
-                        {{range .SortLayers}}
-                        <div id="{{.Name}}" class="layer">
-                            <h3 class="layer__title" data-toggle-layer="{{.Name}}">{{.Name}}</h3>
-                            <div>{{.Path}}</div>
+                        
+                        <div id="sha256:a3ed95caeb02ffe68cdd9fd84406680ae93d633cb16422d00e8a7c22955b46d4" class="layer">
+                            <h3 class="layer__title" data-toggle-layer="sha256:a3ed95caeb02ffe68cdd9fd84406680ae93d633cb16422d00e8a7c22955b46d4">sha256:a3ed95caeb02ffe68cdd9fd84406680ae93d633cb16422d00e8a7c22955b46d4</h3>
+                            <div></div>
                             <div class="features">
                                 <ul>
-                                    {{range .Features}}
-                                    <li class="feature">
-                                        <div class="feature__title">
-                                            <strong>{{ .Name }}</strong> <span>{{ .Version }}</span> - <span class="fa fa-{{if .Status}}check-circle{{else}}exclamation-triangle{{end}}" aria-hidden="true"></span>
-                                        </div>
-                                        <ul class="vulnerabilities">
-                                            {{range .Vulnerabilities}}
-                                            <li class="vulnerability {{ .Severity }}">
-                                                <a class="vulnerability__title" name="{{ .Name }}"></a>
-                                                <strong class="name">{{ .Name }}</strong>
-                                                <div>{{ .Description }}</div>
-                                                <a href="{{ .Link }}" target="blank">Link</a>
-                                            </li>
-                                            {{end}}
-                                        </ul>
-                                    </li>
-                                    {{end}}
+                                    
                                 </ul>
                             </div>
                         </div>
-                        {{end}}
+                        
                     </div>
                 </div>
                 <br />

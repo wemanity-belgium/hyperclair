@@ -28,7 +28,7 @@ services:
       - REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE=/ssl/server.pem
 
   clair:
-    build: ./clair
+    image: quay.io/coreos/clair
     volumes:
       - /tmp:/tmp
       - clair-data:/var/local

@@ -25,6 +25,14 @@ hyperclair is tool to make the link between the Docker Registry and the CoreOS C
 
 ![hyperclair](https://cloud.githubusercontent.com/assets/3304363/14174675/348bc190-f746-11e5-9edd-9e736ec38b0e.png)
 
+# Installation
+
+```bash
+# sudo curl -L -o /usr/local/bin/hyperclair  https://github.com/wemanity-belgium/hyperclair/releases/download/0.5.0/hyperclair-{OS}-{ARCH}
+sudo curl -L -o /usr/local/bin/hyperclair  https://github.com/wemanity-belgium/hyperclair/releases/download/0.5.0/hyperclair-linux-amd64
+sudo chmod +x /usr/local/bin/hyperclair
+```
+
 # Usage
 
 [![asciicast](https://asciinema.org/a/41461.png)](https://asciinema.org/a/41461)
@@ -35,6 +43,8 @@ hyperclair is tool to make the link between the Docker Registry and the CoreOS C
 # Reporting
 
 **hyperclair** get vulnerabilities report from Clair and generate HTML report
+
+See [Sample](http://htmlpreview.github.io/?https://github.com/wemanity-belgium/hyperclair/blob/master/report-sample.html)
 
 hyperclair can be used for Docker Hub and self-hosted Registry
 
