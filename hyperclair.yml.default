@@ -6,3 +6,7 @@ clair:
   report:
     path: ./reports
     format: html
+    
+# If hyeprclair ip is empty
+# hyperclair:
+#     interface: native | virtualbox

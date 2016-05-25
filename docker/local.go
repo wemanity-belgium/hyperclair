@@ -35,7 +35,11 @@ func Prepare(im *Image) error {
 	}
 
 	for i, l := range manifestLayerIDs {
-		im.FsLayers = append(im.FsLayers, Layer{BlobSum: l, History: historyLayerIDs[i]})
+		h := historyLayerIDs[i]
+		if h == "<missing>" {
+			h = l
+		}
+		im.FsLayers = append(im.FsLayers, Layer{BlobSum: l, History: h})
 	}
 
 	return nil
