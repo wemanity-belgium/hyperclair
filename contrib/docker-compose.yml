@@ -30,13 +30,14 @@ services:
   clair:
     image: quay.io/coreos/clair
     volumes:
+      - ./config:/config
       - /tmp:/tmp
       - clair-data:/var/local
     ports:
       - 6060:6060
       - 6061:6061
     container_name: "clair"
-    command: --log-level=debug --config=/config/config.yml
+    command: --log-level=debug --config=/config/clair.yml
     # entrypoint: bash
     # tty: true
     
