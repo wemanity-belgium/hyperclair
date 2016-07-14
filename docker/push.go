@@ -21,7 +21,7 @@ func Push(image Image) error {
 	if layerCount == 0 {
 		logrus.Warningln("there is no layer to push")
 	}
-	localIP, err := config.LocalServerIP()
+	localIP, err := config.CallBackAddress()
 	if err != nil {
 		return err
 	}

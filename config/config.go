@@ -275,6 +275,15 @@ func LocalServerIP() (string, error) {
 	return localIP, nil
 }
 
+func CallBackAddress() (string, error) {
+	callback := viper.GetString("hyperclair.callback")
+	if callback != "" {
+		return callback, nil
+	} else {
+		return LocalServerIP()
+	}
+}
+
 func translateInterface(localInterface string) (string, error) {
 	logrus.Debugf("selected interface: %v", localInterface)
 
