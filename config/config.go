@@ -1,15 +1,13 @@
 package config
 
 import (
-	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
+	"net"
 	"os"
-	"os/exec"
 	"os/user"
 	"strings"
 
@@ -23,6 +21,8 @@ import (
 )
 
 var errNoInterfaceProvided = errors.New("could not load configuration: no interface provided")
+var errNoIPv4Address = errors.New("Interface does not have an IPv4 address")
+var errInvalidInterface = errors.New("Interface does not exist")
 var ErrLoginNotFound = errors.New("user is not log in")
 
 type r struct {
@@ -283,124 +283,45 @@ func translateInterface(localInterface string) (string, error) {
 		return "docker0", nil
 	case "virtualbox":
 		return "vboxnet", nil
+	default:
+		_, err := net.InterfaceByName(localInterface)
+		if err != nil {
+			return localInterface, errInvalidInterface
+		} else {
+			return localInterface, nil
+		}
 	}
 
 	return "", errNoInterfaceProvided
 }
 
-//InterfaceIP return the interface ip by running `ip route show | grep inerface | awk {print $9}`
+//InterfaceIP return the IPv4 address for the specified interface
 func InterfaceIP(localInterface string) (string, error) {
-	var localIP bytes.Buffer
+	var myip string
+	netInterface, err := net.InterfaceByName(localInterface)
+	if err != nil {
+		return myip, err
+	}
 
-	if _, err := exec.LookPath("ip"); err != nil {
-		return useIfconfig(localInterface)
+	addrs, err := netInterface.Addrs()
+	if err != nil {
+		return myip, err
 	}
 
-	ip := exec.Command("ip", "route", "show")
-	rGrep, wIP := io.Pipe()
-	grep := exec.Command("grep", localInterface)
-	ip.Stdout = wIP
-	grep.Stdin = rGrep
-	awk := exec.Command("awk", "{print $9}")
-	rAwk, wGrep := io.Pipe()
-	grep.Stdout = wGrep
-	awk.Stdin = rAwk
-	awk.Stdout = &localIP
-	err := ip.Start()
-	if err != nil {
-		return "", err
+	for _, addr := range addrs {
+		ip, _, err := net.ParseCIDR(addr.String())
+		if err != nil {
+			continue
+		}
+		if ip.To4() != nil {
+			myip = ip.String()
+			break
+		}
 	}
-	err = grep.Start()
-	if err != nil {
-		return "", err
-	}
-	err = awk.Start()
-	if err != nil {
-		return "", err
-	}
-	err = ip.Wait()
-	if err != nil {
-		return "", err
-	}
-	err = wIP.Close()
-	if err != nil {
-		return "", err
-	}
-	err = grep.Wait()
-	if err != nil {
-		return "", err
-	}
-	err = wGrep.Close()
-	if err != nil {
-		return "", err
-	}
-	err = awk.Wait()
-	if err != nil {
-		return "", err
-	}
-	return localIP.String(), nil
-}
 
-func useIfconfig(localInterface string) (ipStr string, err error) {
-	var localIP bytes.Buffer
+	if myip == "" {
+		err = errNoIPv4Address
+	}
 
-	ip := exec.Command("ifconfig", localInterface)
-	rGrep, wIP := io.Pipe()
-	grep := exec.Command("grep", "inet addr:")
-	ip.Stdout = wIP
-	grep.Stdin = rGrep
-	rCut, wGrep := io.Pipe()
-	cut := exec.Command("cut", "-d:", "-f2")
-	grep.Stdout = wGrep
-	cut.Stdin = rCut
-	awk := exec.Command("awk", "{print $1}")
-	rAwk, wCut := io.Pipe()
-	cut.Stdout = wCut
-	awk.Stdin = rAwk
-	awk.Stdout = &localIP
-	err = ip.Start()
-	if err != nil {
-		return
-	}
-	err = grep.Start()
-	if err != nil {
-		return
-	}
-	err = cut.Start()
-	if err != nil {
-		return
-	}
-	err = awk.Start()
-	if err != nil {
-		return
-	}
-	err = ip.Wait()
-	if err != nil {
-		return
-	}
-	err = wIP.Close()
-	if err != nil {
-		return
-	}
-	err = grep.Wait()
-	if err != nil {
-		return
-	}
-	err = wGrep.Close()
-	if err != nil {
-		return
-	}
-	err = cut.Wait()
-	if err != nil {
-		return
-	}
-	err = wCut.Close()
-	if err != nil {
-		return
-	}
-	err = awk.Wait()
-	if err != nil {
-		return
-	}
-	return localIP.String(), nil
+	return myip, err
 }
