@@ -24,7 +24,7 @@ var reportCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		analyses := analyse(args[0])
+		analyses := analyse(args[0], insecureRegistry)
 		imageName := strings.Replace(analyses.ImageName, "/", "-", -1) + "-" + analyses.Tag
 		switch clair.Report.Format {
 		case "html":

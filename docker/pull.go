@@ -12,8 +12,8 @@ import (
 )
 
 //Pull Image from Registry or Hub depending on image name
-func Pull(imageName string) (Image, error) {
-	image, err := Parse(imageName)
+func Pull(imageName string, insecure bool) (Image, error) {
+	image, err := Parse(imageName, insecure)
 	if err != nil {
 		return Image{}, err
 	}

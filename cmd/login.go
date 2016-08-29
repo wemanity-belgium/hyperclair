@@ -27,8 +27,12 @@ var loginCmd = &cobra.Command{
 
 		var reg string = docker.DockerHub
 
+		// We are setting http/https scheme depending on insecure registry
+		// For docker hub always https
 		if len(args) == 1 {
-			reg = args[0]
+			reg = fmtRegistryURI(args[0], insecureRegistry)
+		} else {
+			reg = fmtRegistryURI(reg, false)
 		}
 
 		var login config.Login

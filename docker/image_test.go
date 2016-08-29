@@ -7,32 +7,34 @@ import (
 )
 
 var imageNameTests = []struct {
-	in  string
-	out string
+	in       string
+	out      string
+	insecure bool
 }{
-	{"jgsqware/ubuntu-git", hubURI + "/jgsqware/ubuntu-git:latest"},
-	{"wemanity-belgium/registry-backup", hubURI + "/wemanity-belgium/registry-backup:latest"},
-	{"wemanity-belgium/alpine:latest", hubURI + "/wemanity-belgium/alpine:latest"},
-	{"register.com/alpine", "http://register.com/v2/alpine:latest"},
-	{"register.com/wemanity-belgium/alpine", "http://register.com/v2/wemanity-belgium/alpine:latest"},
-	{"register.com/wemanity-belgium/alpine:latest", "http://register.com/v2/wemanity-belgium/alpine:latest"},
-	{"register.com:5080/alpine", "http://register.com:5080/v2/alpine:latest"},
-	{"register.com:5080/wemanity-belgium/alpine", "http://register.com:5080/v2/wemanity-belgium/alpine:latest"},
-	{"register.com:5080/wemanity-belgium/alpine:latest", "http://register.com:5080/v2/wemanity-belgium/alpine:latest"},
-	{"registry:5000/google/cadvisor", "http://registry:5000/v2/google/cadvisor:latest"},
+	{"jgsqware/ubuntu-git", hubURI + "/jgsqware/ubuntu-git:latest", false},
+	{"wemanity-belgium/registry-backup", hubURI + "/wemanity-belgium/registry-backup:latest", false},
+	{"wemanity-belgium/alpine:latest", hubURI + "/wemanity-belgium/alpine:latest", false},
+	{"register.com/alpine", "http://register.com/v2/alpine:latest", true},
+	{"register.com/wemanity-belgium/alpine", "http://register.com/v2/wemanity-belgium/alpine:latest", true},
+	{"register.com/wemanity-belgium/alpine:latest", "http://register.com/v2/wemanity-belgium/alpine:latest", true},
+	{"register.com:5080/alpine", "http://register.com:5080/v2/alpine:latest", true},
+	{"register.com:5080/wemanity-belgium/alpine", "http://register.com:5080/v2/wemanity-belgium/alpine:latest", true},
+	{"register.com:5080/wemanity-belgium/alpine:latest", "http://register.com:5080/v2/wemanity-belgium/alpine:latest", true},
+	{"registry:5000/google/cadvisor", "http://registry:5000/v2/google/cadvisor:latest", true},
 }
 
 var invalidImageNameTests = []struct {
-	in  string
-	out string
+	in       string
+	out      string
+	insecure bool
 }{
-	{"alpine", hubURI + "/alpine:latest"},
-	{"docker.io/golang", hubURI + "/golang:latest"},
+	{"alpine", hubURI + "/alpine:latest", true},
+	{"docker.io/golang", hubURI + "/golang:latest", false},
 }
 
 func TestParse(t *testing.T) {
 	for _, imageName := range imageNameTests {
-		image, err := Parse(imageName.in)
+		image, err := Parse(imageName.in, imageName.insecure)
 		if err != nil {
 			t.Errorf("Parse(\"%s\") should be valid: %v", imageName.in, err)
 		}
@@ -45,7 +47,7 @@ func TestParse(t *testing.T) {
 
 func TestParseDisallowed(t *testing.T) {
 	for _, imageName := range invalidImageNameTests {
-		_, err := Parse(imageName.in)
+		_, err := Parse(imageName.in, imageName.insecure)
 		if err != xerrors.ErrDisallowed {
 			t.Errorf("Parse(\"%s\") should failed with err \"%v\": %v", imageName.in, xerrors.ErrDisallowed, err)
 		}
@@ -53,7 +55,7 @@ func TestParseDisallowed(t *testing.T) {
 }
 
 func TestMBlobstURI(t *testing.T) {
-	image, err := Parse("localhost:5000/alpine")
+	image, err := Parse("localhost:5000/alpine", true)
 
 	if err != nil {
 		t.Error(err)

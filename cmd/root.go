@@ -17,6 +17,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/wemanity-belgium/hyperclair/config"
@@ -24,6 +25,22 @@ import (
 
 var cfgFile string
 var logLevel string
+
+// Format Docker Registry URL
+func fmtRegistryURI(u string, insecure bool) (uri string) {
+	uri = u
+	if !strings.HasPrefix(uri, "http://") && !strings.HasPrefix(uri, "https://") {
+		if insecure {
+			uri = "http://" + uri
+		} else {
+			uri = "https://" + uri
+		}
+	}
+	return uri
+}
+
+// Insecure registry var
+var insecureRegistry bool
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
@@ -49,6 +66,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.hyperclair.yml)")
 	RootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "", "log level [Panic,Fatal,Error,Warn,Info,Debug]")
+	RootCmd.PersistentFlags().BoolVar(&insecureRegistry, "insecure-registry", false, "Use http instead of https if supplied")
 }
 
 func initConfig() {

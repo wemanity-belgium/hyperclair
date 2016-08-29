@@ -32,7 +32,7 @@ var analyseCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		ia := analyse(args[0])
+		ia := analyse(args[0], insecureRegistry)
 
 		err := template.Must(template.New("analysis").Parse(analyseTplt)).Execute(os.Stdout, ia)
 		if err != nil {
@@ -42,12 +42,12 @@ var analyseCmd = &cobra.Command{
 	},
 }
 
-func analyse(imageName string) clair.ImageAnalysis {
+func analyse(imageName string, insecure bool) clair.ImageAnalysis {
 	var err error
 	var image docker.Image
 
 	if !docker.IsLocal {
-		image, err = docker.Pull(imageName)
+		image, err = docker.Pull(imageName, insecure)
 
 		if err != nil {
 			if err == xerrors.NotFound {
@@ -59,7 +59,7 @@ func analyse(imageName string) clair.ImageAnalysis {
 		}
 
 	} else {
-		image, err = docker.Parse(imageName)
+		image, err = docker.Parse(imageName, insecureRegistry)
 		if err != nil {
 			fmt.Println(xerrors.InternalError)
 			logrus.Fatalf("parsing local image %q: %v", imageName, err)
