@@ -67,7 +67,7 @@ func AuthenticateResponse(dockerResponse *http.Response, request *http.Request) 
 		return err
 	}
 
-	l, err := config.GetLogin(strings.Trim(bearerToken["realm"], "/"))
+	l, err := config.GetLogin(fmt.Sprintf("%s://%s", request.URL.Scheme, request.URL.Host))
 	if err != nil {
 		return err
 	}
