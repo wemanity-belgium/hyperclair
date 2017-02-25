@@ -46,7 +46,7 @@ func TmpLocal() string {
 //"alpine"
 //"wemanity-belgium/alpine"
 //"wemanity-belgium/alpine:latest"
-func Parse(image string) (Image, error) {
+func Parse(image string, insecure bool) (Image, error) {
 	imageRegex := regexp.MustCompile(dockerImageRegex)
 
 	if imageRegex.MatchString(image) == false {
@@ -62,15 +62,11 @@ func Parse(image string) (Image, error) {
 
 	if repository == "" && !strings.ContainsAny(registry, ":.") {
 		repository, registry = registry, hubURI //Regex problem, if no registry in url, regex parse repository as registry, so need to invert it
-
 	} else {
-		//FIXME We need to move to https. <error: tls: oversized record received with length 20527>
-		//Maybe using a `insecure-registry` flag in configuration
-		if strings.Contains(registry, "docker") {
-			registry = "https://" + registry + "/v2"
-
-		} else {
+		if insecure {
 			registry = "http://" + registry + "/v2"
+		} else {
+			registry = "https://" + registry + "/v2"
 		}
 	}
 

@@ -44,7 +44,7 @@ var pullCmd = &cobra.Command{
 			os.Exit(1)
 		}
 		im := args[0]
-		image, err := docker.Pull(im)
+		image, err := docker.Pull(im, insecureRegistry)
 		if err != nil {
 			fmt.Println(xerrors.ServiceUnavailable)
 			logrus.Fatalf("pulling image %v: %v", args[0], err)

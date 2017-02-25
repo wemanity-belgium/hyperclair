@@ -30,7 +30,7 @@ var pushCmd = &cobra.Command{
 		var image docker.Image
 		if !docker.IsLocal {
 			var err error
-			image, err = docker.Pull(imageName)
+			image, err = docker.Pull(imageName, insecureRegistry)
 			if err != nil {
 				if err == xerrors.NotFound {
 					fmt.Println(err)
@@ -41,7 +41,8 @@ var pushCmd = &cobra.Command{
 			}
 		} else {
 			var err error
-			image, err = docker.Parse(imageName)
+
+			image, err = docker.Parse(imageName, insecureRegistry)
 			if err != nil {
 				fmt.Println(xerrors.InternalError)
 				logrus.Fatalf("parsing local image %q: %v", imageName, err)

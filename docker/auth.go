@@ -1,12 +1,15 @@
 package docker
 
 import (
+	b64 "encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 	"strings"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/wemanity-belgium/hyperclair/config"
 	"github.com/wemanity-belgium/hyperclair/docker/httpclient"
 	"github.com/wemanity-belgium/hyperclair/xerrors"
@@ -23,9 +26,14 @@ func (tok token) String() string {
 //BearerAuthParams parse Bearer Token on Www-Authenticate header
 func BearerAuthParams(r *http.Response) map[string]string {
 	s := strings.Fields(r.Header.Get("Www-Authenticate"))
-	if len(s) != 2 || s[0] != "Bearer" {
+
+	// Adding Basic authentication support
+	bearer_or_basic, _ := regexp.MatchString("Bearer|Basic", s[0])
+	if len(s) != 2 || !bearer_or_basic {
+		logrus.Fatalf("Authentication Realm is not supported: ", s[0])
 		return nil
 	}
+
 	result := map[string]string{}
 
 	for _, kv := range strings.Split(s[1], ",") {
@@ -40,7 +48,16 @@ func BearerAuthParams(r *http.Response) map[string]string {
 
 func AuthenticateResponse(dockerResponse *http.Response, request *http.Request) error {
 	bearerToken := BearerAuthParams(dockerResponse)
-	url := bearerToken["realm"] + "?service=" + bearerToken["service"]
+	url := ""
+
+	s := strings.Fields(dockerResponse.Header.Get("Www-Authenticate"))
+
+	if s[0] == "Bearer" {
+		url = bearerToken["realm"] + "?service=" + bearerToken["service"]
+	} else {
+		url = bearerToken["realm"] + "v2/"
+	}
+
 	if bearerToken["scope"] != "" {
 		url += "&scope=" + bearerToken["scope"]
 	}
@@ -49,7 +66,8 @@ func AuthenticateResponse(dockerResponse *http.Response, request *http.Request) 
 	if err != nil {
 		return err
 	}
-	l, err := config.GetLogin(request.URL.Host)
+
+	l, err := config.GetLogin(fmt.Sprintf("%s://%s", request.URL.Scheme, request.URL.Host))
 	if err != nil {
 		return err
 	}
@@ -76,13 +94,18 @@ func AuthenticateResponse(dockerResponse *http.Response, request *http.Request) 
 		return err
 	}
 
-	var tok token
-	err = json.Unmarshal(body, &tok)
+	if s[0] == "Bearer" {
+		var tok token
+		err = json.Unmarshal(body, &tok)
 
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
+		request.Header.Set("Authorization", "Bearer "+tok.String())
+	} else {
+		auth := fmt.Sprintf("%s:%s", l.Username, l.Password)
+		request.Header.Set("Authorization", "Basic "+b64.StdEncoding.EncodeToString([]byte(auth)))
 	}
-	request.Header.Set("Authorization", "Bearer "+tok.String())
 
 	return nil
 }
