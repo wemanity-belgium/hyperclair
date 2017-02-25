@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/wemanity-belgium/hyperclair/config"
 	"github.com/wemanity-belgium/hyperclair/docker/httpclient"
 	"github.com/wemanity-belgium/hyperclair/xerrors"
@@ -22,8 +24,11 @@ func (tok token) String() string {
 
 //BearerAuthParams parse Bearer Token on Www-Authenticate header
 func BearerAuthParams(r *http.Response) map[string]string {
-	s := strings.Fields(r.Header.Get("Www-Authenticate"))
+	s := strings.SplitN(r.Header.Get("Www-Authenticate"), " ", 2)
+	logrus.Debug("auth header is ", r.Header.Get("Www-Authenticate"))
 	if len(s) != 2 || s[0] != "Bearer" {
+		// other fields might have spaces in them!
+		logrus.Warn("couldn't find bearer string")
 		return nil
 	}
 	result := map[string]string{}
@@ -40,7 +45,8 @@ func BearerAuthParams(r *http.Response) map[string]string {
 
 func AuthenticateResponse(dockerResponse *http.Response, request *http.Request) error {
 	bearerToken := BearerAuthParams(dockerResponse)
-	url := bearerToken["realm"] + "?service=" + bearerToken["service"]
+	logrus.Debug("bearer token is ", bearerToken)
+	url := bearerToken["realm"] + "?service=" + url.QueryEscape(bearerToken["service"])
 	if bearerToken["scope"] != "" {
 		url += "&scope=" + bearerToken["scope"]
 	}
